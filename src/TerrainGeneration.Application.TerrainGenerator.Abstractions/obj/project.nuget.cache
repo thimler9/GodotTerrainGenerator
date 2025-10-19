@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "y9LuliDq/03j4bT02iUCjBNn+RjeRIErK8gGP2qcXrqWmY8WXCQB04tUAjJPOmXEk4suydFCpUgKj1B7b0t7Ag==",
+  "success": true,
+  "projectFilePath": "F:\\Godot Terrain Generator 2\\TerrainGeneration.Application.TerrainGenerator.Abstractions\\TerrainGeneration.Application.TerrainGenerator.Abstractions.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Tom\\.nuget\\packages\\godotsharp\\4.3.0\\godotsharp.4.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}

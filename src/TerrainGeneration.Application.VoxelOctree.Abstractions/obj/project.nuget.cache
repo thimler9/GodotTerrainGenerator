@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "hjROsGcVirlQ3QBuqaT72SqmoO/31X94cBl6giCuIzUHtrX7v7FHtK2FDZWLF3GGV302efYEyKAbcTzAq938JQ==",
+  "success": true,
+  "projectFilePath": "F:\\Godot Terrain Generator 2\\TerrainGeneration.Application.VoxelOctree.Abstractions\\TerrainGeneration.Application.VoxelOctree.Abstractions.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Tom\\.nuget\\packages\\godotsharp\\4.3.0\\godotsharp.4.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}
