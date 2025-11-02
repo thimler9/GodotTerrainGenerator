@@ -1,0 +1,12 @@
+config_version=5
+
+[application]
+
+config/name="Godot Terrain Generator 2 (4.3)"
+run/main_scene="res://node_3d.tscn"
+config/features=PackedStringArray("4.3", "C#", "Forward Plus")
+config/icon="res://icon.svg"
+
+[dotnet]
+
+project/assembly_name="Godot Terrain Generator 2"
