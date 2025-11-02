@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 public partial class TestMapGenerator : Node3D
 {
     public Vector3 ChunkOffset = new Vector3(128, 128, 128);
-    public uint ChunkSize = 512;
+    public uint ChunkSize = 8;
     public uint Lod = 8;
 
     public override void _Ready()
@@ -16,41 +16,40 @@ public partial class TestMapGenerator : Node3D
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         Rid shader = rd.ShaderCreateFromSpirV(shaderBytecode);
 
-        // Prepare our data. We use floats in the shader, so we need 32 bit.
+        Rid outputBuffer = rd.StorageBufferCreate(ChunkSize * ChunkSize * ChunkSize * sizeof(float));
+        RDUniform outputBufferUniform = new RDUniform
+        {
+            UniformType = RenderingDevice.UniformType.StorageBuffer,
+            Binding = 0
+        };
+        outputBufferUniform.AddId(outputBuffer);
+
+
         Params input = new Params()
         {
             ChunkOffset = ChunkOffset,
             ChunkSize = ChunkSize,
             Lod = Lod
         };
+        byte[] inputBytes = input.ToByteArray();
 
-        // Create a storage buffer that can hold our float values.
-        // Each float has 4 bytes (32 bit) so 10 x 4 = 40 bytes
-        Rid buffer = rd.UniformBufferCreate((uint)input.SizeOf(), input.ToByteArray());
-
-        Rid outputBuffer = rd.StorageBufferCreate(ChunkSize * ChunkSize * ChunkSize * sizeof(float));
-
-        // Create a uniform to assign the buffer to the rendering device
-        RDUniform uniform = new RDUniform
+        Rid parametersBuffer = rd.UniformBufferCreate((uint)input.SizeOf(), inputBytes);
+        RDUniform parametersUniform = new RDUniform
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,
             Binding = 0
         };
-        uniform.AddId(buffer);
+        parametersUniform.AddId(parametersBuffer);
 
-        RDUniform uniform2 = new RDUniform
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 1
-        };
-
-        Rid uniformSet = rd.UniformSetCreate([uniform, uniform2], shader, 0);
+        Rid outputUniformSet = rd.UniformSetCreate([outputBufferUniform], shader, 0);
+        Rid paramsUniformSet = rd.UniformSetCreate([parametersUniform], shader, 1); 
 
         // Create a compute pipeline
         Rid pipeline = rd.ComputePipelineCreate(shader);
         long computeList = rd.ComputeListBegin();
         rd.ComputeListBindComputePipeline(computeList, pipeline);
-        rd.ComputeListBindUniformSet(computeList, uniformSet, 0);
+        rd.ComputeListBindUniformSet(computeList, outputUniformSet, 0);
+        rd.ComputeListBindUniformSet(computeList, paramsUniformSet, 1);
         rd.ComputeListDispatch(computeList, xGroups: ChunkSize / 8, yGroups: ChunkSize / 8, zGroups: ChunkSize / 8);
         rd.ComputeListEnd();
 
@@ -59,29 +58,39 @@ public partial class TestMapGenerator : Node3D
 
         // Read back the data from the buffers
         var outputBytes = rd.BufferGetData(outputBuffer);
-        var output = new float[10];
-        Buffer.BlockCopy(outputBytes, 0, output, 0, outputBytes.Length);
-        GD.Print("Input: ", string.Join(", ", input));
+        var output = new float[ChunkSize];
+        Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
         GD.Print("Output: ", string.Join(", ", output));
 
         rd.FreeRid(pipeline);
-        rd.FreeRid(uniformSet);
-        rd.FreeRid(buffer);
+        rd.FreeRid(outputUniformSet);
+        rd.FreeRid(paramsUniformSet);
+        rd.FreeRid(parametersBuffer);
         rd.FreeRid(outputBuffer);
         rd.FreeRid(shader);
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Explicit, Pack = 32)]
     private struct Params
     {
+        [FieldOffset(0)]
         public Vector3 ChunkOffset;
+
+        [FieldOffset(12)]
+        private uint Padding;
+
+        [FieldOffset(16)]
         public uint ChunkSize;
+
+        [FieldOffset(24)]
         public uint Lod;
-        public Vector3 Padding;
+
+        [FieldOffset(28)]
+        private Vector2 Padding2;
 
         public int SizeOf()
         {
-            return 3 * sizeof(float) + sizeof(uint) + sizeof(uint) + 3 * sizeof(float);
+            return Marshal.SizeOf<Params>();
         }
 
         public byte[] ToByteArray()
