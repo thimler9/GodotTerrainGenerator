@@ -1,0 +1,6 @@
+// Source - https://stackoverflow.com/a
+// Posted by Guru Stron, modified by community. See post 'Timeline' for change history
+// Retrieved 2025-11-09, License - CC BY-SA 4.0
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning

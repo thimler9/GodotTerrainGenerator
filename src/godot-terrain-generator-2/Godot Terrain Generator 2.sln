@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerrainGeneration.Applicati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerrainGeneration.Utilities", "..\TerrainGeneration.Utilities\TerrainGeneration.Utilities.csproj", "{C54C2239-8279-4726-9320-591458F26A04}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainGeneration.Application.SDFGenerator", "..\SDFGenerator\TerrainGeneration.Application.SDFGenerator.csproj", "{155DABAE-F78E-435B-9DB7-CD35DBE74942}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,14 @@ Global
 		{C54C2239-8279-4726-9320-591458F26A04}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
 		{C54C2239-8279-4726-9320-591458F26A04}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C54C2239-8279-4726-9320-591458F26A04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.ExportDebug|Any CPU.ActiveCfg = Release|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.ExportDebug|Any CPU.Build.0 = Release|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.ExportRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.ExportRelease|Any CPU.Build.0 = Release|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
