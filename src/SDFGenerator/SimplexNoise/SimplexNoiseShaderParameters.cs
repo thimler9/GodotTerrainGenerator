@@ -96,4 +96,13 @@ public struct SimplexNoiseShaderParameters
             Lacunarity.FuzzyEquals(other.Lacunarity) &&
             Gain.FuzzyEquals(other.Gain);
     }
+    public static bool operator ==(SimplexNoiseShaderParameters left, SimplexNoiseShaderParameters right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(SimplexNoiseShaderParameters left, SimplexNoiseShaderParameters right)
+    {
+        return !(left == right);
+    }
 }

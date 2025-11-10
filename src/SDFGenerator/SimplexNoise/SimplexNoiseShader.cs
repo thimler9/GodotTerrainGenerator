@@ -12,10 +12,13 @@ public class SimplexNoiseShader
     public readonly string ShaderPath;
     public Rid Shader;
     public Rid Pipeline;
+
     public SimplexNoiseShaderParameters? Parameters = null;
     public Rid ParametersBuffer;
     public RDUniform ParametersUniform;
     public Rid ParametersUniformSet;
+
+    public Rid SDFParamtersUniformSet;
     public Rid OutputUniformSet;
 
     /// <summary>
@@ -25,7 +28,7 @@ public class SimplexNoiseShader
     /// <param name="shaderPath"></param>
     /// <param name="parameters"></param>
     /// <param name="outputUniformSet"></param>
-    public SimplexNoiseShader(RenderingDevice rd, SimplexNoiseShaderDescriptor descriptor, RDUniform outputUniform)
+    public SimplexNoiseShader(RenderingDevice rd, SimplexNoiseShaderDescriptor descriptor, RDUniform sdfUniform, RDUniform outputUniform)
     {
         if (string.IsNullOrWhiteSpace(descriptor.ShaderPath))
         {
@@ -53,9 +56,10 @@ public class SimplexNoiseShader
             Binding = 0
         };
         ParametersUniform.AddId(ParametersBuffer);
-        ParametersUniformSet = rd.UniformSetCreate([ParametersUniform], Shader, 0);
 
-        OutputUniformSet = rd.UniformSetCreate([outputUniform], Shader, 0);
+        ParametersUniformSet = rd.UniformSetCreate([ParametersUniform], Shader, 0);
+        SDFParamtersUniformSet = rd.UniformSetCreate([sdfUniform], Shader, 1);
+        OutputUniformSet = rd.UniformSetCreate([outputUniform], Shader, 2);
     }
 
     /// <summary>
@@ -94,7 +98,8 @@ public class SimplexNoiseShader
 
         rd.ComputeListBindComputePipeline(computeList, Pipeline);
         rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
-        rd.ComputeListBindUniformSet(computeList, OutputUniformSet, 1);
+        rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, 1);
+        rd.ComputeListBindUniformSet(computeList, OutputUniformSet, 2);
         rd.ComputeListDispatch(computeList, xGroups: chunkSize / 8, yGroups: chunkSize / 8, zGroups: chunkSize / 8);
         rd.ComputeListEnd();
     }
@@ -109,6 +114,7 @@ public class SimplexNoiseShader
         rd.FreeRid(ParametersUniformSet);
         rd.FreeRid(ParametersBuffer);
         rd.FreeRid(OutputUniformSet);
+        rd.FreeRid(SDFParamtersUniformSet);
         rd.FreeRid(Shader);
     }
 }

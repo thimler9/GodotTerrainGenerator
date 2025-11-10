@@ -8,6 +8,7 @@ using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 namespace TerrainGeneration.Application.SDFGenerator;
 public class SDFGeneratorSettings
 {
-    public SimplexNoiseShaderDescriptor SimplexNoiseShaderDescriptor;
+    public SimplexNoiseShaderDescriptor? SimplexNoiseShaderDescriptor;
+    public SDFShaderParameters SDFShaderParameters;
     public uint ChunkSize;
 }
