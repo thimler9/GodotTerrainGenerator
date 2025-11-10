@@ -5,11 +5,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Godot;
+using TerrainGeneration.Utilities.Math.Extensions;
 
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct SimplexNoiseParameters
+public struct SimplexNoiseShaderParameters
 {
     [FieldOffset(0)]
     public readonly Vector3 Offset;
@@ -40,7 +41,7 @@ public struct SimplexNoiseParameters
     [FieldOffset(52)]
     public readonly Vector3 Padding;
 
-    public SimplexNoiseParameters(Vector3 offset, uint seed, Vector3 scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
+    public SimplexNoiseShaderParameters(Vector3 offset, uint seed, Vector3 scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
     {
         //TODO: Add Validation
 
@@ -57,7 +58,7 @@ public struct SimplexNoiseParameters
 
     public byte[] ToByteArray()
     {
-        int size = Marshal.SizeOf<SimplexNoiseParameters>();
+        int size = Marshal.SizeOf<SimplexNoiseShaderParameters>();
         byte[] arr = new byte[size];
 
         IntPtr ptr = IntPtr.Zero;
@@ -73,5 +74,26 @@ public struct SimplexNoiseParameters
         }
 
         return arr;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj == null || !(obj is SimplexNoiseShaderParameters))
+        {
+            return false;
+        }
+
+        SimplexNoiseShaderParameters other = (SimplexNoiseShaderParameters)obj;
+
+        return 
+            Offset.FuzzyEquals(other.Offset) &&
+            Seed == other.Seed &&
+            Scale.FuzzyEquals(other.Scale) &&
+            Strength.FuzzyEquals(other.Strength) &&
+            NumOctaves == other.NumOctaves &&
+            Frequency.FuzzyEquals(other.Frequency) &&
+            Amplitude.FuzzyEquals(other.Amplitude) &&
+            Lacunarity.FuzzyEquals(other.Lacunarity) &&
+            Gain.FuzzyEquals(other.Gain);
     }
 }

@@ -11,23 +11,49 @@ namespace TerrainGeneration.Application.SDFGenerator
 
     public class SDFGenerator
     {
-        RenderingDevice rd;
+        RenderingDevice Rd;
+        uint ChunkSize;
+
+        RDUniform OutputBufferUniform;
+        Rid OutputBuffer;
 
 
-        Rid simplexNoiseShader;
+        SimplexNoiseShader SimplexNoiseShader;
 
-        public SDFGenerator(string simplexNoiseShaderPath)
+        public SDFGenerator(SDFGeneratorSettings settings)
         {
-            rd = RenderingServer.CreateLocalRenderingDevice();
+            if (settings.ChunkSize / 8 == 0)
+            {
+                throw new ArgumentException($"{nameof(settings.ChunkSize)} / 8 must be positive. {nameof(settings.ChunkSize)} = {settings.ChunkSize}");
+            }
 
-            RDShaderFile simplexNoiseFile = GD.Load<RDShaderFile>(simplexNoiseShaderPath);
-            RDShaderSpirV simplexNoiseByteCode = simplexNoiseFile.GetSpirV();
-            simplexNoiseShader = rd.ShaderCreateFromSpirV(simplexNoiseByteCode);
+            Rd = RenderingServer.CreateLocalRenderingDevice();
+            Rid outputBuffer = Rd.StorageBufferCreate(ChunkSize * ChunkSize * ChunkSize * sizeof(float));
+            RDUniform outputBufferUniform = new RDUniform()
+            {
+                UniformType = RenderingDevice.UniformType.StorageBuffer,
+                Binding = 0
+            };
+            outputBufferUniform.AddId(outputBuffer);
+            OutputBufferUniform = outputBufferUniform;
+            OutputBuffer = outputBuffer;
+
+            SimplexNoiseShader = new SimplexNoiseShader(Rd, settings.SimplexNoiseShaderDescriptor, outputBufferUniform);
         }
 
-        public void SimplexNoise(SimplexNoiseParameters parameters)
+        public void SimplexNoise(SimplexNoiseShaderParameters parameters, long computeList)
         {
+            SimplexNoiseShader.Dispatch(Rd, computeList, ChunkSize);
+        }
 
+        public void Dispose()
+        {
+            // Free the shaders
+            SimplexNoiseShader.Dispose(Rd);
+
+
+            Rd.FreeRid(OutputBuffer);
+            Rd.Free();
         }
     }
 }

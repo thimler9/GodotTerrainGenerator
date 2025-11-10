@@ -12,24 +12,41 @@ public class SimplexNoiseShader
     public readonly string ShaderPath;
     public Rid Shader;
     public Rid Pipeline;
-    public SimplexNoiseParameters? Parameters = null;
+    public SimplexNoiseShaderParameters? Parameters = null;
     public Rid ParametersBuffer;
     public RDUniform ParametersUniform;
     public Rid ParametersUniformSet;
     public Rid OutputUniformSet;
 
-    public SimplexNoiseShader(RenderingDevice rd, string shaderPath, SimplexNoiseParameters parameters, Rid outputUniformSet)
+    /// <summary>
+    /// Creates a SimplexNoiseShader. Used to take in the map buffer, and apply the inputted simplex noise to the map. 
+    /// </summary>
+    /// <param name="rd"></param>
+    /// <param name="shaderPath"></param>
+    /// <param name="parameters"></param>
+    /// <param name="outputUniformSet"></param>
+    public SimplexNoiseShader(RenderingDevice rd, SimplexNoiseShaderDescriptor descriptor, RDUniform outputUniform)
     {
-        ShaderPath = shaderPath;
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(shaderPath);
+        if (string.IsNullOrWhiteSpace(descriptor.ShaderPath))
+        {
+            throw new ArgumentNullException(nameof(descriptor.ShaderPath), "Cannot be null or whitespace");
+        }
+
+        if (rd == null)
+        {
+            throw new ArgumentNullException(nameof(rd), "Cannot be null");
+        }
+
+        ShaderPath = descriptor.ShaderPath;
+        RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
         Pipeline = rd.ComputePipelineCreate(Shader);
 
         // Set Paramters
-        Parameters = parameters;
-        byte[] parameterBytes = parameters.ToByteArray();
-        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseParameters>(), parameterBytes);
+        Parameters = descriptor.Parameters;
+        byte[] parameterBytes = descriptor.Parameters.ToByteArray();
+        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), parameterBytes);
         ParametersUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,
@@ -38,12 +55,24 @@ public class SimplexNoiseShader
         ParametersUniform.AddId(ParametersBuffer);
         ParametersUniformSet = rd.UniformSetCreate([ParametersUniform], Shader, 0);
 
-        OutputUniformSet = outputUniformSet;
+        OutputUniformSet = rd.UniformSetCreate([outputUniform], Shader, 0);
     }
 
-    public void SetParameters(SimplexNoiseParameters parameters)
+    /// <summary>
+    /// Sets the parameters buffer to the new inputted parameters.
+    /// </summary>
+    /// <param name="rd"></param>
+    /// <param name="parameters"></param>
+    public void SetParameters(RenderingDevice rd, SimplexNoiseShaderParameters parameters)
     {
-        
+        if (!this.Parameters.Equals(parameters))
+        {
+            rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), parameters.ToByteArray());
+        }
+        else
+        {
+            GD.PrintErr($"{nameof(parameters)} was not different when trying to change SimplexNoiseShaderParameters.");
+        }
     }
 
     /// <summary>
@@ -70,11 +99,16 @@ public class SimplexNoiseShader
         rd.ComputeListEnd();
     }
 
+    /// <summary>
+    /// Disposes all necessary resources for the shader
+    /// </summary>
+    /// <param name="rd"></param>
     public void Dispose(RenderingDevice rd)
     {
         rd.FreeRid(Pipeline);
         rd.FreeRid(ParametersUniformSet);
-        rd.FreeRid(ParametersUniform);
+        rd.FreeRid(ParametersBuffer);
+        rd.FreeRid(OutputUniformSet);
         rd.FreeRid(Shader);
     }
 }
