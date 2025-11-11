@@ -13,7 +13,7 @@ namespace TerrainGeneration.Application.SDFGenerator
     public class SDFGenerator
     {
         RenderingDevice Rd;
-        uint ChunkSize;
+        SDFShaderParameters SDFShaderParameters;
 
         RDUniform OutputBufferUniform;
         Rid OutputBuffer;
@@ -36,9 +36,10 @@ namespace TerrainGeneration.Application.SDFGenerator
             }
 
             Rd = RenderingServer.CreateLocalRenderingDevice();
+            SDFShaderParameters = settings.SDFShaderParameters;
 
             // Create the output buffer used throughout calculations
-            Rid outputBuffer = Rd.StorageBufferCreate(ChunkSize * ChunkSize * ChunkSize * sizeof(float));
+            Rid outputBuffer = Rd.StorageBufferCreate(SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * sizeof(float));
             OutputBufferUniform = new RDUniform()
             {
                 UniformType = RenderingDevice.UniformType.StorageBuffer,
@@ -61,9 +62,37 @@ namespace TerrainGeneration.Application.SDFGenerator
             SimplexNoiseShader = new SimplexNoiseShader(Rd, settings.SimplexNoiseShaderDescriptor, SDFParametersUniform, OutputBufferUniform);
         }
 
-        public void SimplexNoise(SimplexNoiseShaderParameters parameters, long computeList)
+        public void SetParameters(SDFShaderParameters parameters)
         {
-            SimplexNoiseShader.Dispatch(Rd, computeList, ChunkSize);
+            if (!this.SDFShaderParameters.Equals(parameters))
+            {
+                Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
+            }
+        }
+
+        public void DispatchShaders()
+        {
+            long computeList = Rd.ComputeListBegin();
+            
+            // Run the shaders
+            SimplexNoise(computeList);
+
+            Rd.ComputeListEnd();
+            Rd.Submit();
+            Rd.Sync();
+        }
+
+        private void SimplexNoise(long computeList)
+        {
+            SimplexNoiseShader.Dispatch(Rd, computeList, SDFShaderParameters.ChunkSize, SDFShaderParameters.Lod);
+        }
+
+        public void PrintOutBuffer()
+        {
+            var outputBytes = Rd.BufferGetData(OutputBuffer);
+            var output = new float[SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * sizeof(float)];
+            Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
+            GD.Print("Output: ", string.Join(", ", output));
         }
 
         public void Dispose()

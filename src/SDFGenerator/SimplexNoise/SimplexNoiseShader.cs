@@ -84,16 +84,16 @@ public class SimplexNoiseShader
     /// </summary>
     /// <param name="computeList"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void Dispatch(RenderingDevice rd, long computeList, uint chunkSize)
+    public void Dispatch(RenderingDevice rd, long computeList, uint chunkSize, uint lod)
     {
         if (Parameters == null)
         {
             throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
         }
 
-        if (chunkSize / 8 == 0)
+        if (chunkSize / (8 * lod)  == 0)
         {
-            throw new ArgumentException($"{nameof(chunkSize)} / 8 must be positive. {nameof(chunkSize)} = {chunkSize}");
+            throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
         rd.ComputeListBindComputePipeline(computeList, Pipeline);
@@ -101,7 +101,6 @@ public class SimplexNoiseShader
         rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, 1);
         rd.ComputeListBindUniformSet(computeList, OutputUniformSet, 2);
         rd.ComputeListDispatch(computeList, xGroups: chunkSize / 8, yGroups: chunkSize / 8, zGroups: chunkSize / 8);
-        rd.ComputeListEnd();
     }
 
     /// <summary>

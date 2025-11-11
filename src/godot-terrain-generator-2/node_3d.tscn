@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://by3njmv77rwgh"]
 
-[ext_resource type="Script" uid="uid://cf7jwr2i2uj2g" path="res://TestMapGenerator.cs" id="1_a202f"]
+[ext_resource type="Script" uid="uid://coljbm2b5lq1r" path="res://TestSimplexNoiseShader.cs" id="1_a202f"]
 
 [node name="Node3D" type="Node3D"]
 script = ExtResource("1_a202f")

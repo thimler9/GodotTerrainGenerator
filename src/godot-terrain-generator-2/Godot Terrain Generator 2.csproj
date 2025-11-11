@@ -10,4 +10,7 @@
   <ItemGroup>
     <None Include="Shaders\Graphic\compute_example.glsl" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SDFGenerator\TerrainGeneration.Application.SDFGenerator.csproj" />
+  </ItemGroup>
 </Project>
