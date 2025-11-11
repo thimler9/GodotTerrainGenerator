@@ -18,30 +18,30 @@ public struct SimplexNoiseShaderParameters
     public readonly uint Seed;
 
     [FieldOffset(16)]
-    public readonly Vector3 Scale;
+    public readonly float Scale;
 
-    [FieldOffset(28)]
+    [FieldOffset(20)]
     public readonly float Strength;
 
-    [FieldOffset(32)]
+    [FieldOffset(24)]
     public readonly uint NumOctaves;
 
-    [FieldOffset(36)]
+    [FieldOffset(28)]
     public readonly float Frequency;
 
-    [FieldOffset(40)]
+    [FieldOffset(32)]
     public readonly float Amplitude;
 
-    [FieldOffset(44)]
+    [FieldOffset(36)]
     public readonly float Lacunarity;
 
-    [FieldOffset(48)]
+    [FieldOffset(40)]
     public readonly float Gain;
 
-    [FieldOffset(52)]
-    public readonly Vector3 Padding;
+    [FieldOffset(44)]
+    public readonly uint Padding;
 
-    public SimplexNoiseShaderParameters(Vector3 offset, uint seed, Vector3 scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
+    public SimplexNoiseShaderParameters(Vector3 offset, uint seed, float scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
     {
         //TODO: Add Validation
 

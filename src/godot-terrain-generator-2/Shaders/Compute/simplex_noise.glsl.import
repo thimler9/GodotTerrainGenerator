@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cb3as47lmrq46"
+path="res://.godot/imported/simplex_noise.glsl-9f4102938c86e18a5252a1491d48d0be.res"
+
+[deps]
+
+source_file="res://Shaders/Compute/simplex_noise.glsl"
+dest_files=["res://.godot/imported/simplex_noise.glsl-9f4102938c86e18a5252a1491d48d0be.res"]
+
+[params]
+
