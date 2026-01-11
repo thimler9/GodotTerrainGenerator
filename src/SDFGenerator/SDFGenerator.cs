@@ -23,6 +23,12 @@ namespace TerrainGeneration.Application.SDFGenerator
 
         SimplexNoiseShader SimplexNoiseShader;
 
+        /// <summary>
+        /// Create an SDFGenerator; dispatches compute shader for some sdf function.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
         public SDFGenerator(SDFGeneratorSettings settings)
         {
             if (settings.ChunkSize / 8 == 0)

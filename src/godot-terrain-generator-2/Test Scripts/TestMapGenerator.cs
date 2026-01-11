@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
-public partial class TestSimplexNoiseShader : Node3D
+public partial class TestMapGenerator : Node3D
 {
     public uint ChunkSize = 8;
     public uint Lod = 1;
