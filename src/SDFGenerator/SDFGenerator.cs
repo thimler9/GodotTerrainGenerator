@@ -90,9 +90,10 @@ namespace TerrainGeneration.Application.SDFGenerator
         public void PrintOutBuffer()
         {
             var outputBytes = Rd.BufferGetData(OutputBuffer);
-            var output = new float[SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * sizeof(float)];
+            var output = new float[SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize];
             Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
             GD.Print("Output: ", string.Join(", ", output));
+            Console.WriteLine(string.Join(", ", output));
         }
 
         public void Dispose()

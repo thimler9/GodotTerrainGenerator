@@ -31,7 +31,7 @@ public struct SDFShaderParameters
 
     public byte[] ToByteArray()
     {
-        int size = Marshal.SizeOf<SimplexNoiseShaderParameters>();
+        int size = Marshal.SizeOf<SDFShaderParameters>();
         byte[] arr = new byte[size];
 
         IntPtr ptr = IntPtr.Zero;
@@ -51,7 +51,7 @@ public struct SDFShaderParameters
 
     public override bool Equals(object? obj)
     {
-        if (obj == null || !(obj is SimplexNoiseShaderParameters))
+        if (obj == null || !(obj is SDFShaderParameters))
         {
             return false;
         }

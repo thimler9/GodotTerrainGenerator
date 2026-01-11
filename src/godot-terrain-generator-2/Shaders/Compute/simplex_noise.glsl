@@ -104,11 +104,11 @@ float snoise(vec3 v){
 }
 
 uint wang_hash(uint seed) {
-    seed = (seed ^ 61) ^ (seed >> 16);
-    seed *= 9;
-    seed = seed ^ (seed >> 4);
-    seed *= 0x27d4eb2d;
-    seed = seed ^ (seed >> 15);
+    seed = (seed ^ 61u) ^ (seed >> 16u);
+    seed *= 9u;
+    seed = seed ^ (seed >> 4u);
+    seed *= 0x27d4eb2du;
+    seed = seed ^ (seed >> 15u);
     return seed;
 }
 
@@ -122,18 +122,18 @@ void main() {
     float scale = params.scale;
     float frequency = params.frequency;
     float amplitude = params.amplitude;
-    float num_octaves = params.num_octaves;
+    uint num_octaves = params.num_octaves;
     float lacunarity = params.lacunarity;
     float gain = params.gain;
     uint seed = params.seed;
 
     for (uint i = 0; i < num_octaves; i = i + 1)
     {
-        float octave_offset_x = wang_hash(seed) + params.chunk_offset.x;
+        float octave_offset_x = uintBitsToFloat(wang_hash(seed)) + params.chunk_offset.x;
         seed = seed + 1;
-        float octave_offset_y = wang_hash(seed) + params.chunk_offset.y;
+        float octave_offset_y = uintBitsToFloat(wang_hash(seed)) + params.chunk_offset.y;
         seed = seed + 1;
-        float octave_offset_z = wang_hash(seed) + params.chunk_offset.z;
+        float octave_offset_z = uintBitsToFloat(wang_hash(seed)) + params.chunk_offset.z;
         seed = seed + 1;
 
         float sample_x = (float(id.x * sdfParams.lod) + octave_offset_x) / scale * frequency;
@@ -148,5 +148,5 @@ void main() {
         frequency = frequency * lacunarity;
     }
     
-    output_buffer.data[array_index] = float(array_index);
+    output_buffer.data[array_index] = float(noise_height);
 }
