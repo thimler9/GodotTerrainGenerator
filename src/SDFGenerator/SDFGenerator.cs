@@ -130,9 +130,9 @@ namespace TerrainGeneration.Application.SDFGenerator
             Rd.Free();
         }
     
-        public Rid GetSDFBuffer()
+        public RDUniform GetSDFBufferUniform()
         {
-            return OutputBuffer; 
+            return OutputBufferUniform; 
         }
     }
 }

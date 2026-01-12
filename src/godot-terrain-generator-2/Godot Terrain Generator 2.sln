@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Godot Terrain Generator 2", "Godot Terrain Generator 2.csproj", "{C245D688-A937-4E02-9E06-9A9DC6D236DA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{677E46FF-D5D8-4A97-8E5A-90746E631D8D} = {677E46FF-D5D8-4A97-8E5A-90746E631D8D}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerrainGeneration.Application.TerrainGenerator", "..\TerrainGeneration.Application.TerrainGenerator\TerrainGeneration.Application.TerrainGenerator.csproj", "{677E46FF-D5D8-4A97-8E5A-90746E631D8D}"
 	ProjectSection(ProjectDependencies) = postProject

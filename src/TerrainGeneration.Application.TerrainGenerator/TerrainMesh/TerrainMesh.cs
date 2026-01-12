@@ -28,10 +28,15 @@ internal class TerrainMesh
         sdfGenerator.DispatchShaders(parameters.SDFShaderParameters);
 
         // Get Normals Buffer
-        Rid sdfBuffer = sdfGenerator.GetSDFBuffer();
+        RDUniform sdfBufferUniform = sdfGenerator.GetSDFBufferUniform();
 
+        NormalsShader.NormalsShader? normalsShader = parameters.NormalsShader;
+        if (normalsShader == null)
+        {
+            throw new ArgumentNullException($"{nameof(normalsShader)} cannot be null.");
+        }
 
-
+        normalsShader.Dispatch(parameters.NormalsShaderParameters, sdfBufferUniform);
         // Get Vertex Buffer
         
         // Get Indirect Args Buffer

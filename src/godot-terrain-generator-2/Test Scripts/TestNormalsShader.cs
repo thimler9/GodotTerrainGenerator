@@ -4,7 +4,9 @@ using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
-public partial class TestSimplexNoiseShader : Node3D
+using TerrainGeneration.Application.TerrainGenerator;
+
+public partial class TestNormalsShader : Node3D
 {
     public uint ChunkSize = 8;
     public uint Lod = 1;
@@ -21,7 +23,7 @@ public partial class TestSimplexNoiseShader : Node3D
 
     public override void _Ready()
     {
-        SDFShaderParameters sDFShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
+        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
             ChunkOffset,
             Seed,
@@ -42,12 +44,16 @@ public partial class TestSimplexNoiseShader : Node3D
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
             ChunkSize = ChunkSize,
-            SDFShaderParameters = sDFShaderParameters,
+            SDFShaderParameters = sdfShaderParameters,
             SimplexNoiseShaderDescriptor = simplexNoiseShaderDescriptor
         };
         SDFGenerator sdfGenerator = new SDFGenerator(sdfGeneratorSettings);
 
-        sdfGenerator.DispatchShaders(sDFShaderParameters);
+        sdfGenerator.DispatchShaders(sdfShaderParameters);
         sdfGenerator.PrintOutBuffer();
+
+        RDUniform sdfBuffer = sdfGenerator.GetSDFBufferUniform();
+        
+        
     }
 }
