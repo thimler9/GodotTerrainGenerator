@@ -5,13 +5,14 @@
     <RootNamespace>GodotTerrainGenerator2</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Test Scripts\" />
-    <Folder Include="Shaders\Compute\" />
+	  <Folder Include="Test Scripts\" />
+	  <Folder Include="Shaders\Compute\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Graphic\compute_example.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SDFGenerator\TerrainGeneration.Application.SDFGenerator.csproj" />
+    <ProjectReference Include="..\TerrainGeneration.Application.TerrainGenerator\TerrainGeneration.Application.TerrainGenerator.csproj" />
   </ItemGroup>
 </Project>
