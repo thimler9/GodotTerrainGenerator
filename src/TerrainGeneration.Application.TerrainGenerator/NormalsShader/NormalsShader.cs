@@ -10,7 +10,7 @@ using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.TerrainGenerator.NormalsShader;
-internal class NormalsShader
+public class NormalsShader
 {
     private RenderingDevice Rd;
     private string ShaderPath;
@@ -106,7 +106,7 @@ internal class NormalsShader
         }
     }
 
-    public void RunNormalsShader(long computeList, RDUniform inputSDFUniform)
+    private void RunNormalsShader(long computeList, RDUniform inputSDFUniform)
     {
         if (Parameters == null)
         {
@@ -156,8 +156,8 @@ internal class NormalsShader
         }
 
         var outputBytes = Rd.BufferGetData(OutputNormalsBuffer);
-        var output = new Vector3[(Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1)];
-        Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float) * 3);
+        float[] output = new float[(Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * 3];
+        Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
         GD.Print("Output: ", string.Join(", ", output));
         Console.WriteLine(string.Join(", ", output));
     }

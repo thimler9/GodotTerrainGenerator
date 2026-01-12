@@ -28,7 +28,7 @@ internal class TerrainMesh
         sdfGenerator.DispatchShaders(parameters.SDFShaderParameters);
 
         // Get Normals Buffer
-        RDUniform sdfBufferUniform = sdfGenerator.GetSDFBufferUniform();
+        RDUniform sdfBufferUniform = sdfGenerator.OutputBufferUniform;
 
         NormalsShader.NormalsShader? normalsShader = parameters.NormalsShader;
         if (normalsShader == null)

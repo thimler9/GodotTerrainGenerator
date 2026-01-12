@@ -12,10 +12,10 @@ namespace TerrainGeneration.Application.SDFGenerator
 
     public class SDFGenerator
     {
-        RenderingDevice Rd;
+        public RenderingDevice Rd { get; set; }
         SDFShaderParameters SDFShaderParameters;
 
-        RDUniform OutputBufferUniform;
+        public RDUniform OutputBufferUniform { get; set; }
         Rid OutputBuffer;
 
         RDUniform SDFParametersUniform;
@@ -128,11 +128,6 @@ namespace TerrainGeneration.Application.SDFGenerator
             Rd.FreeRid(SDFParametersBuffer);
             Rd.FreeRid(OutputBuffer);
             Rd.Free();
-        }
-    
-        public RDUniform GetSDFBufferUniform()
-        {
-            return OutputBufferUniform; 
         }
     }
 }

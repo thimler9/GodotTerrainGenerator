@@ -5,6 +5,7 @@ using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 using TerrainGeneration.Application.TerrainGenerator;
+using TerrainGeneration.Application.TerrainGenerator.NormalsShader;
 
 public partial class TestNormalsShader : Node3D
 {
@@ -52,8 +53,24 @@ public partial class TestNormalsShader : Node3D
         sdfGenerator.DispatchShaders(sdfShaderParameters);
         sdfGenerator.PrintOutBuffer();
 
-        RDUniform sdfBuffer = sdfGenerator.GetSDFBufferUniform();
-        
-        
+
+        // ---- Get normals
+        RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
+        RDUniform sdfBufferUniform = sdfGenerator.OutputBufferUniform;
+
+        NormalsShaderParameters normalsParaters = new NormalsShaderParameters()
+        {
+            ChunkSize = ChunkSize,
+            Lod = Lod,
+        };
+        NormalsShaderDescriptor normalsDescriptor = new NormalsShaderDescriptor()
+        {
+            Parameters = normalsParaters,
+            ShaderPath = "res://Shaders/Compute/normal_generator.glsl"
+        };
+
+        NormalsShader normalsShader = new NormalsShader(sdfGenerator.Rd, normalsDescriptor);
+        normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
+        normalsShader.PrintOutBuffer();
     }
 }

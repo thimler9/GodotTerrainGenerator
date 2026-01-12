@@ -10,7 +10,7 @@ using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 namespace TerrainGeneration.Application.TerrainGenerator.NormalsShader;
 
 [StructLayout(LayoutKind.Explicit)]
-internal struct NormalsShaderParameters
+public struct NormalsShaderParameters
 {
     [FieldOffset(0)]
     public uint ChunkSize;
