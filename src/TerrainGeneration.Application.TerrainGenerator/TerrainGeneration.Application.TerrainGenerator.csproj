@@ -1,14 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TerrainGeneration.Application.TerrainGenerator.Abstractions\TerrainGeneration.Application.TerrainGenerator.Abstractions.csproj" />
+	  <ProjectReference Include="..\SDFGenerator\TerrainGeneration.Application.SDFGenerator.csproj" />
+	  <ProjectReference Include="..\TerrainGeneration.Application.TerrainGenerator.Abstractions\TerrainGeneration.Application.TerrainGenerator.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
