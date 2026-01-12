@@ -5,7 +5,8 @@
     <RootNamespace>GodotTerrainGenerator2</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Shaders\Compute\" />
+	  <Folder Include="Test Scripts\" />
+	  <Folder Include="Shaders\Compute\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Graphic\compute_example.glsl" />
