@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TerrainGeneration.Application.SDFGenerator;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
 internal class TerrainMeshParameters
 {
+    public SDFGenerator.SDFGenerator? SDFGenerator;
+    public SDFGenerator.SDFShaderParameters SDFShaderParameters;
 }

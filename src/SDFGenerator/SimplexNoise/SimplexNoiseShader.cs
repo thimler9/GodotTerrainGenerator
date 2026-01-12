@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 public class SimplexNoiseShader
@@ -47,7 +48,7 @@ public class SimplexNoiseShader
 
         // Set Paramters
         Parameters = descriptor.Parameters;
-        byte[] parameterBytes = descriptor.Parameters.ToByteArray();
+        byte[] parameterBytes = StructHelpers.ToByteArray(descriptor.Parameters);
         ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), parameterBytes);
         RDUniform ParametersUniform = new RDUniform()
         {
@@ -70,11 +71,7 @@ public class SimplexNoiseShader
     {
         if (!this.Parameters.Equals(parameters))
         {
-            rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), parameters.ToByteArray());
-        }
-        else
-        {
-            GD.PrintErr($"{nameof(parameters)} was not different when trying to change SimplexNoiseShaderParameters.");
+            rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(parameters));
         }
     }
 
@@ -99,7 +96,7 @@ public class SimplexNoiseShader
         rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
         rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, 1);
         rd.ComputeListBindUniformSet(computeList, OutputUniformSet, 2);
-        rd.ComputeListDispatch(computeList, xGroups: chunkSize / 8, yGroups: chunkSize / 8, zGroups: chunkSize / 8);
+        rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 2, yGroups: chunkSize / (8 * lod) + 2, zGroups: chunkSize / (8 * lod) + 2);
     }
 
     /// <summary>

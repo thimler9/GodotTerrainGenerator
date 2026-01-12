@@ -39,7 +39,7 @@ public struct SimplexNoiseShaderParameters
     public readonly float Gain;
 
     [FieldOffset(44)]
-    public readonly uint Padding;
+    readonly uint Padding;
 
     public SimplexNoiseShaderParameters(Vector3 offset, uint seed, float scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
     {
@@ -54,26 +54,6 @@ public struct SimplexNoiseShaderParameters
         Amplitude = amplitude;
         Lacunarity = lacunarity;
         Gain = gain;
-    }
-
-    public byte[] ToByteArray()
-    {
-        int size = Marshal.SizeOf<SimplexNoiseShaderParameters>();
-        byte[] arr = new byte[size];
-
-        IntPtr ptr = IntPtr.Zero;
-        try
-        {
-            ptr = Marshal.AllocHGlobal(size);
-            Marshal.StructureToPtr(this, ptr, true);
-            Marshal.Copy(ptr, arr, 0, size);
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-        }
-
-        return arr;
     }
 
     public override bool Equals(object? obj)

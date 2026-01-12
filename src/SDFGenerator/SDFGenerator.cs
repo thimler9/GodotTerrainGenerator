@@ -23,6 +23,8 @@ namespace TerrainGeneration.Application.SDFGenerator
 
         SimplexNoiseShader SimplexNoiseShader;
 
+        bool ParametersUpdated = false;
+
         /// <summary>
         /// Create an SDFGenerator; dispatches compute shader for some sdf function.
         /// </summary>
@@ -45,7 +47,9 @@ namespace TerrainGeneration.Application.SDFGenerator
             SDFShaderParameters = settings.SDFShaderParameters;
 
             // Create the output buffer used throughout calculations
-            Rid outputBuffer = Rd.StorageBufferCreate(SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * sizeof(float));
+            uint chunkSizeToLodRatio = SDFShaderParameters.ChunkSize / SDFShaderParameters.Lod;
+
+            Rid outputBuffer = Rd.StorageBufferCreate((chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio  + 2) * sizeof(float));
             OutputBufferUniform = new RDUniform()
             {
                 UniformType = RenderingDevice.UniformType.StorageBuffer,
@@ -63,29 +67,38 @@ namespace TerrainGeneration.Application.SDFGenerator
                 Binding = 0
             };
             SDFParametersUniform.AddId(SDFParametersBuffer);
+            ParametersUpdated = true;
 
             // Setup the shaders
             SimplexNoiseShader = new SimplexNoiseShader(Rd, settings.SimplexNoiseShaderDescriptor, SDFParametersUniform, OutputBufferUniform);
         }
 
-        public void SetParameters(SDFShaderParameters parameters)
+        private void SetParameters(SDFShaderParameters parameters)
         {
             if (!this.SDFShaderParameters.Equals(parameters))
             {
                 Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
+                ParametersUpdated = true;
             }
         }
 
-        public void DispatchShaders()
+        public void DispatchShaders(SDFShaderParameters parameters)
         {
-            long computeList = Rd.ComputeListBegin();
-            
-            // Run the shaders
-            SimplexNoise(computeList);
+            SetParameters(parameters);
 
-            Rd.ComputeListEnd();
-            Rd.Submit();
-            Rd.Sync();
+            // No reason to run if parameters haven't been changed
+            if (ParametersUpdated)
+            {
+                long computeList = Rd.ComputeListBegin();
+            
+                // Run the shaders
+                SimplexNoise(computeList);
+
+                Rd.ComputeListEnd();
+                Rd.Submit();
+                Rd.Sync();
+                ParametersUpdated = false;
+            }
         }
 
         private void SimplexNoise(long computeList)
@@ -95,8 +108,13 @@ namespace TerrainGeneration.Application.SDFGenerator
 
         public void PrintOutBuffer()
         {
+            if (Rd == null)
+            {
+                throw new ArgumentNullException(nameof(Rd), "Cannot be null");
+            }
+
             var outputBytes = Rd.BufferGetData(OutputBuffer);
-            var output = new float[SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize * SDFShaderParameters.ChunkSize];
+            var output = new float[((SDFShaderParameters.ChunkSize / SDFShaderParameters.Lod) + 2) * ((SDFShaderParameters.ChunkSize / SDFShaderParameters.Lod) + 2) * ((SDFShaderParameters.ChunkSize / SDFShaderParameters.Lod) + 2)];
             Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
             GD.Print("Output: ", string.Join(", ", output));
             Console.WriteLine(string.Join(", ", output));
@@ -110,6 +128,11 @@ namespace TerrainGeneration.Application.SDFGenerator
             Rd.FreeRid(SDFParametersBuffer);
             Rd.FreeRid(OutputBuffer);
             Rd.Free();
+        }
+    
+        public Rid GetSDFBuffer()
+        {
+            return OutputBuffer; 
         }
     }
 }

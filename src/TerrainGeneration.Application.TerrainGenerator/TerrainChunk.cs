@@ -43,7 +43,5 @@ namespace TerrainGeneration.Application.TerrainGenerator
         {
             throw new NotImplementedException();
         }
-
-        private void GetMesh
     }
 }

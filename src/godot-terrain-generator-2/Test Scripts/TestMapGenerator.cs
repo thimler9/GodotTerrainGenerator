@@ -21,7 +21,7 @@ public partial class TestMapGenerator : Node3D
 
     public override void _Ready()
     {
-        SDFShaderParameters sDFShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
+        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
             ChunkOffset,
             Seed,
@@ -42,12 +42,12 @@ public partial class TestMapGenerator : Node3D
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
             ChunkSize = ChunkSize,
-            SDFShaderParameters = sDFShaderParameters,
+            SDFShaderParameters = sdfShaderParameters,
             SimplexNoiseShaderDescriptor = simplexNoiseShaderDescriptor
         };
         SDFGenerator sdfGenerator = new SDFGenerator(sdfGeneratorSettings);
 
-        sdfGenerator.DispatchShaders();
+        sdfGenerator.DispatchShaders(sdfShaderParameters);
         sdfGenerator.PrintOutBuffer();
     }
 }

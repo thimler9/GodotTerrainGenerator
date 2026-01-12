@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Godot Terrain Generator 2", "Godot Terrain Generator 2.csproj", "{C245D688-A937-4E02-9E06-9A9DC6D236DA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerrainGeneration.Application.TerrainGenerator", "..\TerrainGeneration.Application.TerrainGenerator\TerrainGeneration.Application.TerrainGenerator.csproj", "{677E46FF-D5D8-4A97-8E5A-90746E631D8D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{155DABAE-F78E-435B-9DB7-CD35DBE74942} = {155DABAE-F78E-435B-9DB7-CD35DBE74942}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerrainGeneration.Application.TerrainGenerator.Abstractions", "..\TerrainGeneration.Application.TerrainGenerator.Abstractions\TerrainGeneration.Application.TerrainGenerator.Abstractions.csproj", "{DE813612-E729-46FC-B1CE-1FC0249F5C43}"
 EndProject
