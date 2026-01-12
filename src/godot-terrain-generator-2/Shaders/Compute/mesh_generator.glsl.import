@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://btrqqcsxxphpr"
+path="res://.godot/imported/mesh_generator.glsl-3b035856cf2797f4eb5a1f8d07acb745.res"
+
+[deps]
+
+source_file="res://Shaders/Compute/mesh_generator.glsl"
+dest_files=["res://.godot/imported/mesh_generator.glsl-3b035856cf2797f4eb5a1f8d07acb745.res"]
+
+[params]
+

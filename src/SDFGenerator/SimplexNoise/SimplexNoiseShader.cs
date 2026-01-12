@@ -15,7 +15,6 @@ public class SimplexNoiseShader
 
     public SimplexNoiseShaderParameters? Parameters = null;
     public Rid ParametersBuffer;
-    public RDUniform ParametersUniform;
     public Rid ParametersUniformSet;
 
     public Rid SDFParamtersUniformSet;
@@ -50,7 +49,7 @@ public class SimplexNoiseShader
         Parameters = descriptor.Parameters;
         byte[] parameterBytes = descriptor.Parameters.ToByteArray();
         ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), parameterBytes);
-        ParametersUniform = new RDUniform()
+        RDUniform ParametersUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,
             Binding = 0

@@ -12,7 +12,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
     public class TerrainChunk : IOctreeRenderable
     {
         //private TerrainSpawns TerrainSpawns;
-        //private TerrainMesh TerrainMesh;
+        private TerrainMesh TerrainMesh;
         //public Bounds Bounds;
 
         private Vector3 Offset;
@@ -43,5 +43,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         {
             throw new NotImplementedException();
         }
+
+        private void GetMesh
     }
 }
