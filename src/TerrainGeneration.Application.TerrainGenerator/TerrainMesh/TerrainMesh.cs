@@ -1,30 +1,55 @@
 ﻿using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TerrainGeneration.Application.SDFGenerator;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
-internal class TerrainMesh
+public class TerrainMesh
 {
     private const uint VERT_DIVISOR = 10;
 
+    private RenderingDevice Rd;
+
     public Rid VertexBuffer;
-    public Rid VertexBufferUniform;
+    public RDUniform VertexBufferUniform;
 
     public Rid IndirectArgsBuffer;
-    public Rid IndirectArgsBufferUniform;
+    public RDUniform IndirectArgsBufferUniform;
 
-    public TerrainMeshParameters? TerrainMeshParameters;
-    public Rid TerrainMeshParamsUniformBuffer;
-    public Rid TerrainMeshParamsUniformSet;
+    public TerrainMeshParameters? Parameters;
 
     public TerrainMesh(RenderingDevice rd, TerrainMeshParameters parameters)
     {
-        uint chunkSizeToLodRatio = parameters.ChunkSize / parameters.Lod;
-        
+        Rd = rd;
+        Parameters = parameters;
+
+        uint maxNumVerts = GetMaxNumVerts();
+
+        // Each vert has a position and normal, both Vector3
+        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * 2 * 3 * sizeof(float));
+        VertexBufferUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.StorageBuffer,
+            Binding = 0
+        };
+        VertexBufferUniform.AddId(VertexBuffer);
+
+        // Max indirect args buffer
+        IndirectArgsBuffer = rd.StorageBufferCreate(4 * sizeof(uint));
+        IndirectArgsBufferUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.StorageBuffer,
+            Binding = 0
+        };
+        IndirectArgsBufferUniform.AddId(IndirectArgsBuffer);
+    }
+
+    private uint GetMaxNumVerts()
+    {
+        if (Parameters == null)
+        {
+            throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
+        }
+
+        uint chunkSizeToLodRatio = Parameters.ChunkSize / Parameters.Lod;
+
         // 5 is the max number of triangles per cell, 3 is the number of verts per triangle
         uint maxNumInternalVerts = chunkSizeToLodRatio * chunkSizeToLodRatio * chunkSizeToLodRatio * 5 * 3;
 
@@ -34,24 +59,42 @@ internal class TerrainMesh
         // Vert divisor is to save on memory since most chunks won't use the max amount
         uint maxNumVerts = (maxNumBorderVerts + maxNumInternalVerts) / VERT_DIVISOR;
 
-        // Each vert has a position and normal, both Vector3
-        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * 2 * 3 * sizeof(float));
-        RDUniform vertexBufferuniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        vertexBufferuniform.AddId(VertexBuffer);
-        VertexBufferUniform = rd.UniformSetCreate([vertexBufferuniform], parameters.TransvoxelShader, 0);
+        return maxNumVerts;
+    }
 
-        // Max indirect args buffer
-        IndirectArgsBuffer = rd.StorageBufferCreate(4 * sizeof(uint));
-        RDUniform indirectArgsUniform = new RDUniform()
+    public void PrintVertices()
+    {
+        if (Parameters == null)
         {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        indirectArgsUniform.AddId(IndirectArgsBuffer);
-        IndirectArgsBufferUniform = rd.UniformSetCreate([indirectArgsUniform], parameters.TransvoxelShader, 1);
+            throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
+        }
+
+        if (Rd == null)
+        {
+            throw new ArgumentNullException(nameof(Rd), "Cannot be null");
+        }
+
+        var outputBytes = Rd.BufferGetData(VertexBuffer);
+ 
+        float[] output = new float[GetMaxNumVerts() * 2 * 3];
+        Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
+
+        TerrainMeshVertex[] outputVertices = new TerrainMeshVertex[output.Length / 6];
+        for (int i = 0; i < output.Length / 3; i++)
+        {
+            outputVertices[i] = new TerrainMeshVertex(
+                new Vector3(output[i * 6], output[i * 6 + 1], output[i * 6 + 2]),
+                new Vector3(output[i * 6 + 3], output[i * 6 + 4], output[i * 6 + 5])
+            );
+        }
+
+        GD.Print("Output: ", string.Join(", ", outputVertices.Select(vert => vert.ToString())));
+        Console.WriteLine(string.Join(", ", outputVertices.Select(vert => vert.ToString())));
+    }
+
+    public void Dispose()
+    {
+        Rd.FreeRid(IndirectArgsBuffer);
+        Rd.FreeRid(VertexBuffer);
     }
 }

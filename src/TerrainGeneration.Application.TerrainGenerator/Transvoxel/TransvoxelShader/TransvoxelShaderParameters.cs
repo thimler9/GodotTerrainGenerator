@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator.NormalsShader;
 
-namespace TerrainGeneration.Application.TerrainGenerator.TransvoxelShader;
+namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 
 [StructLayout(LayoutKind.Explicit)]
 public struct TransvoxelShaderParameters

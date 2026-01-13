@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TerrainGeneration.Application.TerrainGenerator.TransvoxelShader;
+namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public static class LookupTables
 {
     public static int[] LookupTablesData = new int[]

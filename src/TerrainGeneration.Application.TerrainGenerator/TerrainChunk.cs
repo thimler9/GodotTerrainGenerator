@@ -36,7 +36,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            TerrainMesh.Dispose();
         }
 
         public void Render(Vector3 playerPosition)

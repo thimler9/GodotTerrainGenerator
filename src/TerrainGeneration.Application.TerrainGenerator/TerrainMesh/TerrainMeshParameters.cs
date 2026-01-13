@@ -6,5 +6,4 @@ public class TerrainMeshParameters
 {
     public uint ChunkSize;
     public uint Lod;
-    public Rid TransvoxelShader;
 }
