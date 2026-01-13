@@ -40,7 +40,6 @@ public class NormalsShader
         }
 
         Rd = rd;
-
         ShaderPath = descriptor.ShaderPath;
         RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
@@ -158,7 +157,14 @@ public class NormalsShader
         var outputBytes = Rd.BufferGetData(OutputNormalsBuffer);
         float[] output = new float[(Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * 3];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
-        GD.Print("Output: ", string.Join(", ", output));
-        Console.WriteLine(string.Join(", ", output));
+        
+        Vector3[] outputVectors = new Vector3[output.Length / 3];
+        for (int i = 0; i < output.Length / 3; i++)
+        {
+            outputVectors[i] = new Vector3(output[i * 3], output[i * 3 + 1], output[i * 3 + 2]);
+        }
+        
+        GD.Print("Output: ", string.Join(", ", outputVectors));
+        Console.WriteLine(string.Join(", ", outputVectors));
     }
 }

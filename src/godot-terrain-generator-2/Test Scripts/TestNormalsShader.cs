@@ -51,11 +51,8 @@ public partial class TestNormalsShader : Node3D
         SDFGenerator sdfGenerator = new SDFGenerator(sdfGeneratorSettings);
 
         sdfGenerator.DispatchShaders(sdfShaderParameters);
-        sdfGenerator.PrintOutBuffer();
-
 
         // ---- Get normals
-        RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
         RDUniform sdfBufferUniform = sdfGenerator.OutputBufferUniform;
 
         NormalsShaderParameters normalsParaters = new NormalsShaderParameters()

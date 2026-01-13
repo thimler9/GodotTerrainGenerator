@@ -1,11 +1,10 @@
-﻿using TerrainGeneration.Application.SDFGenerator;
+﻿using Godot;
+using TerrainGeneration.Application.SDFGenerator;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
-internal class TerrainMeshParameters
+public class TerrainMeshParameters
 {
-    public SDFGenerator.SDFGenerator? SDFGenerator;
-    public SDFGenerator.SDFShaderParameters SDFShaderParameters;
-
-    public NormalsShader.NormalsShader? NormalsShader;
-    public NormalsShader.NormalsShaderParameters NormalsShaderParameters;
+    public uint ChunkSize;
+    public uint Lod;
+    public Rid TransvoxelShader;
 }
