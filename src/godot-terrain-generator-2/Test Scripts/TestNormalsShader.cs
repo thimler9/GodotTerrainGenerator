@@ -5,7 +5,7 @@ using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 using TerrainGeneration.Application.TerrainGenerator;
-using TerrainGeneration.Application.TerrainGenerator.NormalsShader;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
 public partial class TestNormalsShader : Node3D
 {

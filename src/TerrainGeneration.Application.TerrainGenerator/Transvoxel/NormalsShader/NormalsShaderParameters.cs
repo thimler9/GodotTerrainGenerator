@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
-namespace TerrainGeneration.Application.TerrainGenerator.NormalsShader;
+namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
 [StructLayout(LayoutKind.Explicit)]
 public struct NormalsShaderParameters

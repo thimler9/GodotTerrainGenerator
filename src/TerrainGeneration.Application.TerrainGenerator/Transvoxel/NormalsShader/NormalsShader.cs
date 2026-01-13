@@ -9,7 +9,7 @@ using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Utilities.Struct;
 
-namespace TerrainGeneration.Application.TerrainGenerator.NormalsShader;
+namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 public class NormalsShader
 {
     private RenderingDevice Rd;
@@ -79,7 +79,7 @@ public class NormalsShader
 
     private void SetParameters(NormalsShaderParameters parameters)
     {
-        if (!this.Parameters.Equals(parameters))
+        if (!Parameters.Equals(parameters))
         {
             Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<NormalsShaderParameters>(), StructHelpers.ToByteArray(parameters));
             ParametersUpdated = true;

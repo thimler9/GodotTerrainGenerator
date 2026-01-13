@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TerrainGeneration.Application.TerrainGenerator.NormalsShader;
+namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 public class NormalsShaderDescriptor
 {
     public NormalsShaderParameters Parameters;
