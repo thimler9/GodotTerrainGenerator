@@ -99,15 +99,21 @@ public partial class TestTransvoxelShader : Node3D
             ShaderPath = "res://Shaders/Compute/mesh_generator.glsl"
         };
 
+        IndirectArgsShaderDescriptor indirectArgsShaderDescriptor = new IndirectArgsShaderDescriptor()
+        {
+            ShaderPath = "res://Shaders/Compute/indirect_args.glsl"
+        };
+
         TransvoxelDescriptor transvoxelDescriptor = new TransvoxelDescriptor()
         {
             TransvoxelShaderDescriptor = transvoxelShaderDescriptor,
+            IndirectArgsShaderDescriptor = indirectArgsShaderDescriptor,
             MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
         };
+
         Transvoxel transvoxel = new Transvoxel(rd, transvoxelDescriptor);
 
         TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
-        terrainMesh.PrintVertices();
-        normalsShader.PrintOutBuffer();
+        terrainMesh.PrintIndirectArgs();
     }
 }

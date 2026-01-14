@@ -9,7 +9,8 @@ using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class Transvoxel
 {
-    private TransvoxelShader Shader;
+    private TransvoxelShader TransvoxelShader;
+    private IndirectArgsShader IndirectArgsShader;
     private RenderingDevice Rd;
 
     // Think we want to keep the buffer pool for the triangles in the shader
@@ -26,17 +27,23 @@ public class Transvoxel
 
         if (descriptor.TransvoxelShaderDescriptor == null)
         {
-            throw new ArgumentNullException(nameof(descriptor), "Cannot be null.");
+            throw new ArgumentNullException(nameof(descriptor.TransvoxelShaderDescriptor), "Cannot be null.");
+        }
+
+        if (descriptor.IndirectArgsShaderDescriptor == null)
+        {
+            throw new ArgumentNullException(nameof(descriptor.IndirectArgsShaderDescriptor), "Cannot be null.");
         }
 
         if (rd == null)
         {
-            throw new ArgumentNullException(nameof(descriptor), "Cannot be null.");
+            throw new ArgumentNullException(nameof(rd), "Cannot be null.");
         }
 
         Rd = rd;
         TerrainMeshes = new Queue<TerrainMesh>();
-        Shader = new TransvoxelShader(Rd, descriptor.TransvoxelShaderDescriptor);
+        TransvoxelShader = new TransvoxelShader(Rd, descriptor.TransvoxelShaderDescriptor);
+        IndirectArgsShader = new IndirectArgsShader(Rd, descriptor.IndirectArgsShaderDescriptor);
         MaxNumTerrainMeshesInQueue = descriptor.MaxNumTerrainMeshesInQueue;
     }
 
@@ -61,7 +68,10 @@ public class Transvoxel
         }
 
         // Get vertices
-        Shader.Dispatch(parameters, sdfUniform, normalsUniform, terrainMesh.VertexBufferUniform);
+        TransvoxelShader.Dispatch(parameters, sdfUniform, normalsUniform, terrainMesh.VertexBufferUniform);
+
+        // Get indirect args
+        IndirectArgsShader.Dispatch(TransvoxelShader.GetCurrentVertexCountUniform(), terrainMesh.IndirectArgsBufferUniform);
 
         // Get indirect args
         return terrainMesh;
@@ -89,6 +99,6 @@ public class Transvoxel
             terrainMesh.Dispose();
         }
 
-        Shader.Dispose();
+        TransvoxelShader.Dispose();
     }
 }

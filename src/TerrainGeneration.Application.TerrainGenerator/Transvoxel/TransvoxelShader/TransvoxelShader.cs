@@ -20,6 +20,7 @@ public class TransvoxelShader
     private Rid LookupTablesUniformSet;
 
     private Rid CounterBuffer;
+    private RDUniform CounterBufferUniform;
     private Rid CounterUniformSet;
 
     public TransvoxelShader(RenderingDevice rd, TransvoxelShaderDescriptor descriptor)
@@ -75,6 +76,7 @@ public class TransvoxelShader
             Binding = 0
         };
         counterBufferUniform.AddId(CounterBuffer);
+        CounterBufferUniform = counterBufferUniform;
 
         ParametersUniformSet = Rd.UniformSetCreate([parametersUniform], Shader, 0);
         LookupTablesUniformSet = Rd.UniformSetCreate([lookupTablesBufferUniform], Shader, 1);
@@ -149,5 +151,10 @@ public class TransvoxelShader
         Rd.FreeRid(CounterUniformSet);
         Rd.FreeRid(CounterBuffer);
         Rd.FreeRid(Shader);
+    }
+
+    public RDUniform GetCurrentVertexCountUniform()
+    {
+        return CounterBufferUniform;
     }
 }

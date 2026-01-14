@@ -34,7 +34,7 @@ public class TerrainMesh
         VertexBufferUniform.AddId(VertexBuffer);
 
         // Max indirect args buffer
-        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4);
+        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4, usage: RenderingDevice.StorageBufferUsage.Indirect);
         rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
         IndirectArgsBufferUniform = new RDUniform()
         {
@@ -67,11 +67,6 @@ public class TerrainMesh
 
     public void PrintVertices()
     {
-        if (Parameters == null)
-        {
-            throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
-        }
-
         if (Rd == null)
         {
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
@@ -95,6 +90,20 @@ public class TerrainMesh
         Console.WriteLine(string.Join(", ", outputVertices.Select(vert => vert.ToString())));
     }
 
+    public void PrintIndirectArgs()
+    {
+        if (Rd == null)
+        {
+            throw new ArgumentNullException(nameof(Rd), "Cannot be null");
+        }
+
+        var outputBytes = Rd.BufferGetData(IndirectArgsBuffer);
+
+        uint[] output = new uint[4];
+        Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(uint));
+        GD.Print("Output: ", string.Join(", ", output));
+    }
+
     public void Dispose()
     {
         Rd.FreeRid(IndirectArgsBuffer);
@@ -104,5 +113,16 @@ public class TerrainMesh
     public void ResetBuffers()
     {
         Rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
+    }
+
+    public void Render()
+    {
+        long drawList = Rd.DrawListBeginForScreen(
+            DisplayServer.WindowGetCurrentScreen()
+        );
+
+        //Rd.DrawListBindRenderPipeline(drawList, renderPipeline);
+        Rd.DrawListBindVertexArray(drawList, VertexBuffer);
+        Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer, 0, 1, sizeof(uint) * 4);
     }
 }
