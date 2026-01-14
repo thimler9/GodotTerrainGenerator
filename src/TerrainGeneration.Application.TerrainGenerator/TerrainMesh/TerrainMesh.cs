@@ -1,4 +1,6 @@
 ﻿using Godot;
+using System.Runtime.InteropServices;
+using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
@@ -23,7 +25,7 @@ public class TerrainMesh
         uint maxNumVerts = GetMaxNumVerts();
 
         // Each vert has a position and normal, both Vector3
-        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * 2 * 3 * sizeof(float));
+        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>());
         VertexBufferUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,
@@ -32,7 +34,8 @@ public class TerrainMesh
         VertexBufferUniform.AddId(VertexBuffer);
 
         // Max indirect args buffer
-        IndirectArgsBuffer = rd.StorageBufferCreate(4 * sizeof(uint));
+        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4);
+        rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
         IndirectArgsBufferUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,
@@ -76,15 +79,15 @@ public class TerrainMesh
 
         var outputBytes = Rd.BufferGetData(VertexBuffer);
  
-        float[] output = new float[GetMaxNumVerts() * 2 * 3];
+        float[] output = new float[GetMaxNumVerts() * (uint)Marshal.SizeOf<TerrainMeshVertex>() / sizeof(float)];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
 
         TerrainMeshVertex[] outputVertices = new TerrainMeshVertex[output.Length / 6];
-        for (int i = 0; i < output.Length / 3; i++)
+        for (int i = 0; i < output.Length / 8; i++)
         {
             outputVertices[i] = new TerrainMeshVertex(
-                new Vector3(output[i * 6], output[i * 6 + 1], output[i * 6 + 2]),
-                new Vector3(output[i * 6 + 3], output[i * 6 + 4], output[i * 6 + 5])
+                new Vector3(output[i * 8], output[i * 8 + 1], output[i * 8 + 2]),
+                new Vector3(output[i * 8 + 3], output[i * 8 + 4], output[i * 8 + 5])
             );
         }
 
@@ -96,5 +99,10 @@ public class TerrainMesh
     {
         Rd.FreeRid(IndirectArgsBuffer);
         Rd.FreeRid(VertexBuffer);
+    }
+
+    public void ResetBuffers()
+    {
+        Rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
     }
 }

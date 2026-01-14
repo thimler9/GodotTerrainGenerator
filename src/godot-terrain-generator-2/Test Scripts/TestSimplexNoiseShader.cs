@@ -21,6 +21,8 @@ public partial class TestSimplexNoiseShader : Node3D
 
     public override void _Ready()
     {
+        RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
+
         SDFShaderParameters sDFShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
             ChunkOffset,
@@ -45,7 +47,7 @@ public partial class TestSimplexNoiseShader : Node3D
             SDFShaderParameters = sDFShaderParameters,
             SimplexNoiseShaderDescriptor = simplexNoiseShaderDescriptor
         };
-        SDFGenerator sdfGenerator = new SDFGenerator(sdfGeneratorSettings);
+        SDFGenerator sdfGenerator = new SDFGenerator(rd, sdfGeneratorSettings);
 
         sdfGenerator.DispatchShaders(sDFShaderParameters);
         sdfGenerator.PrintOutBuffer();

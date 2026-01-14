@@ -54,27 +54,27 @@ public class TransvoxelShader
         parametersUniform.AddId(ParametersBuffer);
         ParametersUpdated = true;
 
-        // Setup Counter Buffer
-        CounterBuffer = rd.UniformBufferCreate(1 * sizeof(uint));
-        RDUniform counterBufferUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        counterBufferUniform.AddId(CounterBuffer);
-
         // Setup Lookup Tables Buffer
         int[] lookupTablesData = LookupTables.LookupTablesData;
         byte[] lookupTablesDataBytes = new byte[lookupTablesData.Length * sizeof(int)];
         Buffer.BlockCopy(lookupTablesData, 0, lookupTablesDataBytes, 0, lookupTablesDataBytes.Length);
 
-        LookupTablesBuffer = rd.UniformBufferCreate((uint)lookupTablesDataBytes.Length, lookupTablesDataBytes);
+        LookupTablesBuffer = rd.StorageBufferCreate((uint)lookupTablesDataBytes.Length, lookupTablesDataBytes);
         RDUniform lookupTablesBufferUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,
             Binding = 0
         };
         lookupTablesBufferUniform.AddId(LookupTablesBuffer);
+
+        // Setup Counter Buffer
+        CounterBuffer = rd.StorageBufferCreate(1 * sizeof(uint));
+        RDUniform counterBufferUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.StorageBuffer,
+            Binding = 0
+        };
+        counterBufferUniform.AddId(CounterBuffer);
 
         ParametersUniformSet = Rd.UniformSetCreate([parametersUniform], Shader, 0);
         LookupTablesUniformSet = Rd.UniformSetCreate([lookupTablesBufferUniform], Shader, 1);
@@ -93,6 +93,7 @@ public class TransvoxelShader
     public void Dispatch(TransvoxelShaderParameters parameters, RDUniform sdfUniform, RDUniform normalsUniform, RDUniform verticesUniform)
     {
         SetParameters(parameters);
+        Rd.BufferClear(CounterBuffer, 0, sizeof(uint));
 
         long computeList = Rd.ComputeListBegin();
 

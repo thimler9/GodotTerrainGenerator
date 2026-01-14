@@ -25,6 +25,7 @@ public class NormalsShader
 
     // We keep the buffer in the shader since the same buffer is used everytime
     private Rid OutputNormalsBuffer;
+    public RDUniform OutputNormalsUniform { get; }
     private Rid OutputNormalsUniformSet;
 
     public NormalsShader(RenderingDevice rd, NormalsShaderDescriptor descriptor)
@@ -66,15 +67,15 @@ public class NormalsShader
         }
 
         OutputNormalsBuffer = rd.StorageBufferCreate((chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * sizeof(float) * 3);
-        RDUniform outputBufferUniform = new RDUniform()
+        OutputNormalsUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,
             Binding = 0
         };
-        outputBufferUniform.AddId(OutputNormalsBuffer);
+        OutputNormalsUniform.AddId(OutputNormalsBuffer);
 
         ParametersUniformSet = rd.UniformSetCreate([ParametersUniform], Shader, 0);
-        OutputNormalsUniformSet = rd.UniformSetCreate([outputBufferUniform], Shader, 2);
+        OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, 2);
     }
 
     private void SetParameters(NormalsShaderParameters parameters)

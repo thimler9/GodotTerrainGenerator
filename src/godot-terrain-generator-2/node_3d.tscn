@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://by3njmv77rwgh"]
 
-[ext_resource type="Script" uid="uid://e3vvl86fi3ws" path="res://Test Scripts/TestNormalsShader.cs" id="1_a202f"]
+[ext_resource type="Script" uid="uid://bnpqo4dirogox" path="res://Test Scripts/TestTransvoxelShader.cs" id="1_a202f"]
 
 [node name="Node3D" type="Node3D"]
 script = ExtResource("1_a202f")

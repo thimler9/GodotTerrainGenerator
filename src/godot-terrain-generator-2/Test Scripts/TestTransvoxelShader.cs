@@ -5,13 +5,15 @@ using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 using TerrainGeneration.Application.TerrainGenerator;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
-public partial class TestNormalsShader : Node3D
+public partial class TestTransvoxelShader : Node3D
 {
     public uint ChunkSize = 8;
     public uint Lod = 1;
 
+    // Map Params
     public Vector3 ChunkOffset = new Vector3(128, 128, 128);
     public uint Seed = 1;
     public float Scale = 1.0f;
@@ -21,6 +23,13 @@ public partial class TestNormalsShader : Node3D
     public float Amplitude = 1.0f;
     public float Lacunarity = 1.0f;
     public float Gain = 1.0f;
+
+    // Transvoxel Shader Params
+    public uint MaxNumOfVertices = 10000;
+    public float TransitionWidth = 1.0f;
+
+    // Transvoxel Params
+    public uint MaxNumTerrainMeshesInQueue = 10;
 
     public override void _Ready()
     {
@@ -71,5 +80,33 @@ public partial class TestNormalsShader : Node3D
         NormalsShader normalsShader = new NormalsShader(rd, normalsDescriptor);
         normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
         normalsShader.PrintOutBuffer();
+
+        // --------------------------------------------------------------------------------------------------------------------
+        RDUniform normalsBufferUniform = normalsShader.OutputNormalsUniform;
+
+        TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters()
+        {
+            ChunkOffset = ChunkOffset,
+            Lod = Lod,
+            ChunkSize = ChunkSize,
+            MaxNumVertices = MaxNumOfVertices,
+            TransitionWidth = TransitionWidth,
+        };
+
+        TransvoxelShaderDescriptor transvoxelShaderDescriptor = new TransvoxelShaderDescriptor()
+        {
+            Parameters = transvoxelShaderParameters,
+            ShaderPath = "res://Shaders/Compute/mesh_generator.glsl"
+        };
+
+        TransvoxelDescriptor transvoxelDescriptor = new TransvoxelDescriptor()
+        {
+            TransvoxelShaderDescriptor = transvoxelShaderDescriptor,
+            MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
+        };
+        Transvoxel transvoxel = new Transvoxel(rd, transvoxelDescriptor);
+
+        TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+        terrainMesh.PrintVertices();
     }
 }

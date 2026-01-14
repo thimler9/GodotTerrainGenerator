@@ -12,7 +12,7 @@ namespace TerrainGeneration.Application.SDFGenerator
 
     public class SDFGenerator
     {
-        public RenderingDevice Rd { get; set; }
+        private RenderingDevice Rd;
         SDFShaderParameters SDFShaderParameters;
 
         public RDUniform OutputBufferUniform { get; set; }
@@ -31,7 +31,7 @@ namespace TerrainGeneration.Application.SDFGenerator
         /// <param name="settings"></param>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
-        public SDFGenerator(SDFGeneratorSettings settings)
+        public SDFGenerator(RenderingDevice rd, SDFGeneratorSettings settings)
         {
             if (settings.ChunkSize / 8 == 0)
             {
@@ -43,7 +43,7 @@ namespace TerrainGeneration.Application.SDFGenerator
                 throw new ArgumentNullException(nameof(settings.SimplexNoiseShaderDescriptor), "Cannot be null");
             }
 
-            Rd = RenderingServer.CreateLocalRenderingDevice();
+            Rd = rd;
             SDFShaderParameters = settings.SDFShaderParameters;
 
             // Create the output buffer used throughout calculations
