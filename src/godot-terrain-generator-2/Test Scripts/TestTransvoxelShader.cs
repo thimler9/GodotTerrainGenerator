@@ -79,7 +79,7 @@ public partial class TestTransvoxelShader : Node3D
 
         NormalsShader normalsShader = new NormalsShader(rd, normalsDescriptor);
         normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
-        normalsShader.PrintOutBuffer();
+        //normalsShader.PrintOutBuffer();
 
         // --------------------------------------------------------------------------------------------------------------------
         RDUniform normalsBufferUniform = normalsShader.OutputNormalsUniform;
@@ -108,5 +108,6 @@ public partial class TestTransvoxelShader : Node3D
 
         TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
         terrainMesh.PrintVertices();
+        normalsShader.PrintOutBuffer();
     }
 }

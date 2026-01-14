@@ -82,12 +82,12 @@ public class TerrainMesh
         float[] output = new float[GetMaxNumVerts() * (uint)Marshal.SizeOf<TerrainMeshVertex>() / sizeof(float)];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
 
-        TerrainMeshVertex[] outputVertices = new TerrainMeshVertex[output.Length / 6];
+        TerrainMeshVertex[] outputVertices = new TerrainMeshVertex[output.Length / 8];
         for (int i = 0; i < output.Length / 8; i++)
         {
             outputVertices[i] = new TerrainMeshVertex(
                 new Vector3(output[i * 8], output[i * 8 + 1], output[i * 8 + 2]),
-                new Vector3(output[i * 8 + 3], output[i * 8 + 4], output[i * 8 + 5])
+                new Vector3(output[i * 8 + 4], output[i * 8 + 5], output[i * 8 + 6])
             );
         }
 

@@ -165,7 +165,7 @@ public class NormalsShader
             outputVectors[i] = new Vector3(output[i * 3], output[i * 3 + 1], output[i * 3 + 2]);
         }
         
-        GD.Print("Output: ", string.Join(", ", outputVectors));
+        GD.Print("Output: ", string.Join(", ", outputVectors.Select(vec => $"{vec}\n").ToArray()));
         Console.WriteLine(string.Join(", ", outputVectors));
     }
 }

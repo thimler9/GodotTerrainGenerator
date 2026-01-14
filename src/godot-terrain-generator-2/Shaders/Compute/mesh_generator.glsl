@@ -34,8 +34,8 @@ layout(set = 3, binding = 0, std430) restrict readonly buffer SDFBuffer {
 }
 sdf_buffer;
 
-layout(set = 4, binding = 0, std430) restrict readonly buffer normalsBuffer {
-    vec3 data[];
+layout(set = 4, binding = 0, std430) restrict readonly buffer NormalsBuffer {
+    float data[];
 }
 normals_buffer;
 
@@ -53,12 +53,12 @@ const int transition_cell_num_tri_index = 5144;
 const int transition_edge_to_vertices_index = 5200;
 const int transition_vertex_data_index = 5232;
 
-void write_vertex(uint index, vec3 position, vec3 normal) {
+void WriteVertex(uint index, vec3 position, vec3 normal) {
     vertex_buffer.vertex[index].position = position;
     vertex_buffer.vertex[index].normal = normal;
 }
 
-vec3 sample_trilinear(vec3 position) {
+vec3 SampleTrilinear(vec3 position, uvec3 id) {
     float lod = float(params.lod);
     float size = float(params.chunk_size);
 
@@ -68,9 +68,9 @@ vec3 sample_trilinear(vec3 position) {
     pos.y = clamp(pos.y, 0.0, size / lod);
     pos.z = clamp(pos.z, 0.0, size / lod);
 
-    int x = int(floor(pos.x));
-    int y = int(floor(pos.y));
-    int z = int(floor(pos.z));
+    int x = int(pos.x);
+    int y = int(pos.y);
+    int z = int(pos.z);
 
     int X = int(params.chunk_size) / int(params.lod) + 1;
     int Y = X * X;
@@ -83,10 +83,33 @@ vec3 sample_trilinear(vec3 position) {
     int yp1 = y + 1;
     int zp1 = z + 1;
 
-    vec3 x0 = normals_buffer.data[x + y * X + z * Y] * (1.0 - fx) + normals_buffer.data[xp1 + y * X + z * Y] * fx;
-    vec3 x1 = normals_buffer.data[x + y * X + zp1 * Y] * (1.0 - fx) + normals_buffer.data[xp1 + y * X + zp1 * Y] * fx;
-    vec3 x2 = normals_buffer.data[x + yp1 * X + z * Y] * (1.0 - fx) + normals_buffer.data[xp1 + yp1 * X + z * Y] * fx;
-    vec3 x3 = normals_buffer.data[x + yp1 * X + zp1 * Y] * (1.0 - fx) + normals_buffer.data[xp1 + yp1 * X + zp1 * Y] * fx;
+    vec3 x0 =   vec3(normals_buffer.data[x + y * X + z * Y], 
+                    normals_buffer.data[(x + y * X + z * Y) + 1], 
+                    normals_buffer.data[(x + y * X + z * Y) + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[xp1 + y * X + z * Y], 
+                     normals_buffer.data[(xp1 + y * X + z * Y) + 1], 
+                     normals_buffer.data[(xp1 + y * X + z * Y) + 2]) * fx;
+
+    vec3 x1 =   vec3(normals_buffer.data[x + y * X + zp1 * Y], 
+                    normals_buffer.data[(x + y * X + zp1 * Y) + 1], 
+                    normals_buffer.data[(x + y * X + zp1 * Y) + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[xp1 + y * X + zp1 * Y], 
+                     normals_buffer.data[(xp1 + y * X + zp1 * Y) + 1], 
+                     normals_buffer.data[(xp1 + y * X + zp1 * Y) + 2]) * fx;
+
+    vec3 x2 =   vec3(normals_buffer.data[x + yp1 * X + z * Y], 
+                    normals_buffer.data[(x + yp1 * X + z * Y) + 1], 
+                    normals_buffer.data[(x + yp1 * X + z * Y) + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[xp1 + yp1 * X + z * Y], 
+                     normals_buffer.data[(xp1 + yp1 * X + z * Y) + 1], 
+                     normals_buffer.data[(xp1 + yp1 * X + z * Y) + 2]) * fx;
+
+    vec3 x3 =   vec3(normals_buffer.data[x + yp1 * X + zp1 * Y], 
+                    normals_buffer.data[(x + yp1 * X + zp1 * Y) + 1], 
+                    normals_buffer.data[(x + yp1 * X + zp1 * Y) + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[xp1 + yp1 * X + zp1 * Y], 
+                     normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) + 1], 
+                     normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) + 2]) * fx;
 
     vec3 z0 = x0 * (1.0 - fz) + x1 * fz;
     vec3 z1 = x1 * (1.0 - fz) + x3 * fz;
@@ -155,13 +178,13 @@ void MainVoxels(uvec3 id) {
         vec3 vertex2 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + 1 + triangle_lookup_index]];
         vec3 vertex3 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + 2 + triangle_lookup_index]];
 
-        vec3 normal1 = sample_trilinear(vertex1);
-        vec3 normal2 = sample_trilinear(vertex2);
-        vec3 normal3 = sample_trilinear(vertex3);
+        vec3 normal1 = SampleTrilinear(vertex1, id);
+        vec3 normal2 = SampleTrilinear(vertex2, id);
+        vec3 normal3 = SampleTrilinear(vertex3, id);
 
-        write_vertex(count, vertex1, normal1);
-        write_vertex(count + 1, vertex2, normal2);
-        write_vertex(count + 2, vertex3, normal3);
+        WriteVertex(count, vertex1, normal1);
+        WriteVertex(count + 1, vertex2, normal2);
+        WriteVertex(count + 2, vertex3, normal3);
     }
 }
 
