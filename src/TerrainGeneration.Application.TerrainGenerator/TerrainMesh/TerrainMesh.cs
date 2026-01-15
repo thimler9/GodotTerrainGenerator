@@ -1,6 +1,7 @@
 ﻿using Godot;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
@@ -12,13 +13,12 @@ public class TerrainMesh
 
     public Rid VertexBuffer;
     public RDUniform VertexBufferUniform;
+    public Rid VertexBufferUniformSet;
 
     public Rid IndirectArgsBuffer;
     public RDUniform IndirectArgsBufferUniform;
 
     public TerrainMeshParameters? Parameters;
-
-    private Rid RenderPipeline;
 
     public TerrainMesh(RenderingDevice rd, TerrainMeshParameters parameters)
     {
@@ -118,18 +118,19 @@ public class TerrainMesh
         Rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
     }
 
-    public void Render()
+    public void Render(TerrainMeshDrawDescriptor descriptor)
     {
-        long drawList = Rd.DrawListBeginForScreen(
-            DisplayServer.WindowGetCurrentScreen()
-        );
+        long drawList = Rd.DrawListBegin(descriptor.SreenBuffer, RenderingDevice.DrawFlags.ClearColor0);
 
-        Rd.DrawListBindRenderPipeline(drawList, RenderPipeline);
-        Rd.DrawListBindVertexArray(drawList, VertexBuffer);
+        VertexBufferUniformSet = Rd.UniformSetCreate([VertexBufferUniform], descriptor.Shader, 0);
+
+        Rd.DrawListBindRenderPipeline(drawList, descriptor.RenderPipeline);
+        Rd.DrawListBindVertexArray(drawList, descriptor.EmptyVertexArrayBuffer);
+        Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 0);
         Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer, 0, 1, sizeof(uint) * 4);
     }
 
-    private Rid GetRenderPipeline(TerrainMeshRenderPipelineDescriptor descriptor)
+    private Rid GetRenderPipeline(TerrainMeshRenderPipelineDescriptor descriptor, RenderSceneBuffersRD renderSceneBuffers)
     {
         if (descriptor == null)
         {
@@ -167,5 +168,77 @@ public class TerrainMesh
         };
 
         long vertexFormat = Rd.VertexFormatCreate([vertexAttributePosition, vertexAttributeNormal]);
+
+        // Vertex array can be empty since we're doing indirect drawing
+        Rid vertexArray = Rd.VertexArrayCreate(1, vertexFormat, []);
+
+        RDPipelineRasterizationState rasterizationState = new RDPipelineRasterizationState()
+        {
+            Wireframe = false,
+            CullMode = RenderingDevice.PolygonCullMode.Back,
+            EnableDepthClamp = false,
+            LineWidth = 1.0f,
+            FrontFace = RenderingDevice.PolygonFrontFace.Clockwise,
+            DepthBiasEnabled = false
+        };
+
+        RDPipelineMultisampleState multisampleState = new RDPipelineMultisampleState()
+        {
+            EnableSampleShading = false,
+            SampleCount = RenderingDevice.TextureSamples.Samples1,
+            MinSampleShading = 1.0f
+        };
+
+        RDPipelineDepthStencilState depthStencilState = new RDPipelineDepthStencilState()
+        {
+            EnableDepthTest = false,
+        };
+
+        RDPipelineColorBlendState blendState = new RDPipelineColorBlendState()
+        {
+            EnableLogicOp = false,
+            LogicOp = RenderingDevice.LogicOperation.Copy,
+        };
+
+        RDPipelineColorBlendStateAttachment blendStateAttachment = new RDPipelineColorBlendStateAttachment()
+        {
+            EnableBlend = true,
+            WriteA = true,
+            WriteB = true,
+            WriteG = true,
+            WriteR = true,
+            AlphaBlendOp = RenderingDevice.BlendOperation.Add,
+            ColorBlendOp = RenderingDevice.BlendOperation.Add,
+            SrcColorBlendFactor = RenderingDevice.BlendFactor.One,
+            DstColorBlendFactor = RenderingDevice.BlendFactor.Zero,
+            SrcAlphaBlendFactor = RenderingDevice.BlendFactor.One,
+            DstAlphaBlendFactor = RenderingDevice.BlendFactor.Zero,
+        };
+
+        blendState.Attachments.Add(blendStateAttachment);
+
+        Rid imageTexture = renderSceneBuffers.GetColorTexture();
+        Rid depthTexture = renderSceneBuffers.GetDepthTexture();
+        Rid screenBuffer = Rd.FramebufferCreate([imageTexture, depthTexture]);
+
+        long frameBufferFormat = Rd.FramebufferGetFormat(screenBuffer);
+
+        Rid pipeline = Rd.RenderPipelineCreate(
+            shader, 
+            frameBufferFormat, 
+            vertexFormat, 
+            RenderingDevice.RenderPrimitive.Triangles,
+            rasterizationState,
+            multisampleState,
+            depthStencilState,
+            blendState,
+            0,
+            0,
+            []
+        );
+
+        Color[] clearColors = new Color[] { new Color(0.2f, 0.2f, 0.2f, 1.0f) };
+
+        return pipeline;
     }
 }
