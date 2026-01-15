@@ -119,7 +119,7 @@ public partial class TestTerrainMeshRender : Node3D
             MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
         };
 
-        Transvoxel transvoxel = new Transvoxel(rd, transvoxelDescriptor);
+        Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
         TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
     }
