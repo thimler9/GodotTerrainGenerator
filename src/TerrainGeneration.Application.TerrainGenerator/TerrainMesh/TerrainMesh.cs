@@ -1,6 +1,7 @@
 ﻿using Godot;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
@@ -17,6 +18,8 @@ public class TerrainMesh
 
     public TerrainMeshParameters? Parameters;
 
+    private Rid RenderPipeline;
+
     public TerrainMesh(RenderingDevice rd, TerrainMeshParameters parameters)
     {
         Rd = rd;
@@ -25,7 +28,7 @@ public class TerrainMesh
         uint maxNumVerts = GetMaxNumVerts();
 
         // Each vert has a position and normal, both Vector3
-        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>());
+        VertexBuffer = rd.VertexBufferCreate(maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>(), creationBits: RenderingDevice.BufferCreationBits.AsStorageBit);
         VertexBufferUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,
@@ -34,7 +37,7 @@ public class TerrainMesh
         VertexBufferUniform.AddId(VertexBuffer);
 
         // Max indirect args buffer
-        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4, usage: RenderingDevice.StorageBufferUsage.Indirect);
+        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4);
         rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
         IndirectArgsBufferUniform = new RDUniform()
         {
@@ -121,8 +124,48 @@ public class TerrainMesh
             DisplayServer.WindowGetCurrentScreen()
         );
 
-        //Rd.DrawListBindRenderPipeline(drawList, renderPipeline);
+        Rd.DrawListBindRenderPipeline(drawList, RenderPipeline);
         Rd.DrawListBindVertexArray(drawList, VertexBuffer);
         Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer, 0, 1, sizeof(uint) * 4);
+    }
+
+    private Rid GetRenderPipeline(TerrainMeshRenderPipelineDescriptor descriptor)
+    {
+        if (descriptor == null)
+        {
+            throw new ArgumentNullException(nameof(descriptor), "Cannot be null.");
+        }
+
+        if (string.IsNullOrWhiteSpace(descriptor.ShaderPath))
+        {
+            throw new ArgumentNullException(nameof(descriptor.ShaderPath), "Cannot be null or whitespace");
+        }
+
+        string shaderPath = descriptor.ShaderPath;
+        RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
+        RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
+        Rid shader = Rd.ShaderCreateFromSpirV(shaderBytecode);
+
+        // Position descriptor for vertices
+        RDVertexAttribute vertexAttributePosition = new RDVertexAttribute()
+        {
+            Format = RenderingDevice.DataFormat.R32G32Sfloat,
+            Frequency = RenderingDevice.VertexFrequency.Vertex,
+            Location = 0,
+            Offset = 0,
+            Stride = (uint)Marshal.SizeOf<Vector3>()
+        };
+
+        // Normal descriptor for vertices
+        RDVertexAttribute vertexAttributeNormal = new RDVertexAttribute()
+        {
+            Format = RenderingDevice.DataFormat.R32G32Sfloat,
+            Frequency = RenderingDevice.VertexFrequency.Vertex,
+            Location = 1,
+            Offset = 0,
+            Stride = (uint)Marshal.SizeOf<Vector3>()
+        };
+
+        long vertexFormat = Rd.VertexFormatCreate([vertexAttributePosition, vertexAttributeNormal]);
     }
 }

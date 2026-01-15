@@ -114,6 +114,7 @@ public partial class TestTransvoxelShader : Node3D
         Transvoxel transvoxel = new Transvoxel(rd, transvoxelDescriptor);
 
         TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+        terrainMesh.PrintVertices();
         terrainMesh.PrintIndirectArgs();
     }
 }
