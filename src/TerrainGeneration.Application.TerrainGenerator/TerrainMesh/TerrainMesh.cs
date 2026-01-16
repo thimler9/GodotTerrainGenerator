@@ -37,7 +37,7 @@ public class TerrainMesh
         VertexBufferUniform.AddId(VertexBuffer);
 
         // Max indirect args buffer
-        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4);
+        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4, usage: RenderingDevice.StorageBufferUsage.Indirect);
         rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
         IndirectArgsBufferUniform = new RDUniform()
         {

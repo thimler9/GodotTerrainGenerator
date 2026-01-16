@@ -12,7 +12,7 @@ using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
 namespace GodotTerrainGenerator2.Test_Scripts;
-public partial class TestTerrainMeshRender : Node3D
+public partial class TestTerrainMeshRender : CompositorEffect
 {
     public uint ChunkSize = 8;
     public uint Lod = 1;
@@ -36,10 +36,17 @@ public partial class TestTerrainMeshRender : Node3D
     public uint MaxNumTerrainMeshesInQueue = 10;
 
     public RenderingDevice Rd;
-    public TerrainMesh terrainMesh = null;
+    public Rid TerrainShader;
+    public TerrainMesh TerrainMesh = null;
     public TerrainMeshDrawDescriptor terrainMeshDrawDescriptor = null;
+    public Rid CurrentImageTexture;
+    public Rid CurrentDepthTexture;
+    public Rid ScreenBuffer;
+    public Color[] ClearColors = [new Color(0.2f, 0.2f, 0.2f, 1.0f)];
+    public Rid RenderPipeline;
+    public Rid VertexArray;
 
-    public override void _Ready()
+    public void InitializeRendering(RenderSceneBuffersRD renderSceneBuffers)
     {
         Rd = RenderingServer.CreateLocalRenderingDevice();
 
@@ -121,23 +128,66 @@ public partial class TestTerrainMeshRender : Node3D
 
         Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
-        TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+        TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+
+        SetRenderPipeline(Rd, "res://Shaders/Graphic/terrain_shader.glsl", renderSceneBuffers);
     }
 
-    public override void _Process(double delta)
+    public override void _RenderCallback(int effectCallbackType, RenderData renderData)
     {
-        if (terrainMesh != null)
+        if (effectCallbackType == (int)EffectCallbackTypeEnum.PostTransparent)
         {
-            if (terrainMeshDrawDescriptor == null)
-            {
-                SetRenderPipeline(Rd, "res://Shaders/Graphic/terrain_shader.glsl");
-            }
+            RenderSceneBuffersRD renderSceneBuffers = (RenderSceneBuffersRD)renderData.GetRenderSceneBuffers();
 
-            terrainMesh.Render(terrainMeshDrawDescriptor);
+            if (renderSceneBuffers != null)
+            {
+                
+                var size = renderSceneBuffers.GetInternalSize();
+                // Can't render if screen is 0 size
+                if (size.X == 0 && size.Y == 0)
+                {
+                    return;
+                }
+                // Create Render Pipeline and Setup buffers if there aren't any
+                else if (Rd == null)
+                {
+                    InitializeRendering(renderSceneBuffers);
+                }
+                // Update camera buffers
+                else
+                {
+                    var newImageTexture = renderSceneBuffers.GetColorTexture();
+                    var newDepthTexture = renderSceneBuffers.GetDepthTexture();
+
+                    if (newImageTexture != CurrentImageTexture || newDepthTexture != CurrentDepthTexture)
+                    {
+                        CurrentImageTexture = newImageTexture;
+                        CurrentDepthTexture = newDepthTexture;
+
+                        if (Rd.FramebufferIsValid(ScreenBuffer))
+                        {
+                            Rd.FreeRid(ScreenBuffer);
+                        }
+
+                        ScreenBuffer = Rd.FramebufferCreate([newImageTexture, newDepthTexture]);
+                    }
+                }
+
+                Rd.DrawCommandBeginLabel("Draw Terrain", new Color(1.0f, 1.0f, 1.0f, 1.0f));
+
+                var drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.ClearColor0, ClearColors);
+                Rd.DrawListBindRenderPipeline(drawList, RenderPipeline);
+                Rd.DrawListBindVertexArray(drawList, VertexArray);
+
+                Rid vertexUniformSet = Rd.UniformSetCreate([TerrainMesh.VertexBufferUniform], TerrainShader, 0);
+                Rd.DrawListBindUniformSet(drawList, vertexUniformSet, 0);
+                Rd.DrawListDrawIndirect(drawList, false, TerrainMesh.IndirectArgsBuffer, 0, 1, 4);
+
+            }
         }
     }
 
-    private void SetRenderPipeline(RenderingDevice rd, string? shaderPath)
+    private void SetRenderPipeline(RenderingDevice rd, string? shaderPath, RenderSceneBuffersRD renderSceneBuffers)
     {
         RDShaderFile shaderFile = GD.Load<RDShaderFile>(shaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
@@ -166,7 +216,7 @@ public partial class TestTerrainMeshRender : Node3D
         long vertexFormat = rd.VertexFormatCreate([vertexAttributePosition, vertexAttributeNormal]);
 
         // Vertex array can be empty since we're doing indirect drawing
-        Rid vertexArray = rd.VertexArrayCreate(1, vertexFormat, []);
+        VertexArray = rd.VertexArrayCreate(1, vertexFormat, []);
 
         RDPipelineRasterizationState rasterizationState = new RDPipelineRasterizationState()
         {
@@ -219,7 +269,7 @@ public partial class TestTerrainMeshRender : Node3D
 
         long frameBufferFormat = Rd.FramebufferGetFormat(screenBuffer);
 
-        Rid pipeline = Rd.RenderPipelineCreate(
+        RenderPipeline = Rd.RenderPipelineCreate(
             shader,
             frameBufferFormat,
             vertexFormat,
