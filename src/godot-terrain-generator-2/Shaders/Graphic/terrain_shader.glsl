@@ -5,24 +5,33 @@
 struct VertexInput {
     vec3 position;
     uint padding;
-    vec3 normal;
-    uint padding2;
+    // vec3 normal;
+    // uint padding2;
 };
 
-layout(std430, binding = 0) buffer ParticleBuffer {
-    VertexInput vertices[];
-};
+layout (location = 0) in vec2 inPos;
+layout (location = 1) in vec3 inColor;
+
+layout(location = 0) out vec3 fragColor;
+
+// layout(std430, binding = 0) buffer VertexInputBuffer {
+//     vec4 vertices[];
+// };
 
 void main() {
-    gl_Position = vec4(vertices[gl_VertexID].position, 1.0);
+    // gl_Position = vertices[gl_VertexIndex];
+    // fragColor = vec3(gl_VertexIndex / 3.0).xyz;
+    gl_Position = vec4(inPos, 0.5, 1.0);
+    fragColor = inColor;
 }
 
 #[fragment]
 
 #version 450
 
+layout(location = 0) in vec3 fragColor;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = vec4(0.2, 0.3, 0.7, 1.0);
+    outColor = vec4(fragColor, 1.0);
 }

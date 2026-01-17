@@ -51,5 +51,8 @@ public partial class TestSimplexNoiseShader : Node3D
 
         sdfGenerator.DispatchShaders(sDFShaderParameters);
         sdfGenerator.PrintOutBuffer();
+
+        var rs = RenderingServer.Singleton;
+        //var sceneBuffers = rs.GetRenderScene
     }
 }

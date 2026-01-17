@@ -1,0 +1,32 @@
+[gd_scene load_steps=6 format=3 uid="uid://g6xr056473ub"]
+
+[ext_resource type="Script" uid="uid://cavcb5546axwm" path="res://Test Scripts/TestCompositorEffects.cs" id="1_3gk3a"]
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_3gk3a"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 0
+access_resolved_color = false
+access_resolved_depth = false
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("1_3gk3a")
+metadata/_custom_type_script = "uid://cavcb5546axwm"
+
+[sub_resource type="Compositor" id="Compositor_y3emv"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_3gk3a")])
+
+[sub_resource type="Environment" id="Environment_3gk3a"]
+
+[sub_resource type="Compositor" id="Compositor_nywjq"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.02128923, 0, 0)
+compositor = SubResource("Compositor_y3emv")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_3gk3a")
+compositor = SubResource("Compositor_nywjq")
