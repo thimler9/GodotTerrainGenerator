@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Godot Terrain Generator 2"
-run/main_scene="uid://g6xr056473ub"
+run/main_scene="uid://pprblrn2xgh0"
 config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 

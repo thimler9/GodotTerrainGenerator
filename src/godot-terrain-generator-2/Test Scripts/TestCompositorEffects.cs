@@ -35,7 +35,7 @@ public partial class TestCompositorEffects : CompositorEffect
 
     public TestCompositorEffects() : base()
     {
-        EffectCallbackType = EffectCallbackTypeEnum.PreOpaque;
+        EffectCallbackType = EffectCallbackTypeEnum.PostTransparent;
     }
 
     // System notifications, we want to react on the notification that
@@ -60,7 +60,7 @@ public partial class TestCompositorEffects : CompositorEffect
     public override void _RenderCallback(int effectCallbackType, RenderData renderData)
     {
         // We only render on PreOpaque
-        if (effectCallbackType != (int)EffectCallbackTypeEnum.PreOpaque)
+        if (effectCallbackType != (int)EffectCallbackTypeEnum.PostTransparent)
         {
             return;
         }
@@ -77,7 +77,7 @@ public partial class TestCompositorEffects : CompositorEffect
 
             if (Rd == null)
             {
-                SetRenderPipeline("res://Shaders/Graphic/terrain_shader.glsl", renderSceneBuffers);
+                SetRenderPipeline(renderSceneBuffers);
             }
             else
             {
@@ -98,37 +98,28 @@ public partial class TestCompositorEffects : CompositorEffect
                 }
             }
 
-            //if (VertexBufferUniformSet.IsValid)
-            //{
-                //long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.ClearColor0, ClearColors);
+            if (VertexBufferUniformSet.IsValid)
+            {
+                long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreAll, ClearColors);
 
-                //Rd.DrawCommandBeginLabel("Test Indirect Draw", new Color(0.0f, 0.0f, 0.0f, 1.0f));
-                //Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
-                //Rd.DrawListBindRenderPipeline(drawList, IndirectDrawPipeline);
-                //Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 0);
-                //Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer);
-                //Rd.DrawListEnd();
-                //Rd.DrawCommandEndLabel();
-
-
-                Rd.DrawCommandBeginLabel("Test Indirect Draw", new Color(1.0f, 1.0f, 1.0f, 1.0f));
-                long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.ClearColor0, ClearColors);
-                Rd.DrawListBindRenderPipeline(drawList, IndirectDrawPipeline);
+                Rd.DrawCommandBeginLabel("Test Indirect Draw", new Color(0.0f, 0.0f, 0.0f, 0.0f));
                 Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
-                Rd.DrawListDraw(drawList, false, 1, 0);
+                Rd.DrawListBindRenderPipeline(drawList, IndirectDrawPipeline);
+                Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 0);
+                Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer);
                 Rd.DrawListEnd();
                 Rd.DrawCommandEndLabel();
-            //}
+            }
         }
     }
 
 
 
-    private void SetRenderPipeline(string? shaderPath, RenderSceneBuffersRD renderSceneBuffers)
+    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers)
     {
         Rd = RenderingServer.GetRenderingDevice();
 
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(shaderPath);
+        RDShaderFile shaderFile = GD.Load<RDShaderFile>("res://Shaders/Graphic/terrain_shader.glsl");
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         IndirectDrawShader = Rd.ShaderCreateFromSpirV(shaderBytecode);
 
@@ -141,17 +132,7 @@ public partial class TestCompositorEffects : CompositorEffect
             Offset = 0,
             Stride = sizeof(float) * 2
         };
-
-        RDVertexAttribute vertexAttributeColor = new RDVertexAttribute()
-        {
-            Format = RenderingDevice.DataFormat.R32G32B32Sfloat,
-            Frequency = RenderingDevice.VertexFrequency.Vertex,
-            Location = 1,
-            Offset = 0,
-            Stride = sizeof(float) * 3
-        };
-
-        long vertexFormat = Rd.VertexFormatCreate([vertexAttributePosition, vertexAttributeColor]);
+        long vertexFormat = Rd.VertexFormatCreate([vertexAttributePosition]);
 
         
         float[] vertexPositionsFake = new float[] {
@@ -163,17 +144,8 @@ public partial class TestCompositorEffects : CompositorEffect
         Buffer.BlockCopy(vertexPositionsFake, 0, verticesPositionsBytes, 0, verticesPositionsBytes.Length);
         Rid dummyVertexPositionBuffer = Rd.VertexBufferCreate((uint)verticesPositionsBytes.Length, verticesPositionsBytes, false);
 
-        float[] vertexColorsFake = new float[] {
-            1, 0, 0,
-            0, 1, 0,
-            0, 0, 1
-        };
-        byte[] vertexColorBytes = new byte[vertexColorsFake.Length * sizeof(float)];
-        Buffer.BlockCopy(vertexColorsFake, 0, vertexColorBytes, 0, vertexColorBytes.Length);
-        Rid dummyVertexColorBuffer = Rd.VertexBufferCreate((uint)vertexColorBytes.Length, vertexColorBytes);
-
         // Vertex array can be empty since we're doing indirect drawing
-        EmptyVertexArray = Rd.VertexArrayCreate(3, vertexFormat, [dummyVertexPositionBuffer, dummyVertexColorBuffer]);
+        EmptyVertexArray = Rd.VertexArrayCreate(3, vertexFormat, [dummyVertexPositionBuffer]);
 
         RDPipelineRasterizationState rasterizationState = new RDPipelineRasterizationState()
         {
@@ -240,42 +212,42 @@ public partial class TestCompositorEffects : CompositorEffect
             []
         );
 
-        ClearColors = new Color[] { new Color(0.0f, 0.0f, 0.0f, 1.0f) };
+        ClearColors = new Color[] { new Color(0.0f, 0.0f, 0.0f, 0.0f) };
 
-        //// Set Vertex Data
-        //float[] drawVertices = new float[]
-        //{
-        //    -0.5f, -0.5f, 0.5f, 0.0f,
-        //    0.0f, -0.5f, 0.5f, 0.0f,
-        //    0.0f, 0.5f, 0.5f, 0.0f
-        //};
+        // Set Vertex Data
+        float[] drawVertices = new float[]
+        {
+           0.0f, -0.5f,
+           0.5f, 0.5f, 
+           -0.5f, 0.5f,
+        };
 
-        //// 3 vertices, 1 instance, 0 first vertex index, 0 first instance index
-        //uint[] indirectArgs = new uint[] { 3, 1, 0, 0 };
+        // 3 vertices, 1 instance, 0 first vertex index, 0 first instance index
+        uint[] indirectArgs = new uint[] { 3, 1, 0, 0 };
 
-        //byte[] drawVerticesBytes = new byte[drawVertices.Length * sizeof(float)];
-        //byte[] indirectArgsBytes = new byte[sizeof(uint) * 4];
+        byte[] drawVerticesBytes = new byte[drawVertices.Length * sizeof(float)];
+        byte[] indirectArgsBytes = new byte[sizeof(uint) * 4];
 
-        //Buffer.BlockCopy(drawVertices, 0, drawVerticesBytes, 0, drawVerticesBytes.Length);
-        //Buffer.BlockCopy(indirectArgs, 0, indirectArgsBytes, 0, indirectArgsBytes.Length);
+        Buffer.BlockCopy(drawVertices, 0, drawVerticesBytes, 0, drawVerticesBytes.Length);
+        Buffer.BlockCopy(indirectArgs, 0, indirectArgsBytes, 0, indirectArgsBytes.Length);
 
-        //VertexBuffer = Rd.StorageBufferCreate((uint)drawVerticesBytes.Length, drawVerticesBytes);
-        //IndirectArgsBuffer = Rd.StorageBufferCreate((uint)indirectArgsBytes.Length, indirectArgsBytes, usage: RenderingDevice.StorageBufferUsage.Indirect);
+        VertexBuffer = Rd.StorageBufferCreate((uint)drawVerticesBytes.Length, drawVerticesBytes);
+        IndirectArgsBuffer = Rd.StorageBufferCreate((uint)indirectArgsBytes.Length, indirectArgsBytes, usage: RenderingDevice.StorageBufferUsage.Indirect);
 
-        //VertexUniform = new RDUniform()
-        //{
-        //    UniformType = RenderingDevice.UniformType.StorageBuffer,
-        //    Binding = 0
-        //};
-        //VertexUniform.AddId(VertexBuffer);
+        VertexUniform = new RDUniform()
+        {
+           UniformType = RenderingDevice.UniformType.StorageBuffer,
+           Binding = 0
+        };
+        VertexUniform.AddId(VertexBuffer);
 
-        //RDUniform indirectDrawUniform = new RDUniform()
-        //{
-        //    UniformType = RenderingDevice.UniformType.StorageBuffer,
-        //    Binding = 0
-        //};
-        //indirectDrawUniform.AddId(IndirectArgsBuffer);
+        RDUniform indirectDrawUniform = new RDUniform()
+        {
+           UniformType = RenderingDevice.UniformType.StorageBuffer,
+           Binding = 0
+        };
+        indirectDrawUniform.AddId(IndirectArgsBuffer);
 
-        //VertexBufferUniformSet = Rd.UniformSetCreate([VertexUniform], IndirectDrawShader, 0);
+        VertexBufferUniformSet = Rd.UniformSetCreate([VertexUniform], IndirectDrawShader, 0);
     }
 }
