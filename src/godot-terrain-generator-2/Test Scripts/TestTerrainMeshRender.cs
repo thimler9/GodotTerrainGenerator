@@ -38,7 +38,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     // Transvoxel Params
     public uint MaxNumTerrainMeshesInQueue = 10;
 
-
+    // Rendering ----------------------------------------------
 
     // Overall Rendering Objects
     public RenderingDevice Rd;
@@ -74,7 +74,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
     public void InitializeMesh()
     {
-        var computeShaderRd = RenderingServer.CreateLocalRenderingDevice();
+        Rd = RenderingServer.GetRenderingDevice();
 
         SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
@@ -100,7 +100,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             SDFShaderParameters = sdfShaderParameters,
             SimplexNoiseShaderDescriptor = simplexNoiseShaderDescriptor
         };
-        SDFGenerator sdfGenerator = new SDFGenerator(computeShaderRd, sdfGeneratorSettings);
+        SDFGenerator sdfGenerator = new SDFGenerator(Rd, sdfGeneratorSettings);
 
         sdfGenerator.DispatchShaders(sdfShaderParameters);
 
@@ -118,7 +118,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             ShaderPath = "res://Shaders/Compute/normal_generator.glsl"
         };
 
-        NormalsShader normalsShader = new NormalsShader(computeShaderRd, normalsDescriptor);
+        NormalsShader normalsShader = new NormalsShader(Rd, normalsDescriptor);
         normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
         //normalsShader.PrintOutBuffer();
 
@@ -152,7 +152,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
         };
 
-        Transvoxel transvoxel = new Transvoxel(computeShaderRd, transvoxelDescriptor);
+        Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
         TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
     }
@@ -209,6 +209,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
                 Rd.DrawListBindUniformSet(drawList, TerrainMesh.VertexBufferUniformSet, 0);
                 Rd.DrawListDrawIndirect(drawList, false, TerrainMesh.IndirectArgsBuffer);
+                Rd.DrawListEnd();
+                Rd.DrawCommandEndLabel();
             }
 
         }
