@@ -95,8 +95,8 @@ namespace TerrainGeneration.Application.SDFGenerator
                 SimplexNoise(computeList);
 
                 Rd.ComputeListEnd();
-                Rd.Submit();
-                Rd.Sync();
+                //Rd.Submit();
+                //Rd.Sync();
                 ParametersUpdated = false;
             }
         }

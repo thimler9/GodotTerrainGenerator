@@ -102,8 +102,8 @@ public class TransvoxelShader
         RunTransvoxelShader(computeList, sdfUniform, normalsUniform, verticesUniform);
 
         Rd.ComputeListEnd();
-        Rd.Submit();
-        Rd.Sync();
+        //Rd.Submit();
+        //Rd.Sync();
         ParametersUpdated = false;
     }
 

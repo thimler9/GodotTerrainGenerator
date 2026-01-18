@@ -100,8 +100,8 @@ public class NormalsShader
             RunNormalsShader(computeList, inputSDFUniform);
 
             Rd.ComputeListEnd();
-            Rd.Submit();
-            Rd.Sync();
+            //Rd.Submit();
+            //Rd.Sync();
             ParametersUpdated = false;
         }
     }
