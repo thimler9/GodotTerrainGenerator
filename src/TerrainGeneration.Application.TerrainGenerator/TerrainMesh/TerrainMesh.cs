@@ -81,16 +81,36 @@ public class TerrainMesh
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
 
         TerrainMeshVertex[] outputVertices = new TerrainMeshVertex[output.Length / 8];
-        for (int i = 0; i < output.Length / 8; i++)
+
+        string outputString = "";
+        for (int i = 0; i < output.Length / (8 * 3); i++)
         {
-            outputVertices[i] = new TerrainMeshVertex(
-                new Vector3(output[i * 8], output[i * 8 + 1], output[i * 8 + 2]),
-                new Vector3(output[i * 8 + 4], output[i * 8 + 5], output[i * 8 + 6])
+            int index = i * 3;
+            TerrainMeshVertex vert1 = new TerrainMeshVertex(
+                new Vector3(output[index * 8], output[index * 8 + 1], output[index * 8 + 2]),
+                new Vector3(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6])
             );
+            outputVertices[index] = vert1;
+
+            index++;
+            TerrainMeshVertex vert2 = new TerrainMeshVertex(
+                new Vector3(output[index * 8], output[index * 8 + 1], output[index * 8 + 2]),
+                new Vector3(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6])
+            );
+            outputVertices[index] = vert2;
+
+            index++;
+            TerrainMeshVertex vert3 = new TerrainMeshVertex(
+                new Vector3(output[index * 8], output[index * 8 + 1], output[index * 8 + 2]),
+                new Vector3(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6])
+            );
+            outputVertices[index] = vert3;
+
+            outputString += $"\n\t{vert1.ToString()}\t{vert2.ToString()}\t{vert3.ToString()}";
         }
 
         GD.Print("Output count: " + output.Length / 8);
-        GD.Print("Output: ", string.Join(", ", outputVertices.Select(vert => vert.ToString())));
+        GD.Print("Output: ", outputString);
     }
 
     public void PrintIndirectArgs()
