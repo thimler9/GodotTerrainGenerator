@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
 	  <Folder Include="Shaders\Compute\" />
+	  <Folder Include="Shaders\Graphic\Includes\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Graphic\compute_example.glsl" />

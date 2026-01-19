@@ -89,8 +89,8 @@ public class TerrainMesh
             );
         }
 
+        GD.Print("Output count: " + output.Length / 8);
         GD.Print("Output: ", string.Join(", ", outputVertices.Select(vert => vert.ToString())));
-        Console.WriteLine(string.Join(", ", outputVertices.Select(vert => vert.ToString())));
     }
 
     public void PrintIndirectArgs()

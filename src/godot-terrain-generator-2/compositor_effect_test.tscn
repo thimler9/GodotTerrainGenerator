@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://pprblrn2xgh0"]
+[gd_scene load_steps=6 format=3 uid="uid://pprblrn2xgh0"]
 
 [ext_resource type="Script" uid="uid://d3ooqb23b5dfj" path="res://Test Scripts/TestTerrainMeshRender.cs" id="1_3gk3a"]
+[ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_nywjq"]
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nywjq"]
 resource_local_to_scene = false
@@ -20,8 +21,9 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nywj
 [node name="Node3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5141046, 0, 0.33256853)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5141046, 0, 5.6454067)
 compositor = SubResource("Compositor_y3emv")
+script = ExtResource("2_nywjq")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_3gk3a")

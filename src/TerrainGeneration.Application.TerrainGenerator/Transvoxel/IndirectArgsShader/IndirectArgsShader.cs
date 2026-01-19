@@ -46,8 +46,6 @@ public class IndirectArgsShader
         RunIndirectArgsShader(computeList, counterUniform, indirectArgsBufferUniform);
 
         Rd.ComputeListEnd();
-        //Rd.Submit();
-        //Rd.Sync();
     }
 
     public void RunIndirectArgsShader(long computeList, RDUniform counterUniform, RDUniform indirectArgsUniform)

@@ -49,7 +49,7 @@ namespace TerrainGeneration.Application.SDFGenerator
             // Create the output buffer used throughout calculations
             uint chunkSizeToLodRatio = SDFShaderParameters.ChunkSize / SDFShaderParameters.Lod;
 
-            Rid outputBuffer = Rd.StorageBufferCreate((chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio  + 2) * sizeof(float));
+            Rid outputBuffer = Rd.StorageBufferCreate((chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float));
             OutputBufferUniform = new RDUniform()
             {
                 UniformType = RenderingDevice.UniformType.StorageBuffer,

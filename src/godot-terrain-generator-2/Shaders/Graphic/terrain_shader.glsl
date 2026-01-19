@@ -2,6 +2,9 @@
 
 #version 450
 
+#include "Includes/scene_data.glsl"
+#include "Includes/scene_data_helpers.glsl"
+
 struct VertexInput {
     vec3 position;
     uint padding;
@@ -9,27 +12,30 @@ struct VertexInput {
     uint padding2;
 };
 
-// layout (location = 0) in vec2 inPos;
-// layout (location = 1) in vec3 inColor;
-
-layout(location = 0) out vec3 fragColor;
-
-layout(std430, binding = 0) buffer VertexInputBuffer {
+layout(std430, set = 1, binding = 0) buffer VertexInputBuffer {
     VertexInput vertices[];
 };
 
+layout(location = 0) out vec3 fragNormal;
+
 void main() {
-    gl_Position = vec4(vertices[gl_VertexIndex].position, 1.0);
-    fragColor = vec3(gl_VertexIndex / 3.0).xyz;
+    VertexInput vertex = vertices[gl_VertexIndex];
+
+    vec4 position = vec4(vertex.position, 1.0);
+    // Multiply position by view matrix
+    // position = scene.data.projection_matrix * position;
+    
+    gl_Position = position;
+    fragNormal = vertex.normal;
 }
 
 #[fragment]
 
 #version 450
 
-layout(location = 0) in vec3 fragColor;
+layout(location = 0) in vec3 fragNormal;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = vec4(fragColor, 1.0);
+    outColor = vec4(fragNormal, 1.0);
 }
