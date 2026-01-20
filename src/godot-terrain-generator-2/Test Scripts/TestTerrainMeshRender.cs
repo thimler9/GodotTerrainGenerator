@@ -97,6 +97,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             else if (Rd == null)
             {
                 Init(renderSceneBuffers, renderSceneDataBuffer);
+                TestPrintOutCameraUniform(renderSceneDataBuffer);
             }
             // Update camera buffers
             else
@@ -120,9 +121,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
             if (TerrainMesh != null)
             {
+                long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreAll, ClearColors);
                 Rd.DrawCommandBeginLabel("Draw Terrain", new Color(0.0f, 0.0f, 0.0f, 0.0f));
-
-                var drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreAll, ClearColors);
                 Rd.DrawListBindRenderPipeline(drawList, RenderPipeline);
                 Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
                 Rd.DrawListBindUniformSet(drawList, RenderSceneDataUniformSet, 0);
@@ -218,8 +218,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
         Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
         TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
-        TerrainMesh.PrintIndirectArgs();
-        TerrainMesh.PrintVertices();
+        //TerrainMesh.PrintIndirectArgs();
+        //TerrainMesh.PrintVertices();
     }
 
     private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, TerrainMesh terrainMesh, Rid renderSceneDataBuffer)
@@ -336,14 +336,33 @@ public partial class TestTerrainMeshRender : CompositorEffect
     private void TestPrintOutCameraUniform(Rid renderSceneData)
     {
         byte[] cameraUniformOut = Rd.BufferGetData(renderSceneData);
-        float[] cameraProjectionMatrix = new float[16];
-        Buffer.BlockCopy(cameraUniformOut, 0, cameraProjectionMatrix, 0, 16 * sizeof(float));
+        float[] cameraProjectionMatrix = new float[16 + 16 + 12 + 12];
+        Buffer.BlockCopy(cameraUniformOut, 0, cameraProjectionMatrix, 0, cameraProjectionMatrix.Length * sizeof(float));
 
-        GD.Print("Camera Uniform:");
+        GD.Print("Projection Matrix:");
         for (int i = 0; i < 4; i++)
         {
             GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
         }
+
+        GD.Print("\nInverse Projection:");
+        for (int i = 4; i < 8; i++)
+        {
+            GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
+        }
+
+        GD.Print("\nInverse View Matrix:");
+        for (int i = 8; i < 12; i++)
+        {
+            GD.Print($"{cameraProjectionMatrix[i * 3]} {cameraProjectionMatrix[i * 3 + 1]} {cameraProjectionMatrix[i * 3 + 2]}");
+        }
+
+        GD.Print("\nView Matrix:");
+        for (int i = 12; i < 16; i++)
+        {
+            GD.Print($"{cameraProjectionMatrix[i * 3]} {cameraProjectionMatrix[i * 3 + 1]} {cameraProjectionMatrix[i * 3 + 2]}");
+        }
+
         GD.Print("\n");
     }
 }

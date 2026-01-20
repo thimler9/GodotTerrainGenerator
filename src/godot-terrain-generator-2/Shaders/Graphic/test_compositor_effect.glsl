@@ -17,9 +17,14 @@ layout(location = 0) out vec3 fragColor;
 
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
-    gl_Position = vec4(vertex.position.xyz, 1.0);
-    // gl_Position = gl_Position * scene.data.projection_matrix;
 
+    mat4 view_matrix = scene.data.projection_matrix_view[0];
+
+    vec4 positionWS = vec4(vertex.position.xyz, 1.0);
+    vec4 positionVS = view_matrix * positionWS;
+    vec4 positionCS = scene.data.projection_matrix * vec4(positionVS.xyz, 1.0);
+
+    gl_Position = positionCS;
     fragColor = vertex.normal.xyz;
 }
 

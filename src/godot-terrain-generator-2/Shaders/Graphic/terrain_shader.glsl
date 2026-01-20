@@ -19,13 +19,13 @@ layout(location = 0) out vec3 fragNormal;
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
 
-    vec4 position = vec4(vertex.position.xyz, 1.0);
-    // Multiply position by view matrix
-    // position = scene.data.projection_matrix * position;
+    mat4 view_matrix = scene.data.projection_matrix_view[0];
 
-    position -= vec4(0.5, 0.5, 0.0, 0.0); // Center the terrain chunk
-    
-    gl_Position = position;
+    vec4 positionWS = vec4(vertex.position.xyz, 1.0);
+    vec4 positionVS = view_matrix * positionWS;
+    vec4 positionCS = scene.data.projection_matrix * positionVS;
+
+    gl_Position = positionCS;
     fragNormal = vertex.normal.xyz;
 }
 

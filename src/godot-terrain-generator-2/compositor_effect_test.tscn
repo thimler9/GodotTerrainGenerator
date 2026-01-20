@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cavcb5546axwm" path="res://Test Scripts/TestCompositorEffects.cs" id="1_nywjq"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_nywjq"]
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_phlrk"]
+[sub_resource type="CompositorEffect" id="CompositorEffect_nywjq"]
 resource_local_to_scene = false
 resource_name = ""
 enabled = true
@@ -14,23 +14,22 @@ script = ExtResource("1_nywjq")
 metadata/_custom_type_script = "uid://cavcb5546axwm"
 
 [sub_resource type="Compositor" id="Compositor_y3emv"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_phlrk")])
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nywjq")])
 
 [sub_resource type="Environment" id="Environment_3gk3a"]
 
 [node name="Node3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.514, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.70710677, -0.70710677, 0, 0.70710677, 0.70710677, 0, 0, 0)
 compositor = SubResource("Compositor_y3emv")
 script = ExtResource("2_nywjq")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_3gk3a")
 
-[node name="CSGSphere3D" type="CSGSphere3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6897445)
-radius = 0.04534985
-
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.11895852, 0.99289924, 0, -0.99289924, 0.11895852, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.11895852, 0.99289924, 0, -0.99289924, 0.11895852, 0, 0, -0.7119888)
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.8817306)
