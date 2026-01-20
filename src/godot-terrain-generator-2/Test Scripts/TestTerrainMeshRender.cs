@@ -218,7 +218,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
         Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
         TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
-        //TerrainMesh.PrintIndirectArgs();
+        TerrainMesh.PrintIndirectArgs();
         TerrainMesh.PrintVertices();
     }
 
@@ -332,4 +332,18 @@ public partial class TestTerrainMeshRender : CompositorEffect
         RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], TerrainShader, 0);
     }
 
+
+    private void TestPrintOutCameraUniform(Rid renderSceneData)
+    {
+        byte[] cameraUniformOut = Rd.BufferGetData(renderSceneData);
+        float[] cameraProjectionMatrix = new float[16];
+        Buffer.BlockCopy(cameraUniformOut, 0, cameraProjectionMatrix, 0, 16 * sizeof(float));
+
+        GD.Print("Camera Uniform:");
+        for (int i = 0; i < 4; i++)
+        {
+            GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
+        }
+        GD.Print("\n");
+    }
 }

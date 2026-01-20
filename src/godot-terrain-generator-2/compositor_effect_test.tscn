@@ -1,20 +1,20 @@
 [gd_scene load_steps=6 format=3 uid="uid://pprblrn2xgh0"]
 
-[ext_resource type="Script" uid="uid://d3ooqb23b5dfj" path="res://Test Scripts/TestTerrainMeshRender.cs" id="1_3gk3a"]
+[ext_resource type="Script" uid="uid://cavcb5546axwm" path="res://Test Scripts/TestCompositorEffects.cs" id="1_nywjq"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_nywjq"]
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_nywjq"]
+[sub_resource type="CompositorEffect" id="CompositorEffect_phlrk"]
 resource_local_to_scene = false
 resource_name = ""
 enabled = true
 effect_callback_type = 4
 needs_motion_vectors = false
 needs_normal_roughness = false
-script = ExtResource("1_3gk3a")
-metadata/_custom_type_script = "uid://d3ooqb23b5dfj"
+script = ExtResource("1_nywjq")
+metadata/_custom_type_script = "uid://cavcb5546axwm"
 
 [sub_resource type="Compositor" id="Compositor_y3emv"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nywjq")])
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_phlrk")])
 
 [sub_resource type="Environment" id="Environment_3gk3a"]
 

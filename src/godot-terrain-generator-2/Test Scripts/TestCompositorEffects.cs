@@ -32,6 +32,10 @@ public partial class TestCompositorEffects : CompositorEffect
     public Rid DepthTexture;
     public Rid ScreenBuffer;
 
+    // Test render scene data
+    public RDUniform RenderSceneDataUniform;
+    public Rid RenderSceneDataUniformSet;
+
 
     public TestCompositorEffects() : base()
     {
@@ -77,7 +81,8 @@ public partial class TestCompositorEffects : CompositorEffect
 
             if (Rd == null)
             {
-                SetRenderPipeline(renderSceneBuffers);
+                Rid renderSceneDataBuffer = renderData.GetRenderSceneData().GetUniformBuffer();
+                SetRenderPipeline(renderSceneBuffers, renderSceneDataBuffer);
             }
             else
             {
@@ -105,7 +110,8 @@ public partial class TestCompositorEffects : CompositorEffect
                 Rd.DrawCommandBeginLabel("Test Indirect Draw", new Color(0.0f, 0.0f, 0.0f, 0.0f));
                 Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
                 Rd.DrawListBindRenderPipeline(drawList, IndirectDrawPipeline);
-                Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 0);
+                Rd.DrawListBindUniformSet(drawList, RenderSceneDataUniformSet, 0);
+                Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 1);
                 Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer);
                 Rd.DrawListEnd();
                 Rd.DrawCommandEndLabel();
@@ -115,11 +121,11 @@ public partial class TestCompositorEffects : CompositorEffect
 
 
 
-    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers)
+    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, Rid renderSceneDataBuffer)
     {
         Rd = RenderingServer.GetRenderingDevice();
 
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>("res://Shaders/Graphic/terrain_shader.glsl");
+        RDShaderFile shaderFile = GD.Load<RDShaderFile>("res://Shaders/Graphic/test_compositor_effect.glsl");
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         IndirectDrawShader = Rd.ShaderCreateFromSpirV(shaderBytecode);
 
@@ -217,9 +223,12 @@ public partial class TestCompositorEffects : CompositorEffect
         // Set Vertex Data
         float[] drawVertices = new float[]
         {
-           0.0f, -0.5f,
-           0.5f, 0.5f, 
-           -0.5f, 0.5f,
+            0.0f, -0.5f, 0.5f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.5f, 0.0f,
+            0.7f, 0.4f, 0.8f, 0.0f,
+            -0.5f, 0.5f, 0.5f, 0.0f,
+            0.00f, 0.0f, 0.2f, 0.0f,
         };
 
         // 3 vertices, 1 instance, 0 first vertex index, 0 first instance index
@@ -248,6 +257,15 @@ public partial class TestCompositorEffects : CompositorEffect
         };
         indirectDrawUniform.AddId(IndirectArgsBuffer);
 
-        VertexBufferUniformSet = Rd.UniformSetCreate([VertexUniform], IndirectDrawShader, 0);
+        VertexBufferUniformSet = Rd.UniformSetCreate([VertexUniform], IndirectDrawShader, 1);
+
+        // Set camera projection
+        RenderSceneDataUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.UniformBuffer,
+            Binding = 0,
+        };
+        RenderSceneDataUniform.AddId(renderSceneDataBuffer);
+        RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], IndirectDrawShader, 0);
     }
 }

@@ -13,29 +13,23 @@ struct VertexInput {
 layout(std430, set = 1, binding = 0) buffer VertexInputBuffer {
     VertexInput vertices[];
 };
-
-layout(location = 0) out vec3 fragNormal;
+layout(location = 0) out vec3 fragColor;
 
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
+    gl_Position = vec4(vertex.position.xyz, 1.0);
+    // gl_Position = scene.data.projection_matrix * gl_Position;
 
-    vec4 position = vec4(vertex.position.xyz, 1.0);
-    // Multiply position by view matrix
-    // position = scene.data.projection_matrix * position;
-
-    position -= vec4(0.5, 0.5, 0.0, 0.0); // Center the terrain chunk
-    
-    gl_Position = position;
-    fragNormal = vertex.normal.xyz;
+    fragColor = vertex.normal.xyz;
 }
 
 #[fragment]
 
 #version 450
 
-layout(location = 0) in vec3 fragNormal;
+layout(location = 0) in vec3 fragColor;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = vec4(fragNormal, 1.0);
+    outColor = vec4(fragColor, 1.0);
 }

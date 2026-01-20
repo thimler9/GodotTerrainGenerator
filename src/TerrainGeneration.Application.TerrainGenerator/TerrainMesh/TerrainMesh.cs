@@ -7,7 +7,7 @@ using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
 {
-    private const uint VERT_DIVISOR = 10;
+    private const uint VERT_DIVISOR = 1;
 
     private RenderingDevice Rd;
 
@@ -28,7 +28,7 @@ public class TerrainMesh
         uint maxNumVerts = GetMaxNumVerts();
 
         // Each vert has a position and normal, both Vector3
-        VertexBuffer = rd.VertexBufferCreate(maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>(), creationBits: RenderingDevice.BufferCreationBits.AsStorageBit);
+        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>());
         VertexBufferUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,
@@ -78,6 +78,7 @@ public class TerrainMesh
         var outputBytes = Rd.BufferGetData(VertexBuffer);
  
         float[] output = new float[GetMaxNumVerts() * (uint)Marshal.SizeOf<TerrainMeshVertex>() / sizeof(float)];
+
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
 
         TerrainMeshVertex[] outputVertices = new TerrainMeshVertex[output.Length / 8];
