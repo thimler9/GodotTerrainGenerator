@@ -18,7 +18,7 @@ layout(location = 0) out vec3 fragColor;
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
     gl_Position = vec4(vertex.position.xyz, 1.0);
-    // gl_Position = scene.data.projection_matrix * gl_Position;
+    // gl_Position = gl_Position * scene.data.projection_matrix;
 
     fragColor = vertex.normal.xyz;
 }
@@ -32,4 +32,4 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     outColor = vec4(fragColor, 1.0);
-}
+}           

@@ -21,7 +21,7 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_phlr
 [node name="Node3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5141046, 0, 5.6454067)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.514, 0, 0)
 compositor = SubResource("Compositor_y3emv")
 script = ExtResource("2_nywjq")
 
@@ -30,6 +30,7 @@ environment = SubResource("Environment_3gk3a")
 
 [node name="CSGSphere3D" type="CSGSphere3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6897445)
+radius = 0.04534985
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.11895852, 0.99289924, 0, -0.99289924, 0.11895852, 0, 0, 0)

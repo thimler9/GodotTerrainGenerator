@@ -70,7 +70,8 @@ public partial class TestCompositorEffects : CompositorEffect
         }
 
         using RenderSceneBuffersRD renderSceneBuffers = renderData.GetRenderSceneBuffers() as RenderSceneBuffersRD;
-        
+        //GD.Print(renderData.GetRenderSceneData().GetCamProjection());
+
         if (renderSceneBuffers != null)
         {
             var size = renderSceneBuffers.GetInternalSize();
@@ -81,6 +82,10 @@ public partial class TestCompositorEffects : CompositorEffect
 
             if (Rd == null)
             {
+                GD.Print(renderData.GetRenderSceneData().GetCamProjection());
+                GD.Print(renderData.GetRenderSceneData().GetCamProjection() * new Vector4(0.0f, -0.5f, 0.5f, 1.0f));
+                GD.Print(renderData.GetRenderSceneData().GetCamProjection() * new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+                GD.Print(renderData.GetRenderSceneData().GetCamProjection() * new Vector4(-0.5f, 0.5f, 0.5f, 1.0f));
                 Rid renderSceneDataBuffer = renderData.GetRenderSceneData().GetUniformBuffer();
                 SetRenderPipeline(renderSceneBuffers, renderSceneDataBuffer);
             }

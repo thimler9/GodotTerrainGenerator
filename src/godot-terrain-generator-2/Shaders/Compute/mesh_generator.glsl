@@ -182,13 +182,13 @@ void MainVoxels(uvec3 id) {
         vec3 normal2 = SampleTrilinear(vertex2, id);
         vec3 normal3 = SampleTrilinear(vertex3, id);
 
-        WriteVertex(count, vertex1 / 8, normal1);
-        WriteVertex(count + 1, vertex2 / 8, normal2);
-        WriteVertex(count + 2, vertex3 / 8, normal3);
+        // WriteVertex(count, vertex1 / 8, normal1);
+        // WriteVertex(count + 1, vertex2 / 8, normal2);
+        // WriteVertex(count + 2, vertex3 / 8, normal3);
 
-        // WriteVertex(count, vertex1, normal1);
-        // WriteVertex(count + 1, vertex2, normal2);
-        // WriteVertex(count + 2, vertex3, normal3);
+        WriteVertex(count, vertex1, normal1);
+        WriteVertex(count + 1, vertex2, normal2);
+        WriteVertex(count + 2, vertex3, normal3);
     }
 }
 
