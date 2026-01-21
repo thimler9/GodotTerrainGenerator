@@ -58,6 +58,7 @@ public class Transvoxel
             {
                 ChunkSize = parameters.ChunkSize,
                 Lod = parameters.Lod,
+                MaxNumTriangles = parameters.MaxNumVertices,
             };
             terrainMesh = new TerrainMesh(Rd, terrainMeshParameters);
         }

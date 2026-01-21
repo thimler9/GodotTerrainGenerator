@@ -4,10 +4,8 @@
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 struct Vertex {
-    vec3 position;
-    uint padding;
-    vec3 normal;
-    uint padding2;
+    vec4 position;
+    vec4 normal;
 };
 
 layout(set = 0, binding = 0) restrict readonly uniform Params {
@@ -54,8 +52,8 @@ const int transition_edge_to_vertices_index = 5200;
 const int transition_vertex_data_index = 5232;
 
 void WriteVertex(uint index, vec3 position, vec3 normal) {
-    vertex_buffer.vertex[index].position = position;
-    vertex_buffer.vertex[index].normal = normal;
+    vertex_buffer.vertex[index].position = vec4(position, 1.0);
+    vertex_buffer.vertex[index].normal = vec4(normal, 1.0);
 }
 
 vec3 SampleTrilinear(vec3 position, uvec3 id) {
@@ -68,51 +66,51 @@ vec3 SampleTrilinear(vec3 position, uvec3 id) {
     pos.y = clamp(pos.y, 0.0, size / lod);
     pos.z = clamp(pos.z, 0.0, size / lod);
 
-    int x = int(pos.x);
-    int y = int(pos.y);
-    int z = int(pos.z);
+    uint x = uint(pos.x);
+    uint y = uint(pos.y);
+    uint z = uint(pos.z);
 
-    int X = int(params.chunk_size) / int(params.lod) + 1;
-    int Y = X * X;
+    uint X = params.chunk_size / params.lod + 1;
+    uint Y = X * X;
 
     float fx = pos.x - float(x);
     float fy = pos.y - float(y);
     float fz = pos.z - float(z);
 
-    int xp1 = x + 1;
-    int yp1 = y + 1;
-    int zp1 = z + 1;
+    uint xp1 = x + 1;
+    uint yp1 = y + 1;
+    uint zp1 = z + 1;
 
-    vec3 x0 =   vec3(normals_buffer.data[x + y * X + z * Y], 
-                    normals_buffer.data[(x + y * X + z * Y) + 1], 
-                    normals_buffer.data[(x + y * X + z * Y) + 2]) * (1.0 - fx) + 
-                vec3(normals_buffer.data[xp1 + y * X + z * Y], 
-                     normals_buffer.data[(xp1 + y * X + z * Y) + 1], 
-                     normals_buffer.data[(xp1 + y * X + z * Y) + 2]) * fx;
+    vec3 x0 =   vec3(normals_buffer.data[(x + y * X + z * Y) * 3], 
+                    normals_buffer.data[(x + y * X + z * Y) * 3 + 1], 
+                    normals_buffer.data[(x + y * X + z * Y) * 3 + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[(xp1 + y * X + z * Y) * 3], 
+                     normals_buffer.data[(xp1 + y * X + z * Y) * 3 + 1], 
+                     normals_buffer.data[(xp1 + y * X + z * Y) * 3 + 2]) * fx;
 
-    vec3 x1 =   vec3(normals_buffer.data[x + y * X + zp1 * Y], 
-                    normals_buffer.data[(x + y * X + zp1 * Y) + 1], 
-                    normals_buffer.data[(x + y * X + zp1 * Y) + 2]) * (1.0 - fx) + 
-                vec3(normals_buffer.data[xp1 + y * X + zp1 * Y], 
-                     normals_buffer.data[(xp1 + y * X + zp1 * Y) + 1], 
-                     normals_buffer.data[(xp1 + y * X + zp1 * Y) + 2]) * fx;
+    vec3 x1 =   vec3(normals_buffer.data[(x + y * X + zp1 * Y) * 3], 
+                    normals_buffer.data[(x + y * X + zp1 * Y) * 3+ 1], 
+                    normals_buffer.data[(x + y * X + zp1 * Y) * 3 + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[(xp1 + y * X + zp1 * Y) * 3], 
+                     normals_buffer.data[(xp1 + y * X + zp1 * Y) * 3 + 1], 
+                     normals_buffer.data[(xp1 + y * X + zp1 * Y) * 3 + 2]) * fx;
 
-    vec3 x2 =   vec3(normals_buffer.data[x + yp1 * X + z * Y], 
-                    normals_buffer.data[(x + yp1 * X + z * Y) + 1], 
-                    normals_buffer.data[(x + yp1 * X + z * Y) + 2]) * (1.0 - fx) + 
-                vec3(normals_buffer.data[xp1 + yp1 * X + z * Y], 
-                     normals_buffer.data[(xp1 + yp1 * X + z * Y) + 1], 
-                     normals_buffer.data[(xp1 + yp1 * X + z * Y) + 2]) * fx;
+    vec3 x2 =   vec3(normals_buffer.data[(x + yp1 * X + z * Y) * 3], 
+                    normals_buffer.data[(x + yp1 * X + z * Y) * 3 + 1], 
+                    normals_buffer.data[(x + yp1 * X + z * Y) * 3 + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[(xp1 + yp1 * X + z * Y) * 3], 
+                     normals_buffer.data[(xp1 + yp1 * X + z * Y) * 3 + 1], 
+                     normals_buffer.data[(xp1 + yp1 * X + z * Y) * 3 + 2]) * fx;
 
-    vec3 x3 =   vec3(normals_buffer.data[x + yp1 * X + zp1 * Y], 
-                    normals_buffer.data[(x + yp1 * X + zp1 * Y) + 1], 
-                    normals_buffer.data[(x + yp1 * X + zp1 * Y) + 2]) * (1.0 - fx) + 
-                vec3(normals_buffer.data[xp1 + yp1 * X + zp1 * Y], 
-                     normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) + 1], 
-                     normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) + 2]) * fx;
+    vec3 x3 =   vec3(normals_buffer.data[(x + yp1 * X + zp1 * Y) * 3], 
+                    normals_buffer.data[(x + yp1 * X + zp1 * Y) * 3 + 1], 
+                    normals_buffer.data[(x + yp1 * X + zp1 * Y) * 3 + 2]) * (1.0 - fx) + 
+                vec3(normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) * 3], 
+                     normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) * 3 + 1], 
+                     normals_buffer.data[(xp1 + yp1 * X + zp1 * Y) * 3 + 2]) * fx;
 
     vec3 z0 = x0 * (1.0 - fz) + x1 * fz;
-    vec3 z1 = x1 * (1.0 - fz) + x3 * fz;
+    vec3 z1 = x2 * (1.0 - fz) + x3 * fz;
 
     return z0 * (1.0 - fy) + z1 * fy;
 }
@@ -148,7 +146,7 @@ void MainVoxels(uvec3 id) {
     vec3 triangleVertices[12];
 
     for (int i = 7 /*currVertices.Length - 1*/; i >= 0; i--) {
-        int vertexValue = currVertices[i].w >= 0 ? 1 : 0;
+        int vertexValue = currVertices[i].w >= 0.0 ? 1 : 0;
         edgeIndex |= vertexValue;
         edgeIndex <<= 1;
 
@@ -171,6 +169,7 @@ void MainVoxels(uvec3 id) {
     {
         uint count = atomicAdd(counter.counter, 3u);
         if (count >= params.max_num_vertices) {
+            atomicAdd(counter.counter, uint(-3));
             return;
         }
 
@@ -182,13 +181,19 @@ void MainVoxels(uvec3 id) {
         vec3 normal2 = SampleTrilinear(vertex2, id);
         vec3 normal3 = SampleTrilinear(vertex3, id);
 
-        // WriteVertex(count, vertex1 / 8, normal1);
-        // WriteVertex(count + 1, vertex2 / 8, normal2);
-        // WriteVertex(count + 2, vertex3 / 8, normal3);
-
         WriteVertex(count, vertex1, normal1);
         WriteVertex(count + 1, vertex2, normal2);
         WriteVertex(count + 2, vertex3, normal3);
+
+        // Testing output
+        // vec4 vertex1 = currVertices[0];
+        // vertex1.x = float(edgeIndex);
+        // vec4 vertex2 = currVertices[1];
+        // vec4 vertex3 = currVertices[2];
+
+        // WriteVertex(count, vertex1, vec4(0));
+        // WriteVertex(count + 1, vertex2, vec4(0));
+        // WriteVertex(count + 2, vertex3, vec4(0));
     }
 }
 

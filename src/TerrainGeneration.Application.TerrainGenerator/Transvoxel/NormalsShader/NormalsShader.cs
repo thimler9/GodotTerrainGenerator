@@ -157,8 +157,8 @@ public class NormalsShader
         float[] output = new float[(Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * 3];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
         
-        Vector3[] outputVectors = new Vector3[output.Length / 3];
-        for (int i = 0; i < output.Length / 3; i++)
+        Vector3[] outputVectors = new Vector3[output.Length / 4];
+        for (int i = 0; i < output.Length / 4; i++)
         {
             outputVectors[i] = new Vector3(output[i * 3], output[i * 3 + 1], output[i * 3 + 2]);
         }

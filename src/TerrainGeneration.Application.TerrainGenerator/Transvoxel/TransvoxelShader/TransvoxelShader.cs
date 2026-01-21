@@ -69,7 +69,7 @@ public class TransvoxelShader
         lookupTablesBufferUniform.AddId(LookupTablesBuffer);
 
         // Setup Counter Buffer
-        CounterBuffer = rd.StorageBufferCreate(1 * sizeof(uint));
+        CounterBuffer = rd.StorageBufferCreate(sizeof(uint));
         RDUniform counterBufferUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.StorageBuffer,

@@ -35,5 +35,6 @@ layout(location = 0) in vec3 fragNormal;
 layout(location = 0) out vec4 outColor;
 
 void main() {
+    // outColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
     outColor = vec4(fragNormal, 1.0);
 }

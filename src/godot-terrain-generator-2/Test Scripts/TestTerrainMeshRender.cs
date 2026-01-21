@@ -23,7 +23,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     // Map Params
     public Vector3 ChunkOffset = new Vector3(0, 0, 0);
     public uint Seed = 1234;
-    public float Scale = 256.0f;
+    public float Scale = 32.0f;
     public float Strength = 350.0f;
     public uint NumOctaves = 8;
     public float Frequency = 1.0f;
@@ -32,7 +32,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public float Gain = 0.4f;
 
     // Transvoxel Shader Params
-    public uint MaxNumOfVertices = 10000;
+    public uint MaxNumOfVertices = 50000;
     public float TransitionWidth = 1.0f;
 
     // Transvoxel Params
@@ -182,7 +182,6 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
         NormalsShader normalsShader = new NormalsShader(Rd, normalsDescriptor);
         normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
-        //normalsShader.PrintOutBuffer();
 
         // --------------------------------------------------------------------------------------------------------------------
         RDUniform normalsBufferUniform = normalsShader.OutputNormalsUniform;
@@ -217,10 +216,6 @@ public partial class TestTerrainMeshRender : CompositorEffect
         Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
         TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
-        TerrainMesh.PrintIndirectArgs();
-        //TerrainMesh.PrintVertices();
-        sdfGenerator.PrintOutBuffer();
-        //TerrainMesh.PrintVertices();
     }
 
     private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, TerrainMesh terrainMesh, Rid renderSceneDataBuffer)

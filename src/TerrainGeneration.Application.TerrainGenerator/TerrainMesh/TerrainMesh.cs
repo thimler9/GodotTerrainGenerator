@@ -7,7 +7,7 @@ using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
 {
-    private const uint VERT_DIVISOR = 10;
+    private const uint VERT_DIVISOR = 1;
 
     private RenderingDevice Rd;
 
@@ -63,7 +63,7 @@ public class TerrainMesh
         uint maxNumBorderVerts = chunkSizeToLodRatio * chunkSizeToLodRatio * 12 * 6 * 3;
 
         // Vert divisor is to save on memory since most chunks won't use the max amount
-        uint maxNumVerts = (maxNumBorderVerts + maxNumInternalVerts) / VERT_DIVISOR;
+        uint maxNumVerts = Math.Min((maxNumBorderVerts + maxNumInternalVerts) / VERT_DIVISOR, Parameters.MaxNumTriangles);
 
         return maxNumVerts;
     }
@@ -88,22 +88,22 @@ public class TerrainMesh
         {
             int index = i * 3;
             TerrainMeshVertex vert1 = new TerrainMeshVertex(
-                new Vector3(output[index * 8], output[index * 8 + 1], output[index * 8 + 2]),
-                new Vector3(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6])
+                new Vector4(output[index * 8], output[index * 8 + 1], output[index * 8 + 2], output[index * 8 + 3]),
+                new Vector4(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6], output[index * 8 + 7])
             );
             outputVertices[index] = vert1;
 
             index++;
             TerrainMeshVertex vert2 = new TerrainMeshVertex(
-                new Vector3(output[index * 8], output[index * 8 + 1], output[index * 8 + 2]),
-                new Vector3(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6])
+                new Vector4(output[index * 8], output[index * 8 + 1], output[index * 8 + 2], output[index * 8 + 3]),
+                new Vector4(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6], output[index * 8 + 7])
             );
             outputVertices[index] = vert2;
 
             index++;
             TerrainMeshVertex vert3 = new TerrainMeshVertex(
-                new Vector3(output[index * 8], output[index * 8 + 1], output[index * 8 + 2]),
-                new Vector3(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6])
+                new Vector4(output[index * 8], output[index * 8 + 1], output[index * 8 + 2], output[index * 8 + 3]),
+                new Vector4(output[index * 8 + 4], output[index * 8 + 5], output[index * 8 + 6], output[index * 8 + 7])
             );
             outputVertices[index] = vert3;
 

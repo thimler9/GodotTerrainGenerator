@@ -12,18 +12,12 @@ namespace TerrainGeneration.Application.TerrainGenerator;
 public struct TerrainMeshVertex
 {
     [FieldOffset(0)]
-    public Vector3 Position;
-
-    [FieldOffset(12)]
-    private readonly uint Padding;
+    public Vector4 Position;
 
     [FieldOffset(16)]
-    public Vector3 Normal;
+    public Vector4 Normal;
 
-    [FieldOffset(28)]
-    public readonly uint Padding2;
-
-    public TerrainMeshVertex(Vector3 position, Vector3 normal) 
+    public TerrainMeshVertex(Vector4 position, Vector4 normal) 
     {
         Position = position;
         Normal = normal;

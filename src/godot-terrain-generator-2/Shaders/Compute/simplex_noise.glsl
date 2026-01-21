@@ -125,10 +125,14 @@ uint wang(uint a) {
 const uint seed_modulo = 2347;
 
 void main() {
-    uint chunkSize = sdfParams.chunk_size;
+    uint adjustedSize = sdfParams.chunk_size + 2;
 
     uvec3 id = gl_GlobalInvocationID;
-    uint array_index = id.x + id.y * chunkSize + id.z * chunkSize * chunkSize;
+    uint array_index = id.x + id.y * adjustedSize + id.z * adjustedSize * adjustedSize;
+    if (id.x >= adjustedSize || id.y >= adjustedSize || id.z >= adjustedSize) {
+        return;
+    }
+
     
     float noise_height = 0.0;
     float scale = params.scale;
@@ -144,42 +148,16 @@ void main() {
     uint last_wang_hash = 0u;
     float last_wang_hash_float = 0.0;
 
-    // for (uint i = 0; i < num_octaves; i++)
-    // {
-    //     // float seed_value = float(mod(wang(seed), seed_modulo));
+    for (uint i = 0; i < num_octaves; i++)
+    {
+        float seed_value = float(mod(wang(seed), seed_modulo));
+        vec3 sample_point = (params.chunk_offset + seed_value * vec3(1.0) + vec3(id * sdfParams.lod)) / scale * frequency;
+        float simplex_noise_value = snoise(sample_point);
 
-    //     // float seed_value = float(uintBitsToFloat(wang(seed))) * (1.0 / 4294967295.0);
-    //     float seed_value = float(1);
-    //     vec3 sample_point = (params.chunk_offset + seed_value * vec3(1.0) + vec3(id * sdfParams.lod)) / scale * frequency;
-    //     last_wang_hash_float = seed_value;
-    //     last_wang_hash = wang(seed);
-
-    //     // float octave_offset_x = params.chunk_offset.x + uintBitsToFloat(wang(seed));
-    //     // seed = seed + 1;
-    //     // float octave_offset_y = params.chunk_offset.y + uintBitsToFloat(wang(seed));
-    //     // seed = seed + 1;
-    //     // float octave_offset_z = params.chunk_offset.z + uintBitsToFloat(wang(seed));
-    //     // seed = seed + 1;
-
-
-    //     // float sample_x = (float(id.x * sdfParams.lod) + octave_offset_x) / scale * frequency;
-    //     // float sample_y = (float(id.y * sdfParams.lod) + octave_offset_y) / scale * frequency;
-    //     // float sample_z = (float(id.z * sdfParams.lod) + octave_offset_z) / scale * frequency;
-    //     // vec3 sample_point = vec3(sample_x, sample_y, sample_z);
-    //     last_sample_point = sample_point;
-
-    //     float simplex_noise_value = snoise(sample_point);
-    //     // last_simplex_noise_value = simplex_noise_value;
-
-    //     noise_height = noise_height + simplex_noise_value * amplitude;
-    //     amplitude = amplitude * gain;
-    //     frequency = frequency * lacunarity;
-    //     seed++;
-    // }
-    
-    // vec3 sample_point = (params.chunk_offset + last_wang_hash_float * vec3(1.0)) / scale * frequency;
-    // float simplex_noise_value = snoise(sample_point);
-    
-    // output_buffer.data[array_index] = (float(id.y) - 10) - sin(float(id.x + 1) / 20.0) * sin(float(id.z + 1) / 20.0);
-    output_buffer.data[array_index] = (float(id.y) - 10);
+        noise_height = noise_height + simplex_noise_value * amplitude;
+        amplitude = amplitude * gain;
+        frequency = frequency * lacunarity;
+        seed++;
+    }
+    output_buffer.data[array_index] = noise_height;
 }
