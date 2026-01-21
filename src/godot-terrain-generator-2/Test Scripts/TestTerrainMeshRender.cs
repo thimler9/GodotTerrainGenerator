@@ -18,7 +18,7 @@ namespace GodotTerrainGenerator2.Test_Scripts;
 public partial class TestTerrainMeshRender : CompositorEffect
 {
     public uint ChunkSize = 32;
-    public uint Lod = 2;
+    public uint Lod = 1;
 
     // Map Params
     public Vector3 ChunkOffset = new Vector3(0, 0, 0);
@@ -32,7 +32,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public float Gain = 0.4f;
 
     // Transvoxel Shader Params
-    public uint MaxNumOfVertices = 50000;
+    public uint MaxNumOfVertices = 200000;
     public float TransitionWidth = 1.0f;
 
     // Transvoxel Params
