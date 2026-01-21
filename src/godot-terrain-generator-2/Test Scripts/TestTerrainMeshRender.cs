@@ -23,7 +23,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     // Map Params
     public Vector3 ChunkOffset = new Vector3(128, 128, 128);
     public uint Seed = 1;
-    public float Scale = 1.0f;
+    public float Scale = 15.0f;
     public float Strength = 1.0f;
     public uint NumOctaves = 1;
     public float Frequency = 1.0f;
@@ -121,7 +121,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
             if (TerrainMesh != null)
             {
-                long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreAll, ClearColors);
+                long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreColorAll, ClearColors);
                 Rd.DrawCommandBeginLabel("Draw Terrain", new Color(0.0f, 0.0f, 0.0f, 0.0f));
                 Rd.DrawListBindRenderPipeline(drawList, RenderPipeline);
                 Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
@@ -257,7 +257,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
         RDPipelineRasterizationState rasterizationState = new RDPipelineRasterizationState()
         {
             Wireframe = false,
-            CullMode = RenderingDevice.PolygonCullMode.Disabled,
+            CullMode = RenderingDevice.PolygonCullMode.Front,
             EnableDepthClamp = false,
             LineWidth = 1.0f,
             FrontFace = RenderingDevice.PolygonFrontFace.Clockwise,
@@ -273,7 +273,10 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
         RDPipelineDepthStencilState depthStencilState = new RDPipelineDepthStencilState()
         {
-            EnableDepthTest = false,
+            EnableDepthTest = true,
+            EnableDepthWrite = true,
+            DepthCompareOperator = RenderingDevice.CompareOperator.Greater,
+            EnableStencil = false
         };
 
         RDPipelineColorBlendState blendState = new RDPipelineColorBlendState()

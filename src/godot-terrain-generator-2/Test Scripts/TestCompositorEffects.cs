@@ -161,7 +161,7 @@ public partial class TestCompositorEffects : CompositorEffect
         RDPipelineRasterizationState rasterizationState = new RDPipelineRasterizationState()
         {
             Wireframe = false,
-            CullMode = RenderingDevice.PolygonCullMode.Disabled,
+            CullMode = RenderingDevice.PolygonCullMode.Front,
             EnableDepthClamp = false,
             LineWidth = 1.0f,
             FrontFace = RenderingDevice.PolygonFrontFace.Clockwise,
@@ -179,10 +179,10 @@ public partial class TestCompositorEffects : CompositorEffect
         {
             EnableDepthTest = true,
             EnableDepthWrite = true,
-            DepthCompareOperator = 
-            
-            
-
+            DepthCompareOperator = RenderingDevice.CompareOperator.LessOrEqual,
+            FrontOpCompare = RenderingDevice.CompareOperator.LessOrEqual,
+            FrontOpDepthFail = RenderingDevice.StencilOperation.Replace,
+            FrontOpPass = RenderingDevice.StencilOperation.Keep,
         };
 
         RDPipelineColorBlendState blendState = new RDPipelineColorBlendState()
