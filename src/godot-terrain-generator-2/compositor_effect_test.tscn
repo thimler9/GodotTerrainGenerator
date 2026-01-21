@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://pprblrn2xgh0"]
 
-[ext_resource type="Script" uid="uid://cavcb5546axwm" path="res://Test Scripts/TestCompositorEffects.cs" id="1_nywjq"]
+[ext_resource type="Script" uid="uid://d3ooqb23b5dfj" path="res://Test Scripts/TestTerrainMeshRender.cs" id="1_3gk3a"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_nywjq"]
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nywjq"]
@@ -10,8 +10,8 @@ enabled = true
 effect_callback_type = 4
 needs_motion_vectors = false
 needs_normal_roughness = false
-script = ExtResource("1_nywjq")
-metadata/_custom_type_script = "uid://cavcb5546axwm"
+script = ExtResource("1_3gk3a")
+metadata/_custom_type_script = "uid://d3ooqb23b5dfj"
 
 [sub_resource type="Compositor" id="Compositor_y3emv"]
 compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nywjq")])
@@ -21,7 +21,7 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nywj
 [node name="Node3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.70710677, -0.70710677, 0, 0.70710677, 0.70710677, 0, 0, 0)
+transform = Transform3D(0.976296, -0.17837356, -0.122592755, 0, 0.56640625, -0.8241262, 0.21643962, 0.8045911, 0.5529802, 0, 0, 0)
 compositor = SubResource("Compositor_y3emv")
 script = ExtResource("2_nywjq")
 
@@ -32,4 +32,13 @@ environment = SubResource("Environment_3gk3a")
 transform = Transform3D(1, 0, 0, 0, 0.11895852, 0.99289924, 0, -0.99289924, 0.11895852, 0, 0, -0.7119888)
 
 [node name="CSGPolygon3D" type="CSGPolygon3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2.8817306)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.5, 10.5)
+
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 10.5, 10.5)
+
+[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 10.5, 10.5)
+
+[node name="CSGPolygon3D4" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.644107)

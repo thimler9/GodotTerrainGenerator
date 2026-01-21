@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -84,12 +85,10 @@ public partial class TestCompositorEffects : CompositorEffect
 
             if (Rd == null)
             {
-                //GD.Print(renderData.GetRenderSceneData().GetCamTransform());
-                //GD.Print(renderData.GetRenderSceneData().GetCamTransform());
-                //GD.Print(renderData.GetRenderSceneData().GetCamProjection() * renderData.GetRenderSceneData().GetViewProjection(0) * new Vector4(0.0f, -0.5f, 0.5f, 1.0f));
-                //GD.Print(renderData.GetRenderSceneData().GetCamProjection() * renderData.GetRenderSceneData().GetViewProjection(0) * new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
-                //GD.Print(renderData.GetRenderSceneData().GetCamProjection() * renderData.GetRenderSceneData().GetViewProjection(0) * new Vector4(-0.5f, 0.5f, 0.5f, 1.0f));
-                SetRenderPipeline(renderSceneBuffers, renderSceneDataBuffer);
+                SetRenderPipeline(renderSceneBuffers, renderSceneDataBuffer, renderData);
+
+                GD.Print(renderData.GetRenderSceneData().GetCamProjection());
+                TestPrintOutCameraUniform(renderSceneDataBuffer);
             }
             else
             {
@@ -112,7 +111,6 @@ public partial class TestCompositorEffects : CompositorEffect
 
             if (VertexBufferUniformSet.IsValid)
             {
-                TestPrintOutCameraUniform(renderSceneDataBuffer);
                 long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreAll, ClearColors);
                 Rd.DrawCommandBeginLabel("Test Indirect Draw", new Color(0.0f, 0.0f, 0.0f, 0.0f));
                 Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
@@ -128,7 +126,7 @@ public partial class TestCompositorEffects : CompositorEffect
 
 
 
-    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, Rid sceneDataUniformBuffer)
+    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, Rid sceneDataUniformBuffer, RenderData renderData)
     {
         Rd = RenderingServer.GetRenderingDevice();
 
@@ -179,7 +177,12 @@ public partial class TestCompositorEffects : CompositorEffect
 
         RDPipelineDepthStencilState depthStencilState = new RDPipelineDepthStencilState()
         {
-            EnableDepthTest = false,
+            EnableDepthTest = true,
+            EnableDepthWrite = true,
+            DepthCompareOperator = 
+            
+            
+
         };
 
         RDPipelineColorBlendState blendState = new RDPipelineColorBlendState()
@@ -230,11 +233,11 @@ public partial class TestCompositorEffects : CompositorEffect
         // Set Vertex Data
         float[] drawVertices = new float[]
         {
-            0.0f, -0.5f, 0.5f, 0.0f,
+            0.0f, -10.5f, 10.5f, 0.0f,
             0.0f, 0.0f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.5f, 0.0f,
+            10.5f, 10.5f, 10.5f, 0.0f,
             0.7f, 0.4f, 0.8f, 0.0f,
-            -0.5f, 0.5f, 0.5f, 0.0f,
+            -10.5f, 10.5f, 10.5f, 0.0f,
             0.00f, 0.0f, 0.2f, 0.0f,
         };
 
@@ -270,7 +273,7 @@ public partial class TestCompositorEffects : CompositorEffect
 
         // Set camera projection
         //Transform3D cameraTransform = renderData.GetRenderSceneData().GetCamTransform();
-        //Projection viewProjection = renderData.GetRenderSceneData().GetCamProjection();
+        ////Projection viewProjection = renderData.GetRenderSceneData().GetCamProjection();
 
         //float[] cameraMatrix = new float[]
         //{
@@ -291,6 +294,31 @@ public partial class TestCompositorEffects : CompositorEffect
         //    cameraTransform.Origin.Z,
         //    1.0f,
         //};
+
+        //Matrix4x4 cameraMatrix1 = new Matrix4x4()
+        //{
+        //    M11 = cameraTransform.Basis.X.X,
+        //    M12 = cameraTransform.Basis.X.Y,
+        //    M13 = cameraTransform.Basis.X.Z,
+        //    M14 = 0.0f,
+        //    M21 = cameraTransform.Basis.Y.X,
+        //    M22 = cameraTransform.Basis.Y.Y,
+        //    M23 = cameraTransform.Basis.Y.Z,
+        //    M24 = 0.0f,
+        //    M31 = cameraTransform.Basis.Z.X,
+        //    M32 = cameraTransform.Basis.Z.Y,
+        //    M33 = cameraTransform.Basis.Z.Z,
+        //    M34 = 0.0f,
+        //    M41 = cameraTransform.Origin.X,
+        //    M42 = cameraTransform.Origin.Y,
+        //    M43 = cameraTransform.Origin.Z,
+        //    M44 = 1.0f,
+        //};
+
+        //Matrix4x4 cameraMatrixInverse;
+        //Matrix4x4.Invert(cameraMatrix1, out cameraMatrixInverse);
+
+        //GD.Print(cameraMatrixInverse);
 
         //float[] viewProjectionMatrix = new float[]
         //{
@@ -313,6 +341,7 @@ public partial class TestCompositorEffects : CompositorEffect
         //};
 
         //GD.Print("Output: ", string.Join(", ", cameraMatrix.Select(vec => $"{vec}\n").ToArray()));
+
 
 
 
@@ -341,28 +370,9 @@ public partial class TestCompositorEffects : CompositorEffect
         if (counter++ < 1)
         {
             byte[] cameraUniformOut = Rd.BufferGetData(renderSceneData);
-            float[] cameraProjectionMatrix = new float[16 + 16 + 12 + 12];
+            float[] cameraProjectionMatrix = new float[cameraUniformOut.Length / sizeof(float)];
             Buffer.BlockCopy(cameraUniformOut, 0, cameraProjectionMatrix, 0, cameraProjectionMatrix.Length * sizeof(float));
-
-            //GD.Print("Projection Matrix:");
-            //for (int i = 0; i < 4; i++)
-            //{
-            //    GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
-            //}
-
-            //GD.Print("\nInverse Projection:");
-            //for (int i = 4; i < 8; i++)
-            //{
-            //    GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
-            //}
-
-            GD.Print("\nInverse View Matrix:");
-            for (int i = 8; i < 12; i++)
-            {
-                GD.Print($"{cameraProjectionMatrix[i * 3]} {cameraProjectionMatrix[i * 3 + 1]} {cameraProjectionMatrix[i * 3 + 2]}");
-            }
-
-            GD.Print("\n");
+            GD.Print("Output: ", string.Join(", ", cameraProjectionMatrix.Select(vec => $"{vec}").ToArray()));
         }
     }
 }

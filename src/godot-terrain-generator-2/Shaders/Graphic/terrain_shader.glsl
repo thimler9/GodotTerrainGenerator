@@ -19,10 +19,8 @@ layout(location = 0) out vec3 fragNormal;
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
 
-    mat4 view_matrix = scene.data.projection_matrix_view[0];
-
     vec4 positionWS = vec4(vertex.position.xyz, 1.0);
-    vec4 positionVS = view_matrix * positionWS;
+    vec4 positionVS = scene.data.view_matrix * positionWS;
     vec4 positionCS = scene.data.projection_matrix * positionVS;
 
     gl_Position = positionCS;
