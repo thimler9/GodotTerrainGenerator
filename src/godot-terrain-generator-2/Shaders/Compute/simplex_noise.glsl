@@ -125,7 +125,7 @@ uint wang(uint a) {
 const uint seed_modulo = 2347;
 
 void main() {
-    uint adjustedSize = sdfParams.chunk_size + 2;
+    uint adjustedSize = sdfParams.chunk_size / sdfParams.lod + 2;
 
     uvec3 id = gl_GlobalInvocationID;
     uint array_index = id.x + id.y * adjustedSize + id.z * adjustedSize * adjustedSize;

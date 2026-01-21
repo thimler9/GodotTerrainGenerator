@@ -18,7 +18,7 @@ namespace GodotTerrainGenerator2.Test_Scripts;
 public partial class TestTerrainMeshRender : CompositorEffect
 {
     public uint ChunkSize = 32;
-    public uint Lod = 1;
+    public uint Lod = 2;
 
     // Map Params
     public Vector3 ChunkOffset = new Vector3(0, 0, 0);
