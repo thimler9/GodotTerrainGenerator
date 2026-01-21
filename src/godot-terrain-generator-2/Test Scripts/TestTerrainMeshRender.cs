@@ -17,19 +17,19 @@ namespace GodotTerrainGenerator2.Test_Scripts;
 [GlobalClass]
 public partial class TestTerrainMeshRender : CompositorEffect
 {
-    public uint ChunkSize = 8;
+    public uint ChunkSize = 32;
     public uint Lod = 1;
 
     // Map Params
-    public Vector3 ChunkOffset = new Vector3(128, 128, 128);
-    public uint Seed = 1;
-    public float Scale = 15.0f;
-    public float Strength = 1.0f;
-    public uint NumOctaves = 1;
+    public Vector3 ChunkOffset = new Vector3(0, 0, 0);
+    public uint Seed = 1234;
+    public float Scale = 256.0f;
+    public float Strength = 350.0f;
+    public uint NumOctaves = 8;
     public float Frequency = 1.0f;
     public float Amplitude = 1.0f;
-    public float Lacunarity = 1.0f;
-    public float Gain = 1.0f;
+    public float Lacunarity = 2.0f;
+    public float Gain = 0.4f;
 
     // Transvoxel Shader Params
     public uint MaxNumOfVertices = 10000;
@@ -97,7 +97,6 @@ public partial class TestTerrainMeshRender : CompositorEffect
             else if (Rd == null)
             {
                 Init(renderSceneBuffers, renderSceneDataBuffer);
-                TestPrintOutCameraUniform(renderSceneDataBuffer);
             }
             // Update camera buffers
             else
@@ -218,7 +217,9 @@ public partial class TestTerrainMeshRender : CompositorEffect
         Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
 
         TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
-        //TerrainMesh.PrintIndirectArgs();
+        TerrainMesh.PrintIndirectArgs();
+        //TerrainMesh.PrintVertices();
+        sdfGenerator.PrintOutBuffer();
         //TerrainMesh.PrintVertices();
     }
 

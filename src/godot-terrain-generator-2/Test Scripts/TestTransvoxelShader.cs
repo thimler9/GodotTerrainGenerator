@@ -25,7 +25,7 @@ public partial class TestTransvoxelShader : Node3D
     public float Gain = 1.0f;
 
     // Transvoxel Shader Params
-    public uint MaxNumOfVertices = 10000;
+    public uint MaxNumOfVertices = 20000;
     public float TransitionWidth = 1.0f;
 
     // Transvoxel Params

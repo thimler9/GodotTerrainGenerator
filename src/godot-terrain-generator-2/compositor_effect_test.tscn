@@ -21,7 +21,6 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_nywj
 [node name="Node3D" type="Node3D"]
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.976296, -0.17837356, -0.122592755, 0, 0.56640625, -0.8241262, 0.21643962, 0.8045911, 0.5529802, 0, 0, 0)
 compositor = SubResource("Compositor_y3emv")
 script = ExtResource("2_nywjq")
 

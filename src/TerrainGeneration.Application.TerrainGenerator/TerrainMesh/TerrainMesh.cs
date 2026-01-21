@@ -7,7 +7,7 @@ using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
 {
-    private const uint VERT_DIVISOR = 1;
+    private const uint VERT_DIVISOR = 10;
 
     private RenderingDevice Rd;
 

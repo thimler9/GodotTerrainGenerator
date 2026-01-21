@@ -13,6 +13,7 @@ layout(set = 0, binding = 0) restrict readonly uniform Params {
     float amplitude;
     float lacunarity;
     float gain;
+    float padding;
 }
 params;
 
@@ -31,86 +32,97 @@ output_buffer;
 //	Simplex 3D Noise 
 //	by Ian McEwan, Stefan Gustavson (https://github.com/stegu/webgl-noise)
 //
-vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+vec3 mod289(const in vec3 x) { return x - floor(x * (1. / 289.)) * 289.; }
+vec4 mod289(const in vec4 x) { return x - floor(x * (1. / 289.)) * 289.; }
+vec3 permute(const in vec3 v) { return mod289(((v * 34.0) + 1.0) * v); }
+vec4 permute(const in vec4 v) { return mod289(((v * 34.0) + 1.0) * v); }
+vec3 taylorInvSqrt(in vec3 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+vec4 taylorInvSqrt(in vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
 
-float snoise(vec3 v){ 
-  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
-  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+float snoise(in vec3 v) {
+    const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+    const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
 
-// First corner
-  vec3 i  = floor(v + dot(v, C.yyy) );
-  vec3 x0 =   v - i + dot(i, C.xxx) ;
+    // First corner
+    vec3 i  = floor(v + dot(v, C.yyy) );
+    vec3 x0 =   v - i + dot(i, C.xxx) ;
 
-// Other corners
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min( g.xyz, l.zxy );
-  vec3 i2 = max( g.xyz, l.zxy );
+    // Other corners
+    vec3 g = step(x0.yzx, x0.xyz);
+    vec3 l = 1.0 - g;
+    vec3 i1 = min( g.xyz, l.zxy );
+    vec3 i2 = max( g.xyz, l.zxy );
 
-  //  x0 = x0 - 0. + 0.0 * C 
-  vec3 x1 = x0 - i1 + 1.0 * C.xxx;
-  vec3 x2 = x0 - i2 + 2.0 * C.xxx;
-  vec3 x3 = x0 - 1. + 3.0 * C.xxx;
+    //   x0 = x0 - 0.0 + 0.0 * C.xxx;
+    //   x1 = x0 - i1  + 1.0 * C.xxx;
+    //   x2 = x0 - i2  + 2.0 * C.xxx;
+    //   x3 = x0 - 1.0 + 3.0 * C.xxx;
+    vec3 x1 = x0 - i1 + C.xxx;
+    vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y
+    vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y
 
-// Permutations
-  i = mod(i, 289.0 ); 
-  vec4 p = permute( permute( permute( 
-             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
-           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+    // Permutations
+    i = mod289(i);
+    vec4 p = permute( permute( permute(
+                i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+            + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
+            + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
 
-// Gradients
-// ( N*N points uniformly over a square, mapped onto an octahedron.)
-  float n_ = 1.0/7.0; // N=7
-  vec3  ns = n_ * D.wyz - D.xzx;
+    // Gradients: 7x7 points over a square, mapped onto an octahedron.
+    // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
+    float n_ = 0.142857142857; // 1.0/7.0
+    vec3  ns = n_ * D.wyz - D.xzx;
 
-  vec4 j = p - 49.0 * floor(p * ns.z *ns.z);  //  mod(p,N*N)
+    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)
 
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+    vec4 x_ = floor(j * ns.z);
+    vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
 
-  vec4 x = x_ *ns.x + ns.yyyy;
-  vec4 y = y_ *ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
+    vec4 x = x_ *ns.x + ns.yyyy;
+    vec4 y = y_ *ns.x + ns.yyyy;
+    vec4 h = 1.0 - abs(x) - abs(y);
 
-  vec4 b0 = vec4( x.xy, y.xy );
-  vec4 b1 = vec4( x.zw, y.zw );
+    vec4 b0 = vec4( x.xy, y.xy );
+    vec4 b1 = vec4( x.zw, y.zw );
 
-  vec4 s0 = floor(b0)*2.0 + 1.0;
-  vec4 s1 = floor(b1)*2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
+    //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;
+    //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;
+    vec4 s0 = floor(b0)*2.0 + 1.0;
+    vec4 s1 = floor(b1)*2.0 + 1.0;
+    vec4 sh = -step(h, vec4(0.0));
 
-  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
-  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
 
-  vec3 p0 = vec3(a0.xy,h.x);
-  vec3 p1 = vec3(a0.zw,h.y);
-  vec3 p2 = vec3(a1.xy,h.z);
-  vec3 p3 = vec3(a1.zw,h.w);
+    vec3 p0 = vec3(a0.xy,h.x);
+    vec3 p1 = vec3(a0.zw,h.y);
+    vec3 p2 = vec3(a1.xy,h.z);
+    vec3 p3 = vec3(a1.zw,h.w);
 
-//Normalise gradients
-  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-  p0 *= norm.x;
-  p1 *= norm.y;
-  p2 *= norm.z;
-  p3 *= norm.w;
+    //Normalise gradients
+    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+    p0 *= norm.x;
+    p1 *= norm.y;
+    p2 *= norm.z;
+    p3 *= norm.w;
 
-// Mix final noise value
-  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+    // Mix final noise value
+    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+    m = m * m;
+    return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
                                 dot(p2,x2), dot(p3,x3) ) );
 }
 
-uint wang_hash(uint seed) {
-    seed = (seed ^ 61u) ^ (seed >> 16u);
-    seed *= 9u;
-    seed = seed ^ (seed >> 4u);
-    seed *= 0x27d4eb2du;
-    seed = seed ^ (seed >> 15u);
-    return seed;
+uint wang(uint a) {
+    a = (a ^ 61U) ^ (a >> 16U);
+    a = a * 9U;
+    a = a ^ (a >> 4);
+    a = a * 0x27d4eb2dU;
+    a = a ^ (a >> 15);
+    return a;
 }
+
+const uint seed_modulo = 2347;
 
 void main() {
     uint chunkSize = sdfParams.chunk_size;
@@ -127,26 +139,47 @@ void main() {
     float gain = params.gain;
     uint seed = params.seed;
 
-    for (uint i = 0; i < num_octaves; i = i + 1)
-    {
-        float octave_offset_x = uintBitsToFloat(wang_hash(seed)) + params.chunk_offset.x;
-        seed = seed + 1;
-        float octave_offset_y = uintBitsToFloat(wang_hash(seed)) + params.chunk_offset.y;
-        seed = seed + 1;
-        float octave_offset_z = uintBitsToFloat(wang_hash(seed)) + params.chunk_offset.z;
-        seed = seed + 1;
+    float last_simplex_noise_value = 0.0;
+    vec3 last_sample_point = vec3(0);
+    uint last_wang_hash = 0u;
+    float last_wang_hash_float = 0.0;
 
-        float sample_x = (float(id.x * sdfParams.lod) + octave_offset_x) / scale * frequency;
-        float sample_y = (float(id.y * sdfParams.lod) + octave_offset_y) / scale * frequency;
-        float sample_z = (float(id.z * sdfParams.lod) + octave_offset_z) / scale * frequency;
-        vec3 sample_point = vec3(sample_x, sample_y, sample_z);
+    // for (uint i = 0; i < num_octaves; i++)
+    // {
+    //     // float seed_value = float(mod(wang(seed), seed_modulo));
 
-        float simplex_noise_value = snoise(sample_point);
+    //     // float seed_value = float(uintBitsToFloat(wang(seed))) * (1.0 / 4294967295.0);
+    //     float seed_value = float(1);
+    //     vec3 sample_point = (params.chunk_offset + seed_value * vec3(1.0) + vec3(id * sdfParams.lod)) / scale * frequency;
+    //     last_wang_hash_float = seed_value;
+    //     last_wang_hash = wang(seed);
 
-        noise_height = noise_height + simplex_noise_value * amplitude;
-        amplitude = amplitude * gain;
-        frequency = frequency * lacunarity;
-    }
+    //     // float octave_offset_x = params.chunk_offset.x + uintBitsToFloat(wang(seed));
+    //     // seed = seed + 1;
+    //     // float octave_offset_y = params.chunk_offset.y + uintBitsToFloat(wang(seed));
+    //     // seed = seed + 1;
+    //     // float octave_offset_z = params.chunk_offset.z + uintBitsToFloat(wang(seed));
+    //     // seed = seed + 1;
+
+
+    //     // float sample_x = (float(id.x * sdfParams.lod) + octave_offset_x) / scale * frequency;
+    //     // float sample_y = (float(id.y * sdfParams.lod) + octave_offset_y) / scale * frequency;
+    //     // float sample_z = (float(id.z * sdfParams.lod) + octave_offset_z) / scale * frequency;
+    //     // vec3 sample_point = vec3(sample_x, sample_y, sample_z);
+    //     last_sample_point = sample_point;
+
+    //     float simplex_noise_value = snoise(sample_point);
+    //     // last_simplex_noise_value = simplex_noise_value;
+
+    //     noise_height = noise_height + simplex_noise_value * amplitude;
+    //     amplitude = amplitude * gain;
+    //     frequency = frequency * lacunarity;
+    //     seed++;
+    // }
     
-    output_buffer.data[array_index] = float(noise_height);
+    // vec3 sample_point = (params.chunk_offset + last_wang_hash_float * vec3(1.0)) / scale * frequency;
+    // float simplex_noise_value = snoise(sample_point);
+    
+    // output_buffer.data[array_index] = (float(id.y) - 10) - sin(float(id.x + 1) / 20.0) * sin(float(id.z + 1) / 20.0);
+    output_buffer.data[array_index] = (float(id.y) - 10);
 }
