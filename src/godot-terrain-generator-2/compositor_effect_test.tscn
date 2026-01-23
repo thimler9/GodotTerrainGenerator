@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://pprblrn2xgh0"]
+[gd_scene load_steps=7 format=3 uid="uid://pprblrn2xgh0"]
 
 [ext_resource type="Script" uid="uid://d3ooqb23b5dfj" path="res://Test Scripts/TestTerrainMeshRender.cs" id="1_3gk3a"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_nywjq"]
+[ext_resource type="Script" uid="uid://c07so32ltxghu" path="res://Test Scripts/TestInjectDataIntoRender.cs" id="3_phlrk"]
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nywjq"]
 resource_local_to_scene = false
@@ -41,3 +42,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 10.5, 10.5)
 
 [node name="CSGPolygon3D4" type="CSGPolygon3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.644107)
+
+[node name="Node3D" type="Node3D" parent="." node_paths=PackedStringArray("test")]
+script = ExtResource("3_phlrk")
+test = NodePath("../Camera3D")

@@ -13,7 +13,6 @@ namespace TerrainGeneration.Application.TerrainGenerator
     {
         //private TerrainSpawns TerrainSpawns;
         private TerrainMesh TerrainMesh;
-        //public Bounds Bounds;
 
         private Vector3 Offset;
         private float Size;

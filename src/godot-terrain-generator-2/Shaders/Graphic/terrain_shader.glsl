@@ -4,6 +4,15 @@
 
 #include "Includes/scene_data.glsl"
 #include "Includes/scene_data_helpers.glsl"
+#include "Includes/adjust_position.glsl"
+
+struct TerrainParams {
+    uint chunk_size;
+    float border_width;
+    uint expand_borders;
+    uint retract_borders;
+    vec4 chunkOffset;
+};
 
 struct VertexInput {
     vec4 position;
@@ -14,13 +23,25 @@ layout(std430, set = 1, binding = 0) buffer VertexInputBuffer {
     VertexInput vertices[];
 };
 
+layout(set = 2, binding = 0) uniform TerrainParamsBuffer {
+    TerrainParams terrain_params;
+};
+
 layout(location = 0) out vec3 fragNormal;
 
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
 
-    vec4 positionWS = vec4(vertex.position.xyz, 1.0);
-    vec4 positionVS = scene.data.view_matrix * positionWS;
+    vec4 positionOS = vec4(vertex.position.xyz, 1.0);
+    vec3 adjustedPositionOS;
+    // Fix border positions
+    AdjustPosition(positionOS.xyz, vertex.normal.xyz, terrain_params.chunk_size,
+        terrain_params.border_width, terrain_params.expand_borders,
+        terrain_params.retract_borders, adjustedPositionOS);
+    positionOS.xyz = adjustedPositionOS;
+    
+    vec4 positionWS = positionOS + terrain_params.chunkOffset;
+    vec4 positionVS = scene.data.view_matrix * positionOS;
     vec4 positionCS = scene.data.projection_matrix * positionVS;
 
     gl_Position = positionCS;

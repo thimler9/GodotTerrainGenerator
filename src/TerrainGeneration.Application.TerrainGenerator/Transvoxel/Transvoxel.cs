@@ -17,6 +17,8 @@ public class Transvoxel
     private uint MaxNumTerrainMeshesInQueue;
     private Queue<TerrainMesh> TerrainMeshes;
 
+    private TransvoxelDescriptor Descriptor;
+
     public Transvoxel(RenderingDevice rd, TransvoxelDescriptor descriptor)
     {
 
@@ -45,6 +47,7 @@ public class Transvoxel
         TransvoxelShader = new TransvoxelShader(Rd, descriptor.TransvoxelShaderDescriptor);
         IndirectArgsShader = new IndirectArgsShader(Rd, descriptor.IndirectArgsShaderDescriptor);
         MaxNumTerrainMeshesInQueue = descriptor.MaxNumTerrainMeshesInQueue;
+        Descriptor = descriptor;
     }
 
     public TerrainMesh GetTerrainMesh(TransvoxelShaderParameters parameters, RDUniform sdfUniform, RDUniform normalsUniform)
@@ -53,8 +56,13 @@ public class Transvoxel
         TerrainMesh? terrainMesh;
         if (!TerrainMeshes.TryDequeue(out terrainMesh))
         {
+            if (Descriptor.TransvoxelShaderDescriptor == null)
+            {
+                throw new ArgumentNullException($"{nameof(Descriptor.TransvoxelShaderDescriptor)} does not exist.");
+            }
+
             // Create a new one if there aren't any in the queue
-            TerrainMeshParameters terrainMeshParameters = new TerrainMeshParameters()
+            TerrainMeshDescriptor terrainMeshParameters = new TerrainMeshDescriptor()
             {
                 ChunkSize = parameters.ChunkSize,
                 Lod = parameters.Lod,

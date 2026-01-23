@@ -17,6 +17,9 @@ namespace GodotTerrainGenerator2.Test_Scripts;
 [GlobalClass]
 public partial class TestTerrainMeshRender : CompositorEffect
 {
+    public int test = 0;
+
+
     public uint ChunkSize = 32;
     public uint Lod = 1;
 
@@ -57,6 +60,11 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public RDUniform RenderSceneDataUniform;
     public Rid RenderSceneDataUniformSet;
 
+    // Terrain rendering data
+    public TerrainMeshParameters TerrainMeshParameters;
+    public uint ExpandBorders = 0b101011;
+    public uint RetractBorders = 0b010100; 
+
     public TestTerrainMeshRender() : base()
     {
         EffectCallbackType = EffectCallbackTypeEnum.PostTransparent;
@@ -76,6 +84,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
     public override void _RenderCallback(int effectCallbackType, RenderData renderData)
     {
+        GD.Print(test);
+
         if (effectCallbackType != (int)EffectCallbackTypeEnum.PostTransparent)
         {
             return;
@@ -126,6 +136,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
                 Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
                 Rd.DrawListBindUniformSet(drawList, RenderSceneDataUniformSet, 0);
                 Rd.DrawListBindUniformSet(drawList, TerrainMesh.VertexBufferUniformSet, 1);
+                Rd.DrawListBindUniformSet(drawList, TerrainMesh.TerrainMeshParamsUniformSet, 2);
                 Rd.DrawListDrawIndirect(drawList, false, TerrainMesh.IndirectArgsBuffer);
                 Rd.DrawListEnd();
                 Rd.DrawCommandEndLabel();
@@ -320,6 +331,17 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
         ClearColors = new Color[] { new Color(0.0f, 0.0f, 0.0f, 0.0f) };
         TerrainMesh.VertexBufferUniformSet = Rd.UniformSetCreate([TerrainMesh.VertexBufferUniform], TerrainShader, 1);
+
+        TerrainMeshParameters = new TerrainMeshParameters()
+        {
+            BorderWidth = TransitionWidth,
+            ChunkOffset = new Vector4(ChunkOffset.X, ChunkOffset.Y, ChunkOffset.Z, 1.0f),
+            ChunkSize = ChunkSize,  
+            ExpandBorders = ExpandBorders,
+            RetractBorders = RetractBorders,
+        };
+        TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
+        TerrainMesh.TerrainMeshParamsUniformSet = Rd.UniformSetCreate([TerrainMesh.TerrainMeshParamsUniform], TerrainShader, 2);
 
         // Set camera projection
         RenderSceneDataUniform = new RDUniform()

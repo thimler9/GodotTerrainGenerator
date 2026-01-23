@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cw76y52se0qpk"
+path="res://.godot/imported/adjust_position.glsl-67f188cd3eb171900bcbe3ad94ced7ce.res"
+
+[deps]
+
+source_file="res://Shaders/Graphic/Includes/adjust_position.glsl"
+dest_files=["res://.godot/imported/adjust_position.glsl-67f188cd3eb171900bcbe3ad94ced7ce.res"]
+
+[params]
+

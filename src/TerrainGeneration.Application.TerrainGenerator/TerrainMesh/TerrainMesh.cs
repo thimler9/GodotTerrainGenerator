@@ -1,8 +1,10 @@
 ﻿using Godot;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
@@ -18,12 +20,19 @@ public class TerrainMesh
     public Rid IndirectArgsBuffer;
     public RDUniform IndirectArgsBufferUniform;
 
-    public TerrainMeshParameters? Parameters;
+    private TerrainMeshParameters? DrawParameters;
+    private Rid TerrainMeshParamsBuffer;
+    public RDUniform TerrainMeshParamsUniform;
+    public Rid TerrainMeshParamsUniformSet;
 
-    public TerrainMesh(RenderingDevice rd, TerrainMeshParameters parameters)
+    private TerrainMeshDescriptor Descriptor;
+
+
+    public TerrainMesh(RenderingDevice rd, TerrainMeshDescriptor descriptor)
     {
+
         Rd = rd;
-        Parameters = parameters;
+        Descriptor = descriptor;
 
         uint maxNumVerts = GetMaxNumVerts();
 
@@ -45,16 +54,19 @@ public class TerrainMesh
             Binding = 0
         };
         IndirectArgsBufferUniform.AddId(IndirectArgsBuffer);
+
+        TerrainMeshParamsBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TerrainMeshParameters>());
+        TerrainMeshParamsUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.UniformBuffer,
+            Binding = 0
+        };
+        TerrainMeshParamsUniform.AddId(TerrainMeshParamsBuffer);
     }
 
     private uint GetMaxNumVerts()
     {
-        if (Parameters == null)
-        {
-            throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
-        }
-
-        uint chunkSizeToLodRatio = Parameters.ChunkSize / Parameters.Lod;
+        uint chunkSizeToLodRatio = Descriptor.ChunkSize / Descriptor.Lod;
 
         // 5 is the max number of triangles per cell, 3 is the number of verts per triangle
         uint maxNumInternalVerts = chunkSizeToLodRatio * chunkSizeToLodRatio * chunkSizeToLodRatio * 5 * 3;
@@ -63,7 +75,7 @@ public class TerrainMesh
         uint maxNumBorderVerts = chunkSizeToLodRatio * chunkSizeToLodRatio * 12 * 6 * 3;
 
         // Vert divisor is to save on memory since most chunks won't use the max amount
-        uint maxNumVerts = Math.Min((maxNumBorderVerts + maxNumInternalVerts) / VERT_DIVISOR, Parameters.MaxNumTriangles);
+        uint maxNumVerts = Math.Min((maxNumBorderVerts + maxNumInternalVerts) / VERT_DIVISOR, Descriptor.MaxNumTriangles);
 
         return maxNumVerts;
     }
@@ -139,15 +151,27 @@ public class TerrainMesh
         Rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
     }
 
-    public void Render(TerrainMeshDrawDescriptor descriptor)
+    public RDUniform TryGetTerrainMeshParamsUniform()
     {
-        long drawList = Rd.DrawListBegin(descriptor.SreenBuffer, RenderingDevice.DrawFlags.ClearColor0);
+        if (DrawParameters == null)
+        {
+            throw new ArgumentNullException($"{nameof(DrawParameters)} cannot be null, call {nameof(SetParamsBuffer)} before calling this function");
+        }
 
-        VertexBufferUniformSet = Rd.UniformSetCreate([VertexBufferUniform], descriptor.Shader, 0);
+        if (!TerrainMeshParamsBuffer.IsValid)
+        {
+            throw new ArgumentException($"{nameof(TerrainMeshParamsBuffer)} is not valid.");
+        }
 
-        Rd.DrawListBindRenderPipeline(drawList, descriptor.RenderPipeline);
-        Rd.DrawListBindVertexArray(drawList, descriptor.EmptyVertexArrayBuffer);
-        Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 0);
-        Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer, 0, 1, sizeof(uint) * 4);
+        return TerrainMeshParamsUniform;
+    }
+
+    public void SetParamsBuffer(TerrainMeshParameters parameters)
+    {
+        if (TerrainMeshParamsBuffer.IsValid)
+        {
+            byte[] parameterBytes = StructHelpers.ToByteArray(parameters);
+            Rd.BufferUpdate(TerrainMeshParamsBuffer, 0, (uint)parameterBytes.Length, parameterBytes);
+        }
     }
 }
