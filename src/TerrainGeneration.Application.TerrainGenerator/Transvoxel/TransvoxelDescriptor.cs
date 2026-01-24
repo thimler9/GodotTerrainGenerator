@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelDescriptor
 {
-    public TransvoxelShaderDescriptor? TransvoxelShaderDescriptor;
-    public IndirectArgsShaderDescriptor? IndirectArgsShaderDescriptor;
-    public uint MaxNumTerrainMeshesInQueue;
+    public required TransvoxelShaderDescriptor TransvoxelShaderDescriptor;
+    public required IndirectArgsShaderDescriptor IndirectArgsShaderDescriptor;
+    public required uint MaxNumTerrainMeshesInQueue;
 }

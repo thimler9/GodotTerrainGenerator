@@ -28,7 +28,15 @@ public class TerrainMesh
 
     private TerrainMeshDescriptor Descriptor;
 
-
+    /// <summary>
+    /// Creates an instance of the Terrain Mesh. This initializes the buffers and uniforms needed for the terrain mesh.
+    /// It does not create the triangles or indirect args. The terrain mesh should be used in a triangle generated algorithm
+    /// like transvoxel or surface nets (not implemented).
+    /// </summary>
+    /// <param name="rd"></param>
+    /// <param name="descriptor"></param>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     public TerrainMesh(RenderingDevice rd, TerrainMeshDescriptor descriptor)
     {
         if (!descriptor.ChunkSize.IsPowerOfTwo())
@@ -39,6 +47,11 @@ public class TerrainMesh
         if (descriptor.ChunkSize / 8 == 0)
         {
             throw new ArgumentException($"{nameof(descriptor.ChunkSize)} must be greater than 8.");
+        }
+
+        if (rd == null)
+        {
+            throw new ArgumentNullException($"{nameof(rd)} cannot be null.");
         }
 
         Rd = rd;
@@ -74,6 +87,11 @@ public class TerrainMesh
         TerrainMeshParamsUniform.AddId(TerrainMeshParamsBuffer);
     }
 
+    /// <summary>
+    /// Gets the max possible amount of verts that can be in the vertex array. This assumes every cell
+    /// has the max number of verts and divides by a heuristic VERT_DIVISOR to save on space.
+    /// </summary>
+    /// <returns></returns>
     private uint GetMaxNumVerts()
     {
         uint chunkSizeToLodRatio = Descriptor.ChunkSize / Descriptor.Lod;
@@ -90,6 +108,10 @@ public class TerrainMesh
         return maxNumVerts;
     }
 
+    /// <summary>
+    /// Prints all vertices in the vertex buffer. Use only for debug purposes; requires CPU readback.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     public void PrintVertices()
     {
         if (Rd == null)
@@ -136,6 +158,10 @@ public class TerrainMesh
         GD.Print("Output: ", outputString);
     }
 
+    /// <summary>
+    /// Prints the indirect args buffer. Use only for debug purposes; requires CPU readback.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     public void PrintIndirectArgs()
     {
         if (Rd == null)
@@ -150,6 +176,9 @@ public class TerrainMesh
         GD.Print("Output: ", string.Join(", ", output));
     }
 
+    /// <summary>
+    /// Frees all memory associated with this Terrain Mesh
+    /// </summary>
     public void Dispose()
     {
         Rd.FreeRid(IndirectArgsBuffer);
@@ -159,26 +188,19 @@ public class TerrainMesh
         Rd.FreeRid(TerrainMeshParamsUniformSet);
     }
 
+    /// <summary>
+    /// Clears the indirect args buffer if need be.
+    /// </summary>
     public void ResetBuffers()
     {
         Rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
     }
 
-    private RDUniform TryGetTerrainMeshParamsUniform()
-    {
-        if (DrawParameters == null)
-        {
-            throw new ArgumentNullException($"{nameof(DrawParameters)} cannot be null, call {nameof(SetParamsBuffer)} before calling this function");
-        }
-
-        if (!TerrainMeshParamsBuffer.IsValid)
-        {
-            throw new ArgumentException($"{nameof(TerrainMeshParamsBuffer)} is not valid.");
-        }
-
-        return TerrainMeshParamsUniform;
-    }
-
+    /// <summary>
+    /// Sets the TerrainMeshParams args for rendering. Minimize usage, this does CPU -> GPU
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <exception cref="ArgumentException"></exception>
     public void SetParamsBuffer(TerrainMeshParameters parameters)
     {
         if (!TerrainMeshParamsBuffer.IsValid)
@@ -197,7 +219,13 @@ public class TerrainMesh
         DrawParameters = parameters;
     }
 
-    public void SetTerrainMeshParametersUniformSet(Rid shader, uint shaderSet)
+    /// <summary>
+    /// Sets the uniform set for the terrain mesh parameters
+    /// </summary>
+    /// <param name="shader">The shader that uses the TerrainMeshParameters. This expects the TerrainMeshParameters to be at set = 2</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    public void SetTerrainMeshParametersUniformSet(Rid shader)
     {
         if (!shader.IsValid)
         {
@@ -209,22 +237,31 @@ public class TerrainMesh
             throw new ArgumentException($"Must set {DrawParameters} before trying to get uniform set.");
         }
 
-        TerrainMeshParamsUniformSet = Rd.UniformSetCreate([TerrainMeshParamsUniform], shader, shaderSet);
+        TerrainMeshParamsUniformSet = Rd.UniformSetCreate([TerrainMeshParamsUniform], shader, 2);
     }
 
-    public void SetVertexUniformSet(Rid shader, uint shaderSet)
+    /// <summary>
+    /// Sets the uniform set for the vertices
+    /// </summary>
+    /// <param name="shader">The shader that uses the Vertices. This expects the vertex buffer to be at set = 1</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void SetVertexUniformSet(Rid shader)
     {
         if (!shader.IsValid)
         {
             throw new ArgumentNullException($"{shader} is not valid. Must pass valid shader.");
         }
 
-        VertexBufferUniformSet = Rd.UniformSetCreate([VertexBufferUniform], shader, shaderSet);
+        VertexBufferUniformSet = Rd.UniformSetCreate([VertexBufferUniform], shader, 1);
     }
 
 
 
-
+    /// <summary>
+    /// Renders the terrain mesh
+    /// </summary>
+    /// <param name="renderDescriptor"></param>
+    /// <exception cref="ArgumentException"></exception>
     public void Render(TerrainMeshRenderDescriptor renderDescriptor)
     {
         if (renderDescriptor.ClearColors.Length == 0)

@@ -331,7 +331,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
         ClearColors = new Color[] { new Color(0.0f, 0.0f, 0.0f, 0.0f) };
 
         // Terrain mesh render data
-        TerrainMesh.SetVertexUniformSet(TerrainShader, 1);
+        TerrainMesh.SetVertexUniformSet(TerrainShader);
         TerrainMeshParameters = new TerrainMeshParameters()
         {
             BorderWidth = TransitionWidth,
@@ -341,7 +341,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             RetractBorders = RetractBorders,
         };
         TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
-        TerrainMesh.SetTerrainMeshParametersUniformSet(TerrainShader, 2);
+        TerrainMesh.SetTerrainMeshParametersUniformSet(TerrainShader);
 
         // Set camera projection
         RenderSceneDataUniform = new RDUniform()
