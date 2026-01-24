@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public static class LookupTables
 {
+    /// <summary>
+    /// The lookup table data needed for the transvoxel algorithm
+    /// </summary>
     public static int[] LookupTablesData = new int[]
     {
         // Marching Cube Cell Class

@@ -6,15 +6,12 @@ namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelShader
 {
     private RenderingDevice Rd;
-    private readonly string ShaderPath;
     private Rid Shader;
     private Rid Pipeline;
 
     private TransvoxelShaderParameters? Parameters = null;
     private Rid ParametersBuffer;
     private Rid ParametersUniformSet;
-
-    private bool ParametersUpdated = false;
 
     private Rid LookupTablesBuffer;
     private Rid LookupTablesUniformSet;
@@ -23,6 +20,13 @@ public class TransvoxelShader
     private RDUniform CounterBufferUniform;
     private Rid CounterUniformSet;
 
+    /// <summary>
+    /// Creates an instance of the transvoxel shader. This algorithm creates triangles from an sdf using the 
+    /// transvoxel algorithm. See https://transvoxel.org/
+    /// </summary>
+    /// <param name="rd"></param>
+    /// <param name="descriptor"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public TransvoxelShader(RenderingDevice rd, TransvoxelShaderDescriptor descriptor)
     {
         // Setup Shader info
@@ -37,7 +41,6 @@ public class TransvoxelShader
         }
 
         Rd = rd;
-        ShaderPath = descriptor.ShaderPath;
         RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
@@ -53,7 +56,6 @@ public class TransvoxelShader
             Binding = 0
         };
         parametersUniform.AddId(ParametersBuffer);
-        ParametersUpdated = true;
 
         // Setup Lookup Tables Buffer
         int[] lookupTablesData = LookupTables.LookupTablesData;
@@ -83,30 +85,45 @@ public class TransvoxelShader
         CounterUniformSet = Rd.UniformSetCreate([counterBufferUniform], Shader, 2);
     }
 
+    /// <summary>
+    /// Sets the parameters needed for the transvoxel algorithm. Does CPU -> GPU
+    /// </summary>
+    /// <param name="parameters"></param>
     private void SetParameters(TransvoxelShaderParameters parameters)
     {
         if (!Parameters.Equals(parameters))
         {
             Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<TransvoxelShaderParameters>(), StructHelpers.ToByteArray(parameters));
-            ParametersUpdated = true;
         }
     }
 
+    /// <summary>
+    /// Runs the transvoxel algorithm. Uses the given sdfuniform to generate the triangles.
+    /// </summary>
+    /// <param name="parameters">Chunk parameters for the algorithm</param>
+    /// <param name="sdfUniform">Rid buffer of the sdf</param>
+    /// <param name="normalsUniform">Rid buffer of the normals for the sdf</param>
+    /// <param name="verticesUniform">Rid buffer of the place to output the triangles</param>
     public void Dispatch(TransvoxelShaderParameters parameters, RDUniform sdfUniform, RDUniform normalsUniform, RDUniform verticesUniform)
     {
         SetParameters(parameters);
         Rd.BufferClear(CounterBuffer, 0, sizeof(uint));
 
         long computeList = Rd.ComputeListBegin();
-
         RunTransvoxelShader(computeList, sdfUniform, normalsUniform, verticesUniform);
 
         Rd.ComputeListEnd();
-        //Rd.Submit();
-        //Rd.Sync();
-        ParametersUpdated = false;
     }
 
+    /// <summary>
+    /// Runs the transvoxel algorithm.
+    /// </summary>
+    /// <param name="computeList"></param>
+    /// <param name="sdfUniform"></param>
+    /// <param name="normalsUniform"></param>
+    /// <param name="verticesUniform"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     private void RunTransvoxelShader(long computeList, RDUniform sdfUniform, RDUniform normalsUniform, RDUniform verticesUniform)
     {
         if (Parameters == null)
@@ -140,7 +157,9 @@ public class TransvoxelShader
         Rd.FreeRid(verticesUniformSet);
     }
 
-
+    /// <summary>
+    /// Disposes all needed resources for the transvoxel algorithm
+    /// </summary>
     public void Dispose()
     {
         Rd.FreeRid(Pipeline);
@@ -153,6 +172,10 @@ public class TransvoxelShader
         Rd.FreeRid(Shader);
     }
 
+    /// <summary>
+    /// Gets the uniform for the counter buffer. Used for generating indirect args.
+    /// </summary>
+    /// <returns></returns>
     public RDUniform GetCurrentVertexCountUniform()
     {
         return CounterBufferUniform;

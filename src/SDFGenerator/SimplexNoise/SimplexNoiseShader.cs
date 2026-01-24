@@ -10,6 +10,7 @@ using TerrainGeneration.Utilities.Struct;
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 public class SimplexNoiseShader
 {
+    private RenderingDevice Rd;
     public readonly string ShaderPath;
     public Rid Shader;
     public Rid Pipeline;
@@ -40,6 +41,8 @@ public class SimplexNoiseShader
             throw new ArgumentNullException(nameof(rd), "Cannot be null");
         }
 
+        Rd = rd;
+
         ShaderPath = descriptor.ShaderPath;
         RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
@@ -63,15 +66,15 @@ public class SimplexNoiseShader
     }
 
     /// <summary>
-    /// Sets the parameters buffer to the new inputted parameters.
+    /// Sets the parameters buffer to the new inputted parameters. Use somewhat sparingly, does CPU->GPU
     /// </summary>
     /// <param name="rd"></param>
     /// <param name="parameters"></param>
-    public void SetParameters(RenderingDevice rd, SimplexNoiseShaderParameters parameters)
+    public void SetParameters(SimplexNoiseShaderParameters parameters)
     {
         if (!this.Parameters.Equals(parameters))
         {
-            rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(parameters));
+            Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(parameters));
         }
     }
 
@@ -80,7 +83,7 @@ public class SimplexNoiseShader
     /// </summary>
     /// <param name="computeList"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void Dispatch(RenderingDevice rd, long computeList, uint chunkSize, uint lod)
+    public void Dispatch(long computeList, uint chunkSize, uint lod)
     {
         if (Parameters == null)
         {
@@ -92,24 +95,24 @@ public class SimplexNoiseShader
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
-        rd.ComputeListBindComputePipeline(computeList, Pipeline);
-        rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
-        rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, 1);
-        rd.ComputeListBindUniformSet(computeList, OutputUniformSet, 2);
-        rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 2, yGroups: chunkSize / (8 * lod) + 2, zGroups: chunkSize / (8 * lod) + 2);
+        Rd.ComputeListBindComputePipeline(computeList, Pipeline);
+        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
+        Rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, 1);
+        Rd.ComputeListBindUniformSet(computeList, OutputUniformSet, 2);
+        Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 2, yGroups: chunkSize / (8 * lod) + 2, zGroups: chunkSize / (8 * lod) + 2);
     }
 
     /// <summary>
     /// Disposes all necessary resources for the shader
     /// </summary>
-    /// <param name="rd"></param>
-    public void Dispose(RenderingDevice rd)
+    /// <param name="Rd"></param>
+    public void Dispose()
     {
-        rd.FreeRid(Pipeline);
-        rd.FreeRid(ParametersUniformSet);
-        rd.FreeRid(ParametersBuffer);
-        rd.FreeRid(OutputUniformSet);
-        rd.FreeRid(SDFParamtersUniformSet);
-        rd.FreeRid(Shader);
+        Rd.FreeRid(Pipeline);
+        Rd.FreeRid(ParametersUniformSet);
+        Rd.FreeRid(ParametersBuffer);
+        Rd.FreeRid(OutputUniformSet);
+        Rd.FreeRid(SDFParamtersUniformSet);
+        Rd.FreeRid(Shader);
     }
 }

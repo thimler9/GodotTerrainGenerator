@@ -14,6 +14,12 @@ public class IndirectArgsShader
     private Rid Shader;
     private Rid Pipeline;
 
+    /// <summary>
+    /// Creates an instance of the indirect args shader. Sets the parameters needed to draw the triangles to the screen.
+    /// </summary>
+    /// <param name="rd"></param>
+    /// <param name="descriptor"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public IndirectArgsShader(RenderingDevice rd, IndirectArgsShaderDescriptor descriptor)
     {
         if (descriptor == null)
@@ -39,6 +45,11 @@ public class IndirectArgsShader
         Pipeline = rd.ComputePipelineCreate(Shader);
     }
 
+    /// <summary>
+    /// Dispatch the indirect args shader. Sets the necessary parameters for drawing the triangles on the screen.
+    /// </summary>
+    /// <param name="counterUniform"></param>
+    /// <param name="indirectArgsBufferUniform"></param>
     public void Dispatch(RDUniform counterUniform, RDUniform indirectArgsBufferUniform)
     {
         long computeList = Rd.ComputeListBegin();
@@ -48,7 +59,13 @@ public class IndirectArgsShader
         Rd.ComputeListEnd();
     }
 
-    public void RunIndirectArgsShader(long computeList, RDUniform counterUniform, RDUniform indirectArgsUniform)
+    /// <summary>
+    /// Runs the indirect args shader. Sets the necessary parameters for drawing the triangles on the screen.
+    /// </summary>
+    /// <param name="computeList"></param>
+    /// <param name="counterUniform"></param>
+    /// <param name="indirectArgsUniform"></param>
+    private void RunIndirectArgsShader(long computeList, RDUniform counterUniform, RDUniform indirectArgsUniform)
     {
         Rid counterUniformSet = Rd.UniformSetCreate([counterUniform], Shader, 0);
         Rid indirectArgsUniformSet = Rd.UniformSetCreate([indirectArgsUniform], Shader, 1);

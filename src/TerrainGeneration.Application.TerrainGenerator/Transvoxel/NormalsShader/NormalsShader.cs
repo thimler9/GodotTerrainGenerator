@@ -28,6 +28,13 @@ public class NormalsShader
     public RDUniform OutputNormalsUniform { get; }
     private Rid OutputNormalsUniformSet;
 
+    /// <summary>
+    /// Creates a Normals Shader instance. Used for calcing normals for the Terrain Meshes
+    /// </summary>
+    /// <param name="rd"></param>
+    /// <param name="descriptor"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     public NormalsShader(RenderingDevice rd, NormalsShaderDescriptor descriptor)
     {
         if (string.IsNullOrWhiteSpace(descriptor.ShaderPath))
@@ -78,6 +85,10 @@ public class NormalsShader
         OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, 2);
     }
 
+    /// <summary>
+    /// Updates the paramters in the normals shader parameters buffer
+    /// </summary>
+    /// <param name="parameters"></param>
     private void SetParameters(NormalsShaderParameters parameters)
     {
         if (!Parameters.Equals(parameters))
@@ -87,6 +98,11 @@ public class NormalsShader
         }
     }
 
+    /// <summary>
+    /// Dispatches the shader; creates a buffer with the normals for the sdf values.
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <param name="inputSDFUniform"></param>
     public void Dispatch(NormalsShaderParameters parameters, RDUniform inputSDFUniform)
     {
         SetParameters(parameters);
@@ -104,6 +120,13 @@ public class NormalsShader
         }
     }
 
+    /// <summary>
+    /// Runs the normals shader
+    /// </summary>
+    /// <param name="computeList"></param>
+    /// <param name="inputSDFUniform"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     private void RunNormalsShader(long computeList, RDUniform inputSDFUniform)
     {
         if (Parameters == null)
@@ -130,6 +153,9 @@ public class NormalsShader
         Rd.FreeRid(inputSDFUniformSet);
     }
 
+    /// <summary>
+    /// Disposes the resources associated with the normals shader
+    /// </summary>
     public void Dispose()
     {
         // Free the shaders
@@ -141,6 +167,10 @@ public class NormalsShader
         Rd.FreeRid(OutputNormalsBuffer);
     }
 
+    /// <summary>
+    /// Prints out all of the normals in the normals buffer. Use for debugging only. VERY slow.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     public void PrintOutBuffer()
     {
         if (Parameters == null)
