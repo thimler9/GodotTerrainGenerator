@@ -130,16 +130,15 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
             if (TerrainMesh != null)
             {
-                long drawList = Rd.DrawListBegin(ScreenBuffer, RenderingDevice.DrawFlags.IgnoreColorAll, ClearColors);
-                Rd.DrawCommandBeginLabel("Draw Terrain", new Color(0.0f, 0.0f, 0.0f, 0.0f));
-                Rd.DrawListBindRenderPipeline(drawList, RenderPipeline);
-                Rd.DrawListBindVertexArray(drawList, EmptyVertexArray);
-                Rd.DrawListBindUniformSet(drawList, RenderSceneDataUniformSet, 0);
-                Rd.DrawListBindUniformSet(drawList, TerrainMesh.VertexBufferUniformSet, 1);
-                Rd.DrawListBindUniformSet(drawList, TerrainMesh.TerrainMeshParamsUniformSet, 2);
-                Rd.DrawListDrawIndirect(drawList, false, TerrainMesh.IndirectArgsBuffer);
-                Rd.DrawListEnd();
-                Rd.DrawCommandEndLabel();
+                TerrainMesh.Render(new TerrainMeshRenderDescriptor()
+                {
+                    RenderPipeline = RenderPipeline,
+                    RenderSceneDataUniformSet = RenderSceneDataUniformSet,
+                    ClearColors = ClearColors,
+                    EmptyVertexArray = EmptyVertexArray,
+                    ScreenBuffer = ScreenBuffer,
+                    Shader = TerrainShader
+                });
             }
 
         }
@@ -330,8 +329,9 @@ public partial class TestTerrainMeshRender : CompositorEffect
         );
 
         ClearColors = new Color[] { new Color(0.0f, 0.0f, 0.0f, 0.0f) };
-        TerrainMesh.VertexBufferUniformSet = Rd.UniformSetCreate([TerrainMesh.VertexBufferUniform], TerrainShader, 1);
 
+        // Terrain mesh render data
+        TerrainMesh.SetVertexUniformSet(TerrainShader, 1);
         TerrainMeshParameters = new TerrainMeshParameters()
         {
             BorderWidth = TransitionWidth,
@@ -341,7 +341,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             RetractBorders = RetractBorders,
         };
         TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
-        TerrainMesh.TerrainMeshParamsUniformSet = Rd.UniformSetCreate([TerrainMesh.TerrainMeshParamsUniform], TerrainShader, 2);
+        TerrainMesh.SetTerrainMeshParametersUniformSet(TerrainShader, 2);
 
         // Set camera projection
         RenderSceneDataUniform = new RDUniform()
