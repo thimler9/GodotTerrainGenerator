@@ -31,11 +31,6 @@ public class SDFGenerator
     /// <exception cref="ArgumentNullException"></exception>
     public SDFGenerator(RenderingDevice rd, SDFGeneratorSettings settings)
     {
-        if (settings.ChunkSize / 8 == 0)
-        {
-            throw new ArgumentException($"{nameof(settings.ChunkSize)} / 8 must be positive. {nameof(settings.ChunkSize)} = {settings.ChunkSize}");
-        }
-
         if (settings.SDFShader == null)
         {
             throw new ArgumentNullException(nameof(settings.SDFShader), "Cannot be null");

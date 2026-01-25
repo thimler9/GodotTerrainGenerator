@@ -11,5 +11,4 @@ public class SDFGeneratorSettings
 {
     public ISDFShader? SDFShader;
     public SDFShaderParameters SDFShaderParameters;
-    public uint ChunkSize;
 }

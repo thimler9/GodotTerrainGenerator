@@ -46,7 +46,6 @@ public partial class TestMapGenerator : Node3D
 
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
-            ChunkSize = ChunkSize,
             SDFShaderParameters = sdfShaderParameters,
             SDFShader = simplexNoiseShader
         };

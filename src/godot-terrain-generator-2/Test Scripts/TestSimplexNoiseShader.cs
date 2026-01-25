@@ -46,7 +46,6 @@ public partial class TestSimplexNoiseShader : Node3D
 
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
-            ChunkSize = ChunkSize,
             SDFShaderParameters = sDFShaderParameters,
             SDFShader = simplexNoiseShader
         };

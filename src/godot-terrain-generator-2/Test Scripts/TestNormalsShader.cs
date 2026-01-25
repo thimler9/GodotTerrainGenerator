@@ -49,7 +49,6 @@ public partial class TestNormalsShader : Node3D
 
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
-            ChunkSize = ChunkSize,
             SDFShaderParameters = sdfShaderParameters,
             SDFShader = simplexNoiseShader
         };

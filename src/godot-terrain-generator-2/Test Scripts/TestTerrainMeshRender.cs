@@ -171,64 +171,27 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
-            ChunkSize = ChunkSize,
             SDFShaderParameters = sdfShaderParameters,
             SDFShader = simplexNoiseShader
         };
         SDFGenerator sdfGenerator = new SDFGenerator(Rd, sdfGeneratorSettings);
 
-        sdfGenerator.DispatchShaders(sdfShaderParameters);
-
-        // ---- Get normals
-        RDUniform sdfBufferUniform = sdfGenerator.OutputBufferUniform;
-
-        NormalsShaderParameters normalsParaters = new NormalsShaderParameters()
-        {
-            ChunkSize = ChunkSize,
-            Lod = Lod,
-        };
-        NormalsShaderDescriptor normalsDescriptor = new NormalsShaderDescriptor()
-        {
-            Parameters = normalsParaters,
-            ShaderPath = "res://Shaders/Compute/normal_generator.glsl"
-        };
-
-        NormalsShader normalsShader = new NormalsShader(Rd, normalsDescriptor);
-        normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
-
-        // --------------------------------------------------------------------------------------------------------------------
-        RDUniform normalsBufferUniform = normalsShader.OutputNormalsUniform;
-
-        TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters()
+        TransvoxelTerrainGeneratorDescriptor terrainDescriptor = new TransvoxelTerrainGeneratorDescriptor()
         {
             ChunkOffset = ChunkOffset,
+            ChunkSize = ChunkSize, 
             Lod = Lod,
-            ChunkSize = ChunkSize,
+            SDFShader = simplexNoiseShader,
+            MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
             MaxNumVertices = MaxNumOfVertices,
             TransitionWidth = TransitionWidth,
+            NormalsShaderPath = "res://Shaders/Compute/normal_generator.glsl",
+            TransvoxelShaderPath = "res://Shaders/Compute/mesh_generator.glsl",
+            IndirectArgsShaderPath = "res://Shaders/Compute/indirect_args.glsl",
         };
 
-        TransvoxelShaderDescriptor transvoxelShaderDescriptor = new TransvoxelShaderDescriptor()
-        {
-            Parameters = transvoxelShaderParameters,
-            ShaderPath = "res://Shaders/Compute/mesh_generator.glsl"
-        };
-
-        IndirectArgsShaderDescriptor indirectArgsShaderDescriptor = new IndirectArgsShaderDescriptor()
-        {
-            ShaderPath = "res://Shaders/Compute/indirect_args.glsl"
-        };
-
-        TransvoxelDescriptor transvoxelDescriptor = new TransvoxelDescriptor()
-        {
-            TransvoxelShaderDescriptor = transvoxelShaderDescriptor,
-            IndirectArgsShaderDescriptor = indirectArgsShaderDescriptor,
-            MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
-        };
-
-        Transvoxel transvoxel = new Transvoxel(Rd, transvoxelDescriptor);
-
-        TerrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+        TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(Rd, terrainDescriptor);
+        TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh();
     }
 
     private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, TerrainMesh terrainMesh, Rid renderSceneDataBuffer)
