@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 namespace TerrainGeneration.Application.SDFGenerator;
@@ -20,9 +21,7 @@ public class SDFGenerator
     RDUniform SDFParametersUniform;
     Rid SDFParametersBuffer;
 
-    SimplexNoiseShader SimplexNoiseShader;
-
-    bool ParametersUpdated = false;
+    ISDFShader SDFShader;
 
     /// <summary>
     /// Create an SDFGenerator; dispatches compute shader for some sdf function.
@@ -37,9 +36,9 @@ public class SDFGenerator
             throw new ArgumentException($"{nameof(settings.ChunkSize)} / 8 must be positive. {nameof(settings.ChunkSize)} = {settings.ChunkSize}");
         }
 
-        if (settings.SimplexNoiseShaderDescriptor == null)
+        if (settings.SDFShader == null)
         {
-            throw new ArgumentNullException(nameof(settings.SimplexNoiseShaderDescriptor), "Cannot be null");
+            throw new ArgumentNullException(nameof(settings.SDFShader), "Cannot be null");
         }
 
         Rd = rd;
@@ -66,22 +65,22 @@ public class SDFGenerator
             Binding = 0
         };
         SDFParametersUniform.AddId(SDFParametersBuffer);
-        ParametersUpdated = true;
 
         // Setup the shaders
-        SimplexNoiseShader = new SimplexNoiseShader(Rd, settings.SimplexNoiseShaderDescriptor, SDFParametersUniform, OutputBufferUniform);
+        SDFShader = settings.SDFShader;
+        SDFShader.SetOutputUniformSet(OutputBufferUniform);
+        SDFShader.SetSDFParametersUniformSet(SDFParametersUniform);
     }
 
     /// <summary>
     /// Sets the parameters for the sdf shader params buffer
     /// </summary>
     /// <param name="parameters"></param>
-    private void SetParameters(SDFShaderParameters parameters)
+    private void SetSDFParameters(SDFShaderParameters parameters)
     {
         if (!this.SDFShaderParameters.Equals(parameters))
         {
             Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
-            ParametersUpdated = true;
         }
     }
 
@@ -91,28 +90,21 @@ public class SDFGenerator
     /// <param name="parameters"></param>
     public void DispatchShaders(SDFShaderParameters parameters)
     {
-        SetParameters(parameters);
+        SetSDFParameters(parameters);
 
-        // No reason to run if parameters haven't been changed
-        if (ParametersUpdated)
-        {
-            long computeList = Rd.ComputeListBegin();
-            
-            // Run the shaders
-            SimplexNoise(computeList);
+        // Run the shaders
+        SimplexNoise();
 
-            Rd.ComputeListEnd();
-            ParametersUpdated = false;
-        }
+        Rd.ComputeListEnd();
     }
 
     /// <summary>
     /// Runs the Shader's dispatch function
     /// </summary>
     /// <param name="computeList"></param>
-    private void SimplexNoise(long computeList)
+    private void SimplexNoise()
     {
-        SimplexNoiseShader.Dispatch(computeList, SDFShaderParameters.ChunkSize, SDFShaderParameters.Lod);
+        SDFShader.Dispatch(SDFShaderParameters.ChunkSize, SDFShaderParameters.Lod);
     }
 
     /// <summary>
@@ -139,7 +131,7 @@ public class SDFGenerator
     public void Dispose()
     {
         // Free the shaders
-        SimplexNoiseShader.Dispose();
+        SDFShader.Dispose();
 
         Rd.FreeRid(SDFParametersBuffer);
         Rd.FreeRid(OutputBuffer);

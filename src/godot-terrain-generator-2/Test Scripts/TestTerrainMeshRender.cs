@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator;
+using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
@@ -166,11 +167,13 @@ public partial class TestTerrainMeshRender : CompositorEffect
             Parameters = simplexNoiseShaderParameters,
         };
 
+        ISDFShader simplexNoiseShader = new SimplexNoiseShader(Rd, simplexNoiseShaderDescriptor);
+
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
             ChunkSize = ChunkSize,
             SDFShaderParameters = sdfShaderParameters,
-            SimplexNoiseShaderDescriptor = simplexNoiseShaderDescriptor
+            SDFShader = simplexNoiseShader
         };
         SDFGenerator sdfGenerator = new SDFGenerator(Rd, sdfGeneratorSettings);
 

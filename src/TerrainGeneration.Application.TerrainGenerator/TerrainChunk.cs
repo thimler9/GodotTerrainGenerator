@@ -15,21 +15,15 @@ namespace TerrainGeneration.Application.TerrainGenerator
         private TerrainMesh TerrainMesh;
 
         private Vector3 Offset;
-        private float Size;
+        private uint Size;
 
-        public TerrainChunk(Vector3 offset, int size, int lod, int depth)
+        public TerrainChunk(TerrainChunkDescriptor descriptor)
         {
-            Vector3 center = offset + Vector3.One * (size / 2);
-            //Bounds = new Bounds(center, Vector3.One * (size + 2 * lod * Settings.settings.mapData.terrainRenderingSettings.transitionWidthMult + 20));
+            Offset = descriptor.Offset;
+            Size = descriptor.Size;
 
+            //Vector3 center = offset + Vector3.One * (size / 2);
             //TerrainMesh = MapGenerator.GetMesh(offset, size, lod);
-            //TerrainMesh.meshProps.SetFloat("_chunkSize", size);
-            //TerrainMesh.meshProps.SetFloat("_width", lod * Settings.settings.mapData.terrainRenderingSettings.transitionWidthMult);
-
-            //Matrix4x4 localToWorld = new Matrix4x4();
-            //localToWorld.SetTRS(offset, Quaternion.identity, Vector3.One);
-            //TerrainMesh.meshProps.SetMatrix("_ObjMat", localToWorld);
-
             //TerrainSpawns = new TerrainSpawns(offset, size, depth, Bounds);
         }
 

@@ -21,6 +21,16 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         private Vector3 oldPlayerPosition;
         private float playerPositionChangeThreshold;
 
+        /// <summary>
+        /// Creates an abstract voxel octree. This one always has the most up to data in the structure according to the player position. Does not hold any rendering data for the chunk.
+        /// </summary>
+        /// <param name="eventQueue">We put rendering events into this queue according to updates we make to this tree.</param>
+        /// <param name="center">The center of the tree in the world</param>
+        /// <param name="playerPosition">The starting player position</param>
+        /// <param name="size">The length of one side of the box the tree contains.</param>
+        /// <param name="minChunkSize">Will not split up to chunk sizes smaller than this.</param>
+        /// <param name="lodArray">Used to determine what the lod is for the given depth of the current tree node.</param>
+        /// <param name="playerPositionChangeThreshold">Won't update the tree unless the player has moved more than this.</param>
         public AbstractOctree(IOctreeEventQueue eventQueue, Vector3 center, Vector3 playerPosition, int size, int minChunkSize, TerrainLod[] lodArray, float playerPositionChangeThreshold)
         {
             try
@@ -47,6 +57,10 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             }
         }
 
+        /// <summary>
+        /// The lowest depth the tree will go. Based on min chunk size and lod array.
+        /// </summary>
+        /// <returns></returns>
         private int GetDeepestDepth()
         {
             int deepestDepth = 0;
@@ -60,7 +74,15 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
 
             return deepestDepth;
         }
-
+        
+        /// <summary>
+        /// Shifts the world center over. This pretty much shifts the entire tree over based on the second depth of the tree which is 4x4x4.
+        /// Will shift by the chunksize of that depth of the tree. Pretty slow will add a bunch of nodes to the queue. Updates all of the leaf
+        /// hashes for the tree.
+        /// </summary>
+        /// <param name="playerPosition">Current player position</param>
+        /// <param name="newWorldCenter"></param>
+        /// <param name="eventQueue"></param>
         public void MoveWorldCenter(Vector3 playerPosition, Vector3 newWorldCenter, IOctreeEventQueue eventQueue)
         {
             Vector3 diff = newWorldCenter - center;
@@ -363,6 +385,12 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             center = newWorldCenter;
         }
 
+        /// <summary>
+        /// Updates all of the nodes necessary in the tree based on the new player position. Will split up or collapse parts of the tree
+        /// based on the new player position.
+        /// </summary>
+        /// <param name="eventQueue"></param>
+        /// <param name="newPlayerPosition"></param>
         public void Update(IOctreeEventQueue eventQueue, Vector3 newPlayerPosition)
         {
             if (newPlayerPosition.DistanceSquaredTo(oldPlayerPosition) > playerPositionChangeThreshold * playerPositionChangeThreshold)

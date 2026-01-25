@@ -5,34 +5,35 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using TerrainGeneration.Application.TerrainGenerator;
 
 namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 {
     public class RenderOctreeNode
     {
-        //private TerrainChunk terrainChunk;
-        public Vector3 offset;
-        private int size;
-        private int lod;
-        private int depth;
-        private int hash;
+        private TerrainChunk terrainChunk;
+        public Vector3 Offset;
+        private uint Size;
+        private uint Lod;
+        private int Depth;
+        private int Hash;
 
-        public RenderOctreeNode(RenderOctreeNode[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, Vector3 offset, int size, int lod, int depth, int hash)
+        public RenderOctreeNode(RenderOctreeNode[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, RenderOctreeDescriptor descriptor)
         {
-            this.offset = offset;
-            this.size = size;
-            this.lod = lod;
-            this.depth = depth;
-            this.hash = hash;
+            Offset = descriptor.Offset;
+            Size = descriptor.Size;
+            Lod = descriptor.Lod;
+            Depth = descriptor.Depth;
+            Hash = descriptor.Hash;
 
             // Create chunk mesh
             //terrainChunk = new TerrainChunk(offset, size, lod, depth);
-            leafHashes[hash] = true;
+            leafHashes[Hash] = true;
 
             // Only used for chunks  that get made when shifting the world center
             if (updateBorders)
             {
-                updatedChunks.Enqueue(hash);
+                updatedChunks.Enqueue(Hash);
             }
         }
 
@@ -40,15 +41,15 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         public void DisposeTerrainChunk(RenderOctreeNode[] chunks, bool[] leafHashes, Queue<int> updatedChunks)
         {
             // If it has children, set the borders of the children
-            if (((hash << 3) | 7) < chunks.Length /* && terrainChunk != null*/)
+            if (((Hash << 3) | 7) < chunks.Length /* && terrainChunk != null*/)
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    updatedChunks.Enqueue((hash << 3) | i);
+                    updatedChunks.Enqueue((Hash << 3) | i);
                 }
             }
 
-            leafHashes[hash] = false;
+            leafHashes[Hash] = false;
 
             //if (terrainChunk != null)
             //{
@@ -64,10 +65,10 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             //if (terrainChunk == null)
             //    throw new Exception("Tried removing chunk" + hash + "from tree but it was missing a terrain chunk");
 
-            leafHashes[hash] = false;
+            leafHashes[Hash] = false;
             //terrainChunk.Dispose();
             //terrainChunk = null;
-            chunks[hash] = null;
+            chunks[Hash] = null;
         }
 
         public void Render(RenderOctreeNode[] chunks, /*TerrainSpawnBatch terrainSpawnBatch,*/ Vector3 playerPosition)
@@ -95,8 +96,8 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             //    throw new ArgumentException("Tried creating a terrain chunk, but it already exists, hash: " + hash);
 
             //terrainChunk = new TerrainChunk(offset, size, lod, depth);
-            leafHashes[hash] = true;
-            updatedChunks.Enqueue(hash);
+            leafHashes[Hash] = true;
+            updatedChunks.Enqueue(Hash);
         }
 
         public int[] SetBorders(bool[] leafHashes)
@@ -106,9 +107,9 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             // axis. directions[0] is the x value, directions[1] is the y value, directions[2]
             // is the z value. We then subtract by powers of 8 until we get to the actual coordinate.
             // These are used to find east, north, and top sides of the chunk.
-            int depth = this.depth;
+            int depth = Depth;
             int[] directions = new int[3] { (1 << depth) - 1, (1 << depth) - 1, (1 << depth) - 1 }; // x, y, z coordinates in world cube
-            int tempHash = hash;
+            int tempHash = Hash;
 
             // Finds the coordinates
             for (int i = 0; i < depth; i++)
@@ -241,7 +242,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
         public void SetOffset(Vector3 offset)
         {
-            this.offset = offset;
+            Offset = offset;
             //if (terrainChunk != null)
             //{
             //    terrainChunk.bounds.center = offset + (size / 2);

@@ -18,6 +18,19 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         public readonly int depth;
         public readonly int lod;
 
+        /// <summary>
+        /// Creates a new abstract octree node. 
+        /// </summary>
+        /// <param name="chunks">List of the current chunks. Used to add new chunks to the array</param>
+        /// <param name="eventQueue"></param>
+        /// <param name="updateBorders"></param>
+        /// <param name="offset">The location of the (0, 0, 0) corner of the chunk.</param>
+        /// <param name="size"></param>
+        /// <param name="playerPosition"></param>
+        /// <param name="hash">The has of the abstract, used for indexing in the chunks array. Every layer of the octree is 8 bits of the hash. The next depth is hash << 3.</param>
+        /// <param name="depth">The depth of the current node</param>
+        /// <param name="minChunkSize"></param>
+        /// <param name="lodArray"></param>
         public AbstractOctreeNode(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 offset, int size, Vector3 playerPosition, int hash,
             int depth, int minChunkSize, TerrainLod[] lodArray)
         {
@@ -30,12 +43,22 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
 
             eventQueue.AddEvent(new CreateRenderNodeEvent(hash, offset, size, lod, depth));
 
+            // If the chunk can be split up because: it's not too small, there is a small lod, and the player is close enough
             if (this.size / 2 > minChunkSize && this.depth < lodArray.Length - 1 && PlayerDistanceCheck(playerPosition, lodArray))
             {
                 MakeChildren(chunks, eventQueue, updateBorders, playerPosition, minChunkSize, lodArray);
             }
         }
 
+        /// <summary>
+        /// Splits up the chunk and makes 8 children.
+        /// </summary>
+        /// <param name="chunks"></param>
+        /// <param name="eventQueue"></param>
+        /// <param name="updateBorders"></param>
+        /// <param name="playerPosition"></param>
+        /// <param name="minChunkSize"></param>
+        /// <param name="lodArray"></param>
         private void MakeChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 playerPosition, int minChunkSize, TerrainLod[] lodArray)
         {
             int newSize = size / 2;
@@ -50,6 +73,14 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             eventQueue.AddEvent(new DeleteRenderNodeGameDataEvent(hash, offset, size));
         }
 
+        /// <summary>
+        /// Traverses the tree finding what chunks need to be collapsed or split up based on the player's position.
+        /// </summary>
+        /// <param name="chunks"></param>
+        /// <param name="eventQueue"></param>
+        /// <param name="playerPosition"></param>
+        /// <param name="minChunkSize"></param>
+        /// <param name="lodArray"></param>
         public void Update(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, Vector3 playerPosition, int minChunkSize, TerrainLod[] lodArray)
         {
             if (HasChildren(chunks))
@@ -84,6 +115,11 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             }
         }
 
+        /// <summary>
+        /// Removes all children in this node's subtree.
+        /// </summary>
+        /// <param name="chunks"></param>
+        /// <param name="eventQueue"></param>
         public void CollapseChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue)
         {
             if (HasChildren(chunks))
@@ -100,11 +136,22 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             }
         }
 
+        /// <summary>
+        /// Checks if chunk has children
+        /// </summary>
+        /// <param name="chunks"></param>
+        /// <returns></returns>
         public bool HasChildren(AbstractOctreeNode[] chunks)
         {
             return (hash << 3) < chunks.Length && chunks[(hash << 3)] != null;
         }
 
+        /// <summary>
+        /// Checks if person is close enough to chunk.
+        /// </summary>
+        /// <param name="playerPosition"></param>
+        /// <param name="lodArray"></param>
+        /// <returns></returns>
         public bool PlayerDistanceCheck(Vector3 playerPosition, TerrainLod[] lodArray)
         {
             Vector3 center = offset + new Vector3(size / 2, size / 2, size / 2);
@@ -126,11 +173,21 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             return chosenLod < lod;
         }
 
+        /// <summary>
+        /// Used for debugging purposes. Prints the node hash in octal.
+        /// </summary>
+        /// <returns></returns>
         public string GetOctalOfHash()
         {
             return Convert.ToString(hash, 8);
         }
 
+        /// <summary>
+        /// Updates the hash of this node and all nodes in the subtree
+        /// </summary>
+        /// <param name="newHash"></param>
+        /// <param name="oldChunks"></param>
+        /// <param name="newChunks"></param>
         public void UpdateHash(int newHash, AbstractOctreeNode[] oldChunks, AbstractOctreeNode[] newChunks)
         {
             if (HasChildren(oldChunks))
@@ -145,6 +202,10 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             newChunks[hash] = this;
         }
 
+        /// <summary>
+        /// Sets the offset's value.
+        /// </summary>
+        /// <param name="offset"></param>
         public void SetOffset(Vector3 offset)
         {
             this.offset = offset;

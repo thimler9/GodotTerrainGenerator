@@ -1,0 +1,15 @@
+﻿using Godot;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace TerrainGeneration.Application.TerrainGenerator;
+public class TerrainChunkDescriptor
+{
+    public Vector3 Offset;
+    public uint Size;
+    public uint Lod;
+    public uint Depth;
+}

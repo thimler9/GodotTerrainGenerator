@@ -10,9 +10,4 @@
     <PackageReference Include="GodotSharp" Version="4.5.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\TerrainGeneration.Utilities\TerrainGeneration.Utilities.csproj" />
-    <ProjectReference Include="..\TerrainGenerator.Application.SDFGenerator.Abstractions\TerrainGeneration.Application.SDFGenerator.Abstractions.csproj" />
-  </ItemGroup>
-
 </Project>

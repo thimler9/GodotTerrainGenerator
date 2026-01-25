@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TerrainGeneration.Application.TerrainGenerator\TerrainGeneration.Application.TerrainGenerator.csproj" />
     <ProjectReference Include="..\TerrainGeneration.Application.VoxelOctree.Abstractions\TerrainGeneration.Application.VoxelOctree.Abstractions.csproj" />
     <ProjectReference Include="..\TerrainGeneration.Utilities\TerrainGeneration.Utilities.csproj" />
   </ItemGroup>

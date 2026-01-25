@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator;
+using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 using TerrainGeneration.Application.TerrainGenerator;
@@ -44,11 +45,13 @@ public partial class TestNormalsShader : Node3D
             Parameters = simplexNoiseShaderParameters,
         };
 
+        ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
+
         SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
         {
             ChunkSize = ChunkSize,
             SDFShaderParameters = sdfShaderParameters,
-            SimplexNoiseShaderDescriptor = simplexNoiseShaderDescriptor
+            SDFShader = simplexNoiseShader
         };
         SDFGenerator sdfGenerator = new SDFGenerator(rd, sdfGeneratorSettings);
 
