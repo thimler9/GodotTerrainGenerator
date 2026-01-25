@@ -24,9 +24,8 @@ public partial class TestSimplexNoiseShader : Node3D
     {
         RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
 
-        SDFShaderParameters sDFShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
+        SDFShaderParameters sDFShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
-            ChunkOffset,
             Seed,
             Scale,
             Strength,

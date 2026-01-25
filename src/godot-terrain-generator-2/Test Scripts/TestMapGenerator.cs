@@ -24,9 +24,8 @@ public partial class TestMapGenerator : Node3D
     {
         RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
 
-        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
+        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
-            ChunkOffset,
             Seed,
             Scale,
             Strength,

@@ -25,7 +25,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public uint Lod = 1;
 
     // Map Params
-    public Vector3 ChunkOffset = new Vector3(0, 0, 0);
+    public Vector3 ChunkOffset = new Vector3(300.0f, 0, 0);
     public uint Seed = 1234;
     public float Scale = 32.0f;
     public float Strength = 350.0f;
@@ -149,9 +149,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
     {
         Rd = RenderingServer.GetRenderingDevice();
 
-        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkSize, Lod);
+        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
         SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
-            ChunkOffset,
             Seed,
             Scale,
             Strength,

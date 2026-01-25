@@ -13,20 +13,23 @@ namespace TerrainGeneration.Application.SDFGenerator;
 public struct SDFShaderParameters
 {
     [FieldOffset(0)]
+    public readonly Vector4 ChunkOffset;
+
+    [FieldOffset(16)]
     public readonly uint ChunkSize;
 
-    [FieldOffset(4)]
+    [FieldOffset(20)]
     public readonly uint Lod;
 
-    [FieldOffset(8)]
+    [FieldOffset(24)]
     public readonly Vector2 Padding;
 
-    public SDFShaderParameters(uint ChunkSize, uint Lod)
+    public SDFShaderParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
         // TODO: Add validation
-
-        this.ChunkSize = ChunkSize;
-        this.Lod = Lod;
+        this.ChunkOffset = new Vector4(chunkOffset.X, chunkOffset.Y, chunkOffset.Z, 1.0f);
+        this.ChunkSize = chunkSize;
+        this.Lod = lod;
     }
 
     public byte[] ToByteArray()
@@ -58,7 +61,7 @@ public struct SDFShaderParameters
 
         SDFShaderParameters other = (SDFShaderParameters)obj;
 
-        return ChunkSize == other.ChunkSize && Lod == other.Lod;
+        return ChunkSize == other.ChunkSize && Lod == other.Lod && ChunkOffset == other.ChunkOffset;
     }
     public static bool operator ==(SDFShaderParameters left, SDFShaderParameters right)
     {

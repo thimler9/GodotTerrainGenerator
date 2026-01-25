@@ -71,7 +71,7 @@ public class SDFGenerator
     /// Sets the parameters for the sdf shader params buffer
     /// </summary>
     /// <param name="parameters"></param>
-    private void SetSDFParameters(SDFShaderParameters parameters)
+    public void SetSDFParameters(SDFShaderParameters parameters)
     {
         if (!this.SDFShaderParameters.Equals(parameters))
         {

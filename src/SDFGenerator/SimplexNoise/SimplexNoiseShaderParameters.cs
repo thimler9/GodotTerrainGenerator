@@ -13,39 +13,32 @@ namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 public struct SimplexNoiseShaderParameters
 {
     [FieldOffset(0)]
-    public readonly Vector3 Offset;
-    [FieldOffset(12)]
     public readonly uint Seed;
 
-    [FieldOffset(16)]
+    [FieldOffset(4)]
     public readonly float Scale;
 
-    [FieldOffset(20)]
+    [FieldOffset(8)]
     public readonly float Strength;
 
-    [FieldOffset(24)]
+    [FieldOffset(12)]
     public readonly uint NumOctaves;
 
-    [FieldOffset(28)]
+    [FieldOffset(16)]
     public readonly float Frequency;
 
-    [FieldOffset(32)]
+    [FieldOffset(20)]
     public readonly float Amplitude;
 
-    [FieldOffset(36)]
+    [FieldOffset(24)]
     public readonly float Lacunarity;
 
-    [FieldOffset(40)]
+    [FieldOffset(28)]
     public readonly float Gain;
 
-    [FieldOffset(44)]
-    readonly uint Padding;
-
-    public SimplexNoiseShaderParameters(Vector3 offset, uint seed, float scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
+    public SimplexNoiseShaderParameters(uint seed, float scale, float strength, uint numOctaves, float frequency, float amplitude, float lacunarity, float gain)
     {
         //TODO: Add Validation
-
-        Offset = offset;
         Seed = seed;
         Scale = scale;
         Strength = strength;
@@ -66,7 +59,6 @@ public struct SimplexNoiseShaderParameters
         SimplexNoiseShaderParameters other = (SimplexNoiseShaderParameters)obj;
 
         return 
-            Offset.FuzzyEquals(other.Offset) &&
             Seed == other.Seed &&
             Scale.FuzzyEquals(other.Scale) &&
             Strength.FuzzyEquals(other.Strength) &&

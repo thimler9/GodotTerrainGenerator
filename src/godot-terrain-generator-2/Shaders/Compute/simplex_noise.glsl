@@ -4,7 +4,6 @@
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
 
 layout(set = 0, binding = 0) restrict readonly uniform Params {
-    vec3 chunk_offset;
     uint seed;
     float scale;
     float strength;
@@ -13,11 +12,11 @@ layout(set = 0, binding = 0) restrict readonly uniform Params {
     float amplitude;
     float lacunarity;
     float gain;
-    float padding;
 }
 params;
 
 layout(set = 1, binding = 0) restrict readonly uniform SDFParams {
+    vec4 chunk_offset;
     uint chunk_size;
     uint lod;
 }
@@ -151,7 +150,7 @@ void main() {
     for (uint i = 0; i < num_octaves; i++)
     {
         float seed_value = float(mod(wang(seed), seed_modulo));
-        vec3 sample_point = (params.chunk_offset + seed_value * vec3(1.0) + vec3(id * sdfParams.lod)) / scale * frequency;
+        vec3 sample_point = (sdfParams.chunk_offset.xyz + seed_value * vec3(1.0) + vec3(id * sdfParams.lod)) / scale * frequency;
         float simplex_noise_value = snoise(sample_point);
 
         noise_height = noise_height + simplex_noise_value * amplitude;

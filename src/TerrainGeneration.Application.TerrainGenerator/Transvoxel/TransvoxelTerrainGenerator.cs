@@ -35,7 +35,7 @@ public class TransvoxelTerrainGenerator
 
         // Setup sdfGenerator
         ISDFShader sdfShader = descriptor.SDFShader;
-        SDFShaderParameters = new SDFShaderParameters(descriptor.ChunkSize, descriptor.Lod);
+        SDFShaderParameters = new SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
 
         SDFGeneratorSettings sDFGeneratorSettings = new SDFGeneratorSettings()
         {
