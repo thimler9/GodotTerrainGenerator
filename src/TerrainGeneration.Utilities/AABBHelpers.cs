@@ -1,10 +1,17 @@
 ﻿using Godot;
+using Godot.Collections;
 
 namespace TerrainGeneration.Utilities;
 public static class AABBHelpers
 {
 
-    public static bool IsWithinFrustumPlanes(this Aabb aabb, Plane[] planes)
+    /// <summary>
+    /// Determines if an AABB is in the frustum planes for a camera. NOTE I used AI for this so could be wrong.
+    /// </summary>
+    /// <param name="aabb"></param>
+    /// <param name="planes"></param>
+    /// <returns></returns>
+    public static bool IsWithinFrustumPlanes(this Aabb aabb, Array<Plane> planes)
     {
         // Cache AABB bounds to avoid repeated property access
         Vector3 min = aabb.Position;

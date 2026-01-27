@@ -1,4 +1,5 @@
 ﻿using Godot;
+using Godot.Collections;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ internal class RenderOctree : IRenderOctree
     private uint Size;
     private uint MinChunkSize;
     private int LodArrayLength;
+    private float BorderWidth;
 
     public RenderOctreeNode[] Chunks;
     public bool[] LeafHashes;
@@ -27,7 +29,7 @@ internal class RenderOctree : IRenderOctree
     // How we get the triangle for the terrain meshes
     private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
 
-    public RenderOctree(uint size, uint minChunkSize, int lodArrayLength, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
+    public RenderOctree(uint size, uint minChunkSize, int lodArrayLength, float borderWidth, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
     {
         Size = size;
         MinChunkSize = minChunkSize;
@@ -52,7 +54,7 @@ internal class RenderOctree : IRenderOctree
         return deepestDepth;
     }
 
-    public void Render(Plane[] frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
+    public void Render(Array<Plane> frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
     {
         if (Chunks[1] != null)
         {
@@ -173,6 +175,7 @@ internal class RenderOctree : IRenderOctree
                         Lod = currEvent.Lod,
                         Offset = currEvent.Offset,
                         Size = currEvent.Size,
+                        BorderWidth = BorderWidth,
                     });
                 }
 

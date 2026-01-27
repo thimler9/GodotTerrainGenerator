@@ -426,22 +426,22 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             float previousDistance = float.MaxValue;
             for (int i = 0; i < lodArray.Length; i++)
             {
-                if (!(lodArray[i].lodDivider > 0 && lodArray[i].lodDivider.IsPowerOfTwo()))
+                if (!(lodArray[i].LodDivider > 0 && lodArray[i].LodDivider.IsPowerOfTwo()))
                 {
                     throw new ArgumentException("All the elements in the lod array must be powers of two.");
                 }
 
-                if (previousDistance <= lodArray[i].lodDistanceCutoff)
+                if (previousDistance <= lodArray[i].LodDistanceCutoff)
                 {
                     throw new ArgumentException("All lod distance cutoffs of the lod array need to be smaller than the previous.");
                 }
-                previousDistance = lodArray[i].lodDistanceCutoff;
+                previousDistance = lodArray[i].LodDistanceCutoff;
             }
 
             uint currSize = size;
             for (int i = 0; i < lodArray.Length; i++)
             {
-                if (currSize / lodArray[i].lodDivider < 8)
+                if (currSize / lodArray[i].LodDivider < 8)
                 {
                     throw new ArgumentException("The size and the corresponding element in the lod array should not have a dividend of less than 8.");
                 }

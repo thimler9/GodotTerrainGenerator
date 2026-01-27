@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Godot;
+using Godot.Collections;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
 
@@ -11,7 +12,7 @@ namespace TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree
 {
     public interface IRenderOctree
     {
-        public void Render(Plane[] frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
+        public void Render(Array<Plane> frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor);
 
         /// <summary>
         /// Clears up octree resources

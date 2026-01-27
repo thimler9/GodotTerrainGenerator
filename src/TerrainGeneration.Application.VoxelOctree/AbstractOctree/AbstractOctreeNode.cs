@@ -39,7 +39,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             this.Size = size;
             this.Hash = hash;
             this.Depth = depth;
-            this.Lod = lodArray[depth].lodDivider;
+            this.Lod = lodArray[depth].LodDivider;
 
             eventQueue.AddEvent(new CreateRenderNodeEvent(hash, offset, size, Lod, depth));
 
@@ -156,13 +156,13 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         {
             Vector3 center = Offset + new Vector3(Size / 2, Size / 2, Size / 2);
             float sqDistFromPlayer = center.DistanceSquaredTo(playerPosition);
-            uint chosenLod = lodArray[0].lodDivider;
+            uint chosenLod = lodArray[0].LodDivider;
             for (int i = 1; i < lodArray.Length; i++)
             {
-                float sqLodDistanceCutoff = lodArray[i].lodDistanceCutoff * lodArray[i].lodDistanceCutoff;
+                float sqLodDistanceCutoff = lodArray[i].LodDistanceCutoff * lodArray[i].LodDistanceCutoff;
                 if (sqLodDistanceCutoff > sqDistFromPlayer)
                 {
-                    chosenLod = lodArray[i].lodDivider;
+                    chosenLod = lodArray[i].LodDivider;
                 }
                 else
                 {

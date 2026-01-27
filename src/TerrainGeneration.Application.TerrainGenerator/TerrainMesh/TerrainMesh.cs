@@ -294,6 +294,9 @@ public class TerrainMesh
             throw new ArgumentException($"{nameof(renderDescriptor.Shader)} must be valid");
         }
 
+        SetTerrainMeshParametersUniformSet(renderDescriptor.Shader);
+        SetVertexUniformSet(renderDescriptor.Shader);
+
         // Setup draw call
         long drawList = Rd.DrawListBegin(renderDescriptor.ScreenBuffer, RenderingDevice.DrawFlags.IgnoreColorAll, renderDescriptor.ClearColors);
         Rd.DrawCommandBeginLabel("Draw Terrain", new Color(0.0f, 0.0f, 0.0f, 0.0f));

@@ -1,0 +1,60 @@
+[gd_scene load_steps=7 format=3 uid="uid://bepinf15m7nmp"]
+
+[ext_resource type="Script" uid="uid://bkirokmvgvtlk" path="res://Test Scripts/TestVoxelOctreeRenderer.cs" id="1_mxbe1"]
+[ext_resource type="Script" uid="uid://3rx3e6vwcmxk" path="res://Test Scripts/TestVoxelOctree.cs" id="1_won1t"]
+[ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_jae4j"]
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_jae4j"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = false
+script = ExtResource("1_mxbe1")
+metadata/_custom_type_script = "uid://bkirokmvgvtlk"
+
+[sub_resource type="Compositor" id="Compositor_820bx"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_jae4j")])
+
+[sub_resource type="Environment" id="Environment_jae4j"]
+
+[node name="TestVoxelOctree" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+compositor = SubResource("Compositor_820bx")
+script = ExtResource("2_jae4j")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_jae4j")
+
+[node name="Node" type="Node" parent="." node_paths=PackedStringArray("Camera")]
+script = ExtResource("1_won1t")
+Camera = NodePath("../Camera3D")
+StartSize = 2048
+MinChunkSize = 32
+BorderWidth = 1.5
+PlayerPositionChangeThreshold = 25.0
+EventQueueWorkBudget = 5
+MaxNumVertices = 50000
+MaxNumTerrainMeshesInQueue = 20
+Seed = 1234
+Scale = 1000.0
+Strength = 1.0
+NumOctaves = 8
+Frequency = 1.0
+Amplitude = 1.0
+Lacunarity = 2.0
+Gain = 0.4
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.5, 10.5)
+
+[node name="CSGPolygon3D2" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 10.5, 10.5)
+
+[node name="CSGPolygon3D3" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 10.5, 10.5)
+
+[node name="CSGPolygon3D4" type="CSGPolygon3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.644107)

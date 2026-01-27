@@ -2,55 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using TerrainGeneration.Application.SDFGenerator;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator;
-using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
-using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
+using TerrainGeneration.Application.VoxelOctree;
+using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GodotTerrainGenerator2.Test_Scripts;
 
 [Tool]
 [GlobalClass]
-public partial class TestTerrainMeshRender : CompositorEffect
+public partial class TestVoxelOctreeRenderer : CompositorEffect
 {
-    public int test = 0;
+    public VoxelOctree VoxelOctree;
+    public Camera3D Camera;
 
-
-    public uint ChunkSize = 32;
-    public uint Lod = 1;
-
-    // Map Params
-    public Vector3 ChunkOffset = new Vector3(300.0f, 0, 0);
-    public uint Seed = 1234;
-    public float Scale = 32.0f;
-    public float Strength = 350.0f;
-    public uint NumOctaves = 8;
-    public float Frequency = 1.0f;
-    public float Amplitude = 1.0f;
-    public float Lacunarity = 2.0f;
-    public float Gain = 0.4f;
-
-    // Transvoxel Shader Params
-    public uint MaxNumOfVertices = 200000;
-    public float TransitionWidth = 1.0f;
-
-    // Transvoxel Params
-    public uint MaxNumTerrainMeshesInQueue = 10;
-
-    // Rendering ----------------------------------------------
-
-    // Overall Rendering Objects
-    public RenderingDevice Rd;
+    RenderingDevice Rd;
     public Rid TerrainShader;
     public Rid RenderPipeline;
-
-    // Indirect Draw Data
-    public TerrainMesh TerrainMesh = null;
 
     // Per frame rendering data
     public Rid EmptyVertexArray;
@@ -61,27 +31,11 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public RDUniform RenderSceneDataUniform;
     public Rid RenderSceneDataUniformSet;
 
-    // Terrain rendering data
-    public TerrainMeshParameters TerrainMeshParameters;
-    public int ExpandBorders = 0b101011;
-    public int RetractBorders = 0b010100; 
-
-    public TestTerrainMeshRender() : base()
-    {
-        EffectCallbackType = EffectCallbackTypeEnum.PostTransparent;
-    }
-
     public void Init(RenderSceneBuffersRD renderSceneBuffers, Rid renderSceneDataBuffer)
     {
-        InitializeMesh();
-        if (TerrainMesh == null)
-        {
-            GD.PrintErr("Terrain Mesh is null, cannot initialize rendering.");
-            return;
-        }
-
-        SetRenderPipeline(renderSceneBuffers, TerrainMesh, renderSceneDataBuffer);
+        SetRenderPipeline(renderSceneBuffers, renderSceneDataBuffer);
     }
+
 
     public override void _RenderCallback(int effectCallbackType, RenderData renderData)
     {
@@ -127,9 +81,9 @@ public partial class TestTerrainMeshRender : CompositorEffect
                 }
             }
 
-            if (TerrainMesh != null)
+            if (VoxelOctree != null)
             {
-                TerrainMesh.Render(new TerrainMeshRenderDescriptor()
+                VoxelOctree.Render(Camera.GetFrustum(), new TerrainMeshRenderDescriptor()
                 {
                     RenderPipeline = RenderPipeline,
                     RenderSceneDataUniformSet = RenderSceneDataUniformSet,
@@ -143,55 +97,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
         }
     }
 
-    public void InitializeMesh()
-    {
-        Rd = RenderingServer.GetRenderingDevice();
-
-        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
-        SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
-            Seed,
-            Scale,
-            Strength,
-            NumOctaves,
-            Frequency,
-            Amplitude,
-            Lacunarity,
-            Gain
-        );
-        SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
-        {
-            ShaderPath = "res://Shaders/Compute/simplex_noise.glsl",
-            Parameters = simplexNoiseShaderParameters,
-        };
-
-        ISDFShader simplexNoiseShader = new SimplexNoiseShader(Rd, simplexNoiseShaderDescriptor);
-
-        SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
-        {
-            SDFShaderParameters = sdfShaderParameters,
-            SDFShader = simplexNoiseShader
-        };
-        SDFGenerator sdfGenerator = new SDFGenerator(Rd, sdfGeneratorSettings);
-
-        TransvoxelTerrainGeneratorDescriptor terrainDescriptor = new TransvoxelTerrainGeneratorDescriptor()
-        {
-            ChunkOffset = ChunkOffset,
-            ChunkSize = ChunkSize, 
-            Lod = Lod,
-            SDFShader = simplexNoiseShader,
-            MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
-            MaxNumVertices = MaxNumOfVertices,
-            TransitionWidth = TransitionWidth,
-            NormalsShaderPath = "res://Shaders/Compute/normal_generator.glsl",
-            TransvoxelShaderPath = "res://Shaders/Compute/mesh_generator.glsl",
-            IndirectArgsShaderPath = "res://Shaders/Compute/indirect_args.glsl",
-        };
-
-        TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(Rd, terrainDescriptor);
-        TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh();
-    }
-
-    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, TerrainMesh terrainMesh, Rid renderSceneDataBuffer)
+    private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, Rid renderSceneDataBuffer)
     {
         Rd = RenderingServer.GetRenderingDevice();
 
@@ -210,7 +116,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
         };
         long vertexFormat = Rd.VertexFormatCreate([vertexAttributePosition]);
 
-        
+
         float[] vertexPositionsFake = new float[] {
             0.0f, -0.5f,
             0.5f, 0.5f,
@@ -293,19 +199,6 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
         ClearColors = new Color[] { new Color(0.0f, 0.0f, 0.0f, 0.0f) };
 
-        // Terrain mesh render data
-        TerrainMesh.SetVertexUniformSet(TerrainShader);
-        TerrainMeshParameters = new TerrainMeshParameters()
-        {
-            BorderWidth = TransitionWidth,
-            ChunkOffset = new Vector4(ChunkOffset.X, ChunkOffset.Y, ChunkOffset.Z, 1.0f),
-            ChunkSize = ChunkSize,  
-            ExpandBorders = ExpandBorders,
-            RetractBorders = RetractBorders,
-        };
-        TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
-        TerrainMesh.SetTerrainMeshParametersUniformSet(TerrainShader);
-
         // Set camera projection
         RenderSceneDataUniform = new RDUniform()
         {
@@ -316,37 +209,4 @@ public partial class TestTerrainMeshRender : CompositorEffect
         RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], TerrainShader, 0);
     }
 
-
-    private void TestPrintOutCameraUniform(Rid renderSceneData)
-    {
-        byte[] cameraUniformOut = Rd.BufferGetData(renderSceneData);
-        float[] cameraProjectionMatrix = new float[16 + 16 + 12 + 12];
-        Buffer.BlockCopy(cameraUniformOut, 0, cameraProjectionMatrix, 0, cameraProjectionMatrix.Length * sizeof(float));
-
-        GD.Print("Projection Matrix:");
-        for (int i = 0; i < 4; i++)
-        {
-            GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
-        }
-
-        GD.Print("\nInverse Projection:");
-        for (int i = 4; i < 8; i++)
-        {
-            GD.Print($"{cameraProjectionMatrix[i * 4]} {cameraProjectionMatrix[i * 4 + 1]} {cameraProjectionMatrix[i * 4 + 2]} {cameraProjectionMatrix[i * 4 + 3]}");
-        }
-
-        GD.Print("\nInverse View Matrix:");
-        for (int i = 8; i < 12; i++)
-        {
-            GD.Print($"{cameraProjectionMatrix[i * 3]} {cameraProjectionMatrix[i * 3 + 1]} {cameraProjectionMatrix[i * 3 + 2]}");
-        }
-
-        GD.Print("\nView Matrix:");
-        for (int i = 12; i < 16; i++)
-        {
-            GD.Print($"{cameraProjectionMatrix[i * 3]} {cameraProjectionMatrix[i * 3 + 1]} {cameraProjectionMatrix[i * 3 + 2]}");
-        }
-
-        GD.Print("\n");
-    }
 }

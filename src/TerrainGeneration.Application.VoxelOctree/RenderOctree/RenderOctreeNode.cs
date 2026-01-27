@@ -1,4 +1,5 @@
 ﻿using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +14,15 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 {
     public class RenderOctreeNode
     {
-        private TerrainChunk? terrainChunk;
+        private TerrainChunk? TerrainChunk;
         public Vector3 Offset;
         private uint Size;
         private uint Lod;
         private int Depth;
         private int Hash;
+
+        private Aabb Bounds;
+
 
         public RenderOctreeNode(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, TransvoxelTerrainGenerator transvoxelTerrainGenerator, RenderOctreeDescriptor descriptor)
         {
@@ -27,11 +31,19 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             Lod = descriptor.Lod;
             Depth = descriptor.Depth;
             Hash = descriptor.Hash;
+            Bounds = new Aabb(descriptor.Offset, Vector3.One * descriptor.Size);
 
             // Create chunk mesh
-            transvoxelTerrainGenerator.SetSDFShaderParameters(new SDFGenerator.SDFShaderParameters(Offset, Size, Lod));
-            transvoxelTerrainGenerator.GetTerrainMesh();
-            leafHashes[Hash] = true;
+            TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
+            {
+                BorderWidth = descriptor.BorderWidth,
+                ChunkOffset = descriptor.Offset,
+                Depth = descriptor.Depth,
+                ChunkSize = descriptor.Size,
+                ExpandBorders = 0,
+                RetractBorders = 0,
+            };
+            TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
 
             // Only used for chunks  that get made when shifting the world center
             if (updateBorders)
@@ -54,10 +66,10 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
             leafHashes[Hash] = false;
 
-            if (terrainChunk != null)
+            if (TerrainChunk != null)
             {
-                transvoxelTerrainGenerator.ReturnTerrainMesh(terrainChunk.TerrainMesh);
-                terrainChunk = null;
+                transvoxelTerrainGenerator.ReturnTerrainMesh(TerrainChunk.TerrainMesh);
+                TerrainChunk = null;
             }
         }
 
@@ -68,32 +80,35 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             //if (terrainChunk == null)
             //    throw new Exception("Tried removing chunk" + hash + "from tree but it was missing a terrain chunk");
 
-            if (terrainChunk == null)
+            if (TerrainChunk == null)
             {
                 throw new Exception("Tried removing chunk" + Hash + "from tree but it was missing a terrain chunk");
             }
 
             leafHashes[Hash] = false; // No longer a leaf
-            transvoxelTerrainGenerator.ReturnTerrainMesh(terrainChunk.TerrainMesh); // Remove render data
-            terrainChunk = null;
+            transvoxelTerrainGenerator.ReturnTerrainMesh(TerrainChunk.TerrainMesh); // Remove render data
+            TerrainChunk = null;
             chunks[Hash] = null; // No longer in tree
         }
 
-        public void Render(RenderOctreeNode[] chunks, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor, /*TerrainSpawnBatch terrainSpawnBatch,*/ Plane[] frustumPlanes)
+        public void Render(RenderOctreeNode[] chunks, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor, /*TerrainSpawnBatch terrainSpawnBatch,*/ Array<Plane> frustumPlanes)
         {
             // If there's no chunk, but the frustum planes intersectbounds go deeper in the tree
-            if (terrainChunk != null && terrainChunk.Bounds.IsWithinFrustumPlanes(frustumPlanes))
+            if (Bounds.IsWithinFrustumPlanes(frustumPlanes))
             {
-                terrainChunk.Render(terrainMeshRenderDescriptor);
-            }
-            else
-            {
-                for (int i = 0; i < 8; i++)
+                if (TerrainChunk != null)
                 {
-                    RenderOctreeNode child = chunks[(Hash << 3) | i];
-                    if (child != null)
+                    TerrainChunk.Render(terrainMeshRenderDescriptor);
+                }
+                else
+                {
+                    for (int i = 0; i < 8; i++)
                     {
-                        child.Render(chunks, terrainMeshRenderDescriptor, frustumPlanes);
+                        RenderOctreeNode child = chunks[(Hash << 3) | i];
+                        if (child != null)
+                        {
+                            child.Render(chunks, terrainMeshRenderDescriptor, frustumPlanes);
+                        }
                     }
                 }
             }
@@ -219,9 +234,9 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             retractBorders >>= 1;
 
             // Finally set the borders for the mesh
-            if (terrainChunk != null)
+            if (TerrainChunk != null)
             {
-                terrainChunk.SetTerrainMeshBorders(retractBorders, expandBorders);
+                TerrainChunk.SetTerrainMeshBorders(retractBorders, expandBorders);
             }
 
             return adjacentChunkHashes;
@@ -231,7 +246,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         public void UpdateHash(int newHash, RenderOctreeNode?[] oldChunks, RenderOctreeNode?[] newChunks, bool[] newLeafHashes)
         {
             // If it has children
-            if (terrainChunk == null)
+            if (TerrainChunk == null)
             {
                 for (int i = 0; i < 8; i++)
                 {
@@ -254,10 +269,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         public void SetOffset(Vector3 offset)
         {
             Offset = offset;
-            //if (terrainChunk != null)
-            //{
-            //    terrainChunk.bounds.center = offset + (size / 2);
-            //}
+            Bounds = new Aabb(offset, Vector3.One * Size);
         }
     }
 }

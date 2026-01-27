@@ -10,7 +10,6 @@ namespace TerrainGeneration.Application.TerrainGenerator
         public TerrainMesh TerrainMesh;
         private TerrainMeshParameters TerrainMeshParameters;
 
-        public Aabb Bounds;
 
         /// <summary>
         /// Creates a terrain chunk. Pass in the mesh generator and the chunk descriptor.
@@ -33,7 +32,6 @@ namespace TerrainGeneration.Application.TerrainGenerator
             };
             TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
 
-            Bounds = new Aabb(descriptor.ChunkOffset, Vector3.One * (descriptor.ChunkSize / 2));
         }
 
         /// <summary>
@@ -88,11 +86,6 @@ namespace TerrainGeneration.Application.TerrainGenerator
         public void Render(TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
         {
             TerrainMesh.Render(terrainMeshRenderDescriptor);
-        }
-
-        public void SetBounds(Aabb newBounds)
-        {
-            Bounds = newBounds;
         }
     }
 }

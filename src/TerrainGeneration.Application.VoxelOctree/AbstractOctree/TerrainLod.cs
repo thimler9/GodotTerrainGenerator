@@ -10,7 +10,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
     {
         public TerrainLod() { }
 
-        public uint lodDivider { get; set; }
-        public float lodDistanceCutoff { get; set; }
+        public uint LodDivider { get; set; }
+        public float LodDistanceCutoff { get; set; }
     }
 }

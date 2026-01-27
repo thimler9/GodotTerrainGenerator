@@ -1,4 +1,5 @@
 ﻿using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +19,18 @@ public class VoxelOctree
     public VoxelOctree(VoxelOctreeDescriptor descriptor)
     {
         TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(RenderingServer.GetRenderingDevice(), descriptor.TransvoxelTerrainGeneratorDescriptor);
-        RenderOctree = new RenderOctree.RenderOctree(descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods.Length, transvoxelTerrainGenerator);
+        RenderOctree = new RenderOctree.RenderOctree(descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods.Length, descriptor.BorderWidth, transvoxelTerrainGenerator);
         OctreeEventQueue = new OctreeEventQueue.OctreeEventQueue(RenderOctree, descriptor.EventQueueWorkBudget);
         AbstractOctree = new AbstractOctree.AbstractOctree(OctreeEventQueue, descriptor.Center, descriptor.PlayerPosition, descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods, descriptor.PlayerPositionChangeThreshold);
+    }
+
+    public void ProcessEventQueue()
+    {
+        OctreeEventQueue.Process();
+    }
+
+    public void Render(Array<Plane> frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
+    {
+        RenderOctree.Render(frustumPlanes, terrainMeshRenderDescriptor);
     }
 }
