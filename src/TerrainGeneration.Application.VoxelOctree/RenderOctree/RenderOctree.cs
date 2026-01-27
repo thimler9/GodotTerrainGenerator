@@ -9,15 +9,16 @@ using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
+using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
 using TerrainGeneration.Application.VoxelOctree.OctreeEvents;
 
 namespace TerrainGeneration.Application.VoxelOctree.RenderOctree;
 
 
-internal class RenderOctree
+internal class RenderOctree : IRenderOctree
 {
-    private int Size;
-    private int MinChunkSize;
+    private uint Size;
+    private uint MinChunkSize;
     private int LodArrayLength;
 
     public RenderOctreeNode[] Chunks;
@@ -26,10 +27,7 @@ internal class RenderOctree
     // How we get the triangle for the terrain meshes
     private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
 
-    // How we will render the terrain meshes
-    private TerrainMeshRenderDescriptor TerrainMeshRenderDescriptor;
-
-    public RenderOctree(int size, int minChunkSize, int lodArrayLength, TransvoxelTerrainGenerator transvoxelTerrainGenerator, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
+    public RenderOctree(uint size, uint minChunkSize, int lodArrayLength, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
     {
         Size = size;
         MinChunkSize = minChunkSize;
@@ -39,13 +37,12 @@ internal class RenderOctree
         Chunks = new RenderOctreeNode[((1 << ((deepestDepth + 2) * 3)) - 1) / 7];
         LeafHashes = new bool[Chunks.Length];
         TransvoxelTerrainGenerator = transvoxelTerrainGenerator;
-        TerrainMeshRenderDescriptor = terrainMeshRenderDescriptor;
     }
 
     private int GetDeepestDepth()
     {
         int deepestDepth = 0;
-        int currSize = Size;
+        uint currSize = Size;
         while (currSize >= MinChunkSize && deepestDepth < LodArrayLength)
         {
             deepestDepth += 1;
@@ -55,11 +52,11 @@ internal class RenderOctree
         return deepestDepth;
     }
 
-    public void Render(Plane[] frustumPlanes)
+    public void Render(Plane[] frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
     {
         if (Chunks[1] != null)
         {
-            Chunks[1].Render(Chunks, TerrainMeshRenderDescriptor, frustumPlanes);
+            Chunks[1].Render(Chunks, terrainMeshRenderDescriptor, frustumPlanes);
         }
     }
 

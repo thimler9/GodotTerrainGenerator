@@ -32,7 +32,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
         public AbstractOctreeNode(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 offset, uint size, Vector3 playerPosition, int hash,
-            int depth, int minChunkSize, TerrainLod[] lodArray)
+            int depth, uint minChunkSize, TerrainLod[] lodArray)
         {
 
             this.Offset = offset;
@@ -59,7 +59,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="playerPosition"></param>
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
-        private void MakeChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 playerPosition, int minChunkSize, TerrainLod[] lodArray)
+        private void MakeChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 playerPosition, uint minChunkSize, TerrainLod[] lodArray)
         {
             uint newSize = Size / 2;
             chunks[Hash << 3] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset, newSize, playerPosition, (Hash << 3), Depth + 1, minChunkSize, lodArray);
@@ -81,7 +81,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="playerPosition"></param>
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
-        public void Update(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, Vector3 playerPosition, int minChunkSize, TerrainLod[] lodArray)
+        public void Update(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, Vector3 playerPosition, uint minChunkSize, TerrainLod[] lodArray)
         {
             if (HasChildren(chunks))
             {

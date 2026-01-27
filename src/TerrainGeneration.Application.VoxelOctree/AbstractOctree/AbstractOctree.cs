@@ -12,7 +12,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
     public class AbstractOctree : IAbstractOctree
     {
         private TerrainLod[] LodArray;
-        private int MinChunkSize;
+        private uint MinChunkSize;
 
         public AbstractOctreeNode[] Chunks;
         private Vector3 Center;
@@ -31,7 +31,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="minChunkSize">Will not split up to chunk sizes smaller than this.</param>
         /// <param name="lodArray">Used to determine what the lod is for the given depth of the current tree node.</param>
         /// <param name="playerPositionChangeThreshold">Won't update the tree unless the player has moved more than this.</param>
-        public AbstractOctree(IOctreeEventQueue eventQueue, Vector3 center, Vector3 playerPosition, uint size, int minChunkSize, TerrainLod[] lodArray, float playerPositionChangeThreshold)
+        public AbstractOctree(IOctreeEventQueue eventQueue, Vector3 center, Vector3 playerPosition, uint size, uint minChunkSize, TerrainLod[] lodArray, float playerPositionChangeThreshold)
         {
             try
             {
@@ -409,7 +409,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             }
         }
 
-        public void ValidateInputs(IOctreeEventQueue eventQueue, uint size, int minChunkSize, TerrainLod[] lodArray, float playerPositionChangeThreshold)
+        public void ValidateInputs(IOctreeEventQueue eventQueue, uint size, uint minChunkSize, TerrainLod[] lodArray, float playerPositionChangeThreshold)
         {
             // Validate Size
             if (!(size > 0 && size.IsPowerOfTwo()))
