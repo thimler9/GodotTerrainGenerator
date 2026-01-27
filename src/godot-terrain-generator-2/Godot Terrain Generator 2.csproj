@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\SDFGenerator\TerrainGeneration.Application.SDFGenerator.csproj" />
     <ProjectReference Include="..\TerrainGeneration.Application.TerrainGenerator\TerrainGeneration.Application.TerrainGenerator.csproj" />
+    <ProjectReference Include="..\TerrainGeneration.Application.VoxelOctree\TerrainGeneration.Application.VoxelOctree.csproj" />
   </ItemGroup>
 </Project>
