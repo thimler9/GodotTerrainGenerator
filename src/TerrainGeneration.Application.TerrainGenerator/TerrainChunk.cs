@@ -17,6 +17,11 @@ namespace TerrainGeneration.Application.TerrainGenerator
         private TerrainMesh TerrainMesh;
         private TerrainMeshParameters TerrainMeshParameters;
 
+        /// <summary>
+        /// Creates a terrain chunk. Pass in the mesh generator and the chunk descriptor.
+        /// </summary>
+        /// <param name="transvoxelTerrainGenerator"></param>
+        /// <param name="descriptor"></param>
         public TerrainChunk(TransvoxelTerrainGenerator transvoxelTerrainGenerator, TerrainChunkDescriptor descriptor)
         {
             transvoxelTerrainGenerator.SetSDFShaderParameters(new SDFGenerator.SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod));
@@ -34,11 +39,20 @@ namespace TerrainGeneration.Application.TerrainGenerator
             TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
         }
 
+        /// <summary>
+        /// Disposes of all gpu resources for the terrain chunk
+        /// </summary>
         public void Dispose()
         {
             TerrainMesh.Dispose();
         }
 
+
+        /// <summary>
+        /// Sets the borders for the draw shader
+        /// </summary>
+        /// <param name="retractBorders"></param>
+        /// <param name="expandBorders"></param>
         public void SetTerrainMeshBorders(uint retractBorders, uint expandBorders)
         {
             SetTerrainMeshParamsBuffer(new TerrainMeshParameters()
@@ -51,6 +65,10 @@ namespace TerrainGeneration.Application.TerrainGenerator
             });
         }
 
+        /// <summary>
+        /// Used to update parameters for the draw shader.
+        /// </summary>
+        /// <param name="newParams"></param>
         private void SetTerrainMeshParamsBuffer(TerrainMeshParameters newParams)
         {
             if (newParams != TerrainMeshParameters)
@@ -59,6 +77,10 @@ namespace TerrainGeneration.Application.TerrainGenerator
             }
         }
 
+        /// <summary>
+        /// Renders the terrainchunk
+        /// </summary>
+        /// <param name="terrainMeshRenderDescriptor"></param>
         public void Render(TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
         {
             TerrainMesh.Render(terrainMeshRenderDescriptor);
