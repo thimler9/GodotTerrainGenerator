@@ -15,8 +15,6 @@ public class VoxelOctree
     private RenderOctree.RenderOctree RenderOctree;
     private OctreeEventQueue.OctreeEventQueue OctreeEventQueue;
 
-    private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
-
     public VoxelOctree(VoxelOctreeDescriptor descriptor)
     {
         TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(RenderingServer.GetRenderingDevice(), descriptor.TransvoxelTerrainGeneratorDescriptor);
