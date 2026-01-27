@@ -5,12 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TerrainGeneration.Application.TerrainGenerator.Abstractions
-{
-    public interface IOctreeRenderable
-    {
-        public void Render(Vector3 playerPosition);
+namespace TerrainGeneration.Application.TerrainGenerator.Abstractions;
+//public interface IOctreeRenderable
+//{
+//    public void Render(TerrainMeshRenderDescriptor terrainMeshRenderDescriptor);
 
-        public void Dispose();
-    }
-}
+//    public void Dispose();
+//}

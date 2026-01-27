@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainChunkDescriptor
 {
-    public Vector3 Offset;
-    public uint Size;
+    public Vector3 ChunkOffset;
+    public uint ChunkSize;
     public uint Lod;
     public uint Depth;
+    public float BorderWidth;
+    public uint ExpandBorders;
+    public uint RetractBorders;
 }

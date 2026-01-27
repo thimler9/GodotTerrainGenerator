@@ -22,7 +22,7 @@ public struct SDFShaderParameters
     public readonly uint Lod;
 
     [FieldOffset(24)]
-    public readonly Vector2 Padding;
+    private readonly Vector2 Padding;
 
     public SDFShaderParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
     {

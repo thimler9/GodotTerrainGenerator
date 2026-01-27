@@ -6,25 +6,32 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator.Abstractions;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 
 namespace TerrainGeneration.Application.TerrainGenerator
 {
-    public class TerrainChunk : IOctreeRenderable
+    public class TerrainChunk
     {
         //private TerrainSpawns TerrainSpawns;
+        
         private TerrainMesh TerrainMesh;
+        private TerrainMeshParameters TerrainMeshParameters;
 
-        private Vector3 Offset;
-        private uint Size;
-
-        public TerrainChunk(TerrainChunkDescriptor descriptor)
+        public TerrainChunk(TransvoxelTerrainGenerator transvoxelTerrainGenerator, TerrainChunkDescriptor descriptor)
         {
-            Offset = descriptor.Offset;
-            Size = descriptor.Size;
+            transvoxelTerrainGenerator.SetSDFShaderParameters(new SDFGenerator.SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod));
+            TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh();
 
-            //Vector3 center = offset + Vector3.One * (size / 2);
-            //TerrainMesh = MapGenerator.GetMesh(offset, size, lod);
-            //TerrainSpawns = new TerrainSpawns(offset, size, depth, Bounds);
+            // Set the terrian mesh params
+            TerrainMeshParameters = new TerrainMeshParameters()
+            {
+                ExpandBorders = descriptor.ExpandBorders,
+                RetractBorders = descriptor.RetractBorders,
+                ChunkOffset = new Vector4(descriptor.ChunkOffset.X, descriptor.ChunkOffset.Y, descriptor.ChunkOffset.Z, 0.0f),
+                ChunkSize = descriptor.ChunkSize,
+                BorderWidth = descriptor.BorderWidth
+            };
+            TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
         }
 
         public void Dispose()
@@ -32,9 +39,29 @@ namespace TerrainGeneration.Application.TerrainGenerator
             TerrainMesh.Dispose();
         }
 
-        public void Render(Vector3 playerPosition)
+        public void SetTerrainMeshBorders(uint retractBorders, uint expandBorders)
         {
-            throw new NotImplementedException();
+            SetTerrainMeshParamsBuffer(new TerrainMeshParameters()
+            {
+                ExpandBorders = expandBorders,
+                RetractBorders = retractBorders,
+                ChunkOffset = TerrainMeshParameters.ChunkOffset,
+                ChunkSize = TerrainMeshParameters.ChunkSize,
+                BorderWidth = TerrainMeshParameters.BorderWidth
+            });
+        }
+
+        private void SetTerrainMeshParamsBuffer(TerrainMeshParameters newParams)
+        {
+            if (newParams != TerrainMeshParameters)
+            {
+                TerrainMesh.SetParamsBuffer(newParams);
+            }
+        }
+
+        public void Render(TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
+        {
+            TerrainMesh.Render(terrainMeshRenderDescriptor);
         }
     }
 }
