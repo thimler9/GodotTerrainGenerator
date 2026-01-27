@@ -11,7 +11,7 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 {
     public class CreateRenderNodeEvent : IOctreeEvent
     {
-        public CreateRenderNodeEvent(int hash, Vector3 offset, int size, int lod, int depth)
+        public CreateRenderNodeEvent(int hash, Vector3 offset, uint size, uint lod, int depth)
         {
             Hash = hash;
             Offset = offset;
@@ -22,8 +22,8 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 
         public int Hash { get; set; }
         public Vector3 Offset { get; set; }
-        public int Size { get; set; }
-        public int Lod { get; set; }
+        public uint Size { get; set; }
+        public uint Lod { get; set; }
         public int Depth { get; set; }
     }
 }

@@ -6,36 +6,47 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using TerrainGeneration.Application.TerrainGenerator;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
+using TerrainGeneration.Application.VoxelOctree.OctreeEvents;
 
 namespace TerrainGeneration.Application.VoxelOctree.RenderOctree;
 
 
 internal class RenderOctree
 {
-    private int size;
-    private int minChunkSize;
-    private int lodArrayLength;
+    private int Size;
+    private int MinChunkSize;
+    private int LodArrayLength;
 
-    public RenderOctreeNode[] chunks;
-    public bool[] leafHashes;
+    public RenderOctreeNode[] Chunks;
+    public bool[] LeafHashes;
 
-    public RenderOctree(int size, int minChunkSize, int lodArrayLength)
+    // How we get the triangle for the terrain meshes
+    private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
+
+    // How we will render the terrain meshes
+    private TerrainMeshRenderDescriptor TerrainMeshRenderDescriptor;
+
+    public RenderOctree(int size, int minChunkSize, int lodArrayLength, TransvoxelTerrainGenerator transvoxelTerrainGenerator, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
     {
-        this.size = size;
-        this.minChunkSize = minChunkSize;
-        this.lodArrayLength = lodArrayLength;
+        Size = size;
+        MinChunkSize = minChunkSize;
+        LodArrayLength = lodArrayLength;
 
         int deepestDepth = GetDeepestDepth();
-        this.chunks = new RenderOctreeNode[((1 << ((deepestDepth + 2) * 3)) - 1) / 7];
-        this.leafHashes = new bool[chunks.Length];
+        Chunks = new RenderOctreeNode[((1 << ((deepestDepth + 2) * 3)) - 1) / 7];
+        LeafHashes = new bool[Chunks.Length];
+        TransvoxelTerrainGenerator = transvoxelTerrainGenerator;
+        TerrainMeshRenderDescriptor = terrainMeshRenderDescriptor;
     }
 
     private int GetDeepestDepth()
     {
         int deepestDepth = 0;
-        int currSize = size;
-        while (currSize >= minChunkSize && deepestDepth < lodArrayLength)
+        int currSize = Size;
+        while (currSize >= MinChunkSize && deepestDepth < LodArrayLength)
         {
             deepestDepth += 1;
             currSize /= 2;
@@ -44,11 +55,11 @@ internal class RenderOctree
         return deepestDepth;
     }
 
-    public void Render(Vector3 playerPosition)
+    public void Render(Plane[] frustumPlanes)
     {
-        if (chunks[1] != null)
+        if (Chunks[1] != null)
         {
-            chunks[1].Render(chunks, playerPosition);
+            Chunks[1].Render(Chunks, TerrainMeshRenderDescriptor, frustumPlanes);
         }
     }
 
@@ -56,44 +67,44 @@ internal class RenderOctree
     {
         //terrainSpawnBatch.Dispose();
         Queue<int> updatedChunks = new Queue<int>();
-        for (int i = 0; i < chunks.Length; i++)
+        for (int i = 0; i < Chunks.Length; i++)
         {
-            if (chunks[i] != null)
+            if (Chunks[i] != null)
             {
-                chunks[i].DisposeTerrainChunk(chunks, leafHashes, updatedChunks);
+                Chunks[i].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
             }
         }
-        //MemoryManager.Instance.Dispose();
+        TransvoxelTerrainGenerator.Dispose();
     }
 
     public void MoveWorldCenterHashAndOffsets(List<(int oldHash, int newHash)> updatedHashes, Vector3 newWorldCenter)
     {
-        RenderOctreeNode[] newChunks = new RenderOctreeNode[chunks.Length];
-        bool[] newLeafHashes = new bool[leafHashes.Length];
+        RenderOctreeNode[] newChunks = new RenderOctreeNode[Chunks.Length];
+        bool[] newLeafHashes = new bool[LeafHashes.Length];
         // Set new hashes
         for (int i = 0; i < updatedHashes.Count; i++)
         {
-            if (chunks[updatedHashes[i].oldHash] != null)
+            if (Chunks[updatedHashes[i].oldHash] != null)
             {
-                chunks[updatedHashes[i].oldHash].UpdateHash(updatedHashes[i].newHash, chunks, newChunks, newLeafHashes);
+                Chunks[updatedHashes[i].oldHash].UpdateHash(updatedHashes[i].newHash, Chunks, newChunks, newLeafHashes);
             }
         }
 
         // Set new offsets of first two depths
-        newChunks[1] = chunks[1];
-        newChunks[1].SetOffset(newWorldCenter - new Vector3(size / 2, size / 2, size / 2));
+        newChunks[1] = Chunks[1];
+        newChunks[1].SetOffset(newWorldCenter - new Vector3(Size / 2, Size / 2, Size / 2));
         for (int i = 0; i < 8; i++)
         {
             int x = i % 2;
             int y = i / 4;
             int z = i == 0 || i == 1 || i == 4 || i == 5 ? 0 : 1;
 
-            chunks[(1 << 3) | i].SetOffset(new Vector3((x - 1), (y - 1), (z - 1)) * (size / 2) + newWorldCenter);
-            newChunks[(1 << 3) | i] = chunks[(1 << 3) | i];
+            Chunks[(1 << 3) | i].SetOffset(new Vector3((x - 1), (y - 1), (z - 1)) * (Size / 2) + newWorldCenter);
+            newChunks[(1 << 3) | i] = Chunks[(1 << 3) | i];
         }
 
-        chunks = newChunks;
-        leafHashes = newLeafHashes;
+        Chunks = newChunks;
+        LeafHashes = newLeafHashes;
     }
 
 
@@ -103,10 +114,10 @@ internal class RenderOctree
 
         foreach (int updatedChunkHash in updatedChunks)
         {
-            RenderOctreeNode currChunk = chunks[updatedChunkHash];
+            RenderOctreeNode currChunk = Chunks[updatedChunkHash];
             if (currChunk != null)
             {
-                int[] adjacentChunks = currChunk.SetBorders(leafHashes); //We first need the borders of the new chunk.
+                int[] adjacentChunks = currChunk.SetBorders(LeafHashes); //We first need the borders of the new chunk.
 
                 Vector3 chunkoffset = currChunk.Offset;
                 visited.Add(updatedChunkHash);
@@ -117,15 +128,15 @@ internal class RenderOctree
                     if (adjacentChunkHash != 0)
                     {
                         // It is the same size
-                        if (leafHashes[adjacentChunkHash] && !visited.Contains(adjacentChunkHash))
+                        if (LeafHashes[adjacentChunkHash] && !visited.Contains(adjacentChunkHash))
                         {
-                            chunks[adjacentChunkHash].SetBorders(leafHashes);
+                            Chunks[adjacentChunkHash].SetBorders(LeafHashes);
                             visited.Add(adjacentChunkHash);
                         }
                         // It is bigger
-                        else if (leafHashes[adjacentChunkHash >> 3] && !visited.Contains(adjacentChunkHash >> 3))
+                        else if (LeafHashes[adjacentChunkHash >> 3] && !visited.Contains(adjacentChunkHash >> 3))
                         {
-                            chunks[adjacentChunkHash >> 3].SetBorders(leafHashes);
+                            Chunks[adjacentChunkHash >> 3].SetBorders(LeafHashes);
                             visited.Add(adjacentChunkHash >> 3);
                         }
                         // It is smaller (we only need to check 4 of these, but I just check all 8 since it's easier)
@@ -133,9 +144,9 @@ internal class RenderOctree
                         {
                             for (int i = 0; i < 8; i++)
                             {
-                                if (((adjacentChunkHash << 3) | i) < leafHashes.Length && leafHashes[(adjacentChunkHash << 3) | i] && !visited.Contains((adjacentChunkHash << 3) | i))
+                                if (((adjacentChunkHash << 3) | i) < LeafHashes.Length && LeafHashes[(adjacentChunkHash << 3) | i] && !visited.Contains((adjacentChunkHash << 3) | i))
                                 {
-                                    chunks[(adjacentChunkHash << 3) | i].SetBorders(leafHashes);
+                                    Chunks[(adjacentChunkHash << 3) | i].SetBorders(LeafHashes);
                                     visited.Add((adjacentChunkHash << 3) | i);
                                 }
                             }
@@ -152,7 +163,46 @@ internal class RenderOctree
 
         foreach (IOctreeEvent octreeEvent in events) 
         {
-            // Process Events
+            if (octreeEvent != null)
+            {
+                // Process Events
+                if (octreeEvent is CreateRenderNodeEvent)
+                {
+                    CreateRenderNodeEvent currEvent = octreeEvent as CreateRenderNodeEvent;
+                    Chunks[currEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, new RenderOctreeDescriptor()
+                    {
+                        Depth = currEvent.Depth,
+                        Hash = currEvent.Hash,
+                        Lod = currEvent.Lod,
+                        Offset = currEvent.Offset,
+                        Size = currEvent.Size,
+                    });
+                }
+
+                if (octreeEvent is DeleteRenderNodeTerrainChunkEvent)
+                {
+                    DeleteRenderNodeTerrainChunkEvent currEvent = octreeEvent as DeleteRenderNodeTerrainChunkEvent;
+                    Chunks[currEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                }
+
+                if (octreeEvent is DisposeRenderNodeEvent)
+                {
+                    DisposeRenderNodeEvent currEvent = octreeEvent as DisposeRenderNodeEvent;
+                    Chunks[currEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+                }
+
+                if (octreeEvent is GetRenderNodeTerrainChunkEvent)
+                {
+                    GetRenderNodeTerrainChunkEvent currEvent = octreeEvent as GetRenderNodeTerrainChunkEvent;
+                    Chunks[currEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+                }
+
+                if (octreeEvent is MoveWorldCenterEvent)
+                {
+                    // To be implemented
+                }
+            }
+
         }
 
         if (updatedChunks.Count > 0)

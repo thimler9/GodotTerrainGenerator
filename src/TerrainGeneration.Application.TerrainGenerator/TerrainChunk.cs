@@ -1,11 +1,4 @@
 ﻿using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using TerrainGeneration.Application.TerrainGenerator.Abstractions;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 
 namespace TerrainGeneration.Application.TerrainGenerator
@@ -13,9 +6,11 @@ namespace TerrainGeneration.Application.TerrainGenerator
     public class TerrainChunk
     {
         //private TerrainSpawns TerrainSpawns;
-        
-        private TerrainMesh TerrainMesh;
+
+        public TerrainMesh TerrainMesh;
         private TerrainMeshParameters TerrainMeshParameters;
+
+        public Aabb Bounds;
 
         /// <summary>
         /// Creates a terrain chunk. Pass in the mesh generator and the chunk descriptor.
@@ -37,6 +32,8 @@ namespace TerrainGeneration.Application.TerrainGenerator
                 BorderWidth = descriptor.BorderWidth
             };
             TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
+
+            Bounds = new Aabb(descriptor.ChunkOffset, Vector3.One * (descriptor.ChunkSize / 2));
         }
 
         /// <summary>
@@ -53,7 +50,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         /// </summary>
         /// <param name="retractBorders"></param>
         /// <param name="expandBorders"></param>
-        public void SetTerrainMeshBorders(uint retractBorders, uint expandBorders)
+        public void SetTerrainMeshBorders(int retractBorders, int expandBorders)
         {
             SetTerrainMeshParamsBuffer(new TerrainMeshParameters()
             {
@@ -71,9 +68,16 @@ namespace TerrainGeneration.Application.TerrainGenerator
         /// <param name="newParams"></param>
         private void SetTerrainMeshParamsBuffer(TerrainMeshParameters newParams)
         {
-            if (newParams != TerrainMeshParameters)
+            if (TerrainMesh != null)
             {
-                TerrainMesh.SetParamsBuffer(newParams);
+                if (newParams != TerrainMeshParameters)
+                {
+                    TerrainMesh.SetParamsBuffer(newParams);
+                }
+            }
+            else
+            {
+                GD.PrintErr("Tried to set terrain mesh params buffer when terrain mesh was null");
             }
         }
 
@@ -84,6 +88,11 @@ namespace TerrainGeneration.Application.TerrainGenerator
         public void Render(TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
         {
             TerrainMesh.Render(terrainMeshRenderDescriptor);
+        }
+
+        public void SetBounds(Aabb newBounds)
+        {
+            Bounds = newBounds;
         }
     }
 }

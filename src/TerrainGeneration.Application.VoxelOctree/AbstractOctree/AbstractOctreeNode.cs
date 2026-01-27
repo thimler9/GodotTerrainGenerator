@@ -12,11 +12,11 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
 {
     public class AbstractOctreeNode
     {
-        public readonly int size;
-        public Vector3 offset;
-        public int hash;
-        public readonly int depth;
-        public readonly int lod;
+        public readonly uint Size;
+        public Vector3 Offset;
+        public int Hash;
+        public readonly int Depth;
+        public readonly uint Lod;
 
         /// <summary>
         /// Creates a new abstract octree node. 
@@ -31,20 +31,20 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="depth">The depth of the current node</param>
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
-        public AbstractOctreeNode(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 offset, int size, Vector3 playerPosition, int hash,
+        public AbstractOctreeNode(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 offset, uint size, Vector3 playerPosition, int hash,
             int depth, int minChunkSize, TerrainLod[] lodArray)
         {
 
-            this.offset = offset;
-            this.size = size;
-            this.hash = hash;
-            this.depth = depth;
-            this.lod = lodArray[depth].lodDivider;
+            this.Offset = offset;
+            this.Size = size;
+            this.Hash = hash;
+            this.Depth = depth;
+            this.Lod = lodArray[depth].lodDivider;
 
-            eventQueue.AddEvent(new CreateRenderNodeEvent(hash, offset, size, lod, depth));
+            eventQueue.AddEvent(new CreateRenderNodeEvent(hash, offset, size, Lod, depth));
 
             // If the chunk can be split up because: it's not too small, there is a small lod, and the player is close enough
-            if (this.size / 2 > minChunkSize && this.depth < lodArray.Length - 1 && PlayerDistanceCheck(playerPosition, lodArray))
+            if (this.Size / 2 > minChunkSize && this.Depth < lodArray.Length - 1 && PlayerDistanceCheck(playerPosition, lodArray))
             {
                 MakeChildren(chunks, eventQueue, updateBorders, playerPosition, minChunkSize, lodArray);
             }
@@ -61,16 +61,16 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="lodArray"></param>
         private void MakeChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 playerPosition, int minChunkSize, TerrainLod[] lodArray)
         {
-            int newSize = size / 2;
-            chunks[hash << 3] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset, newSize, playerPosition, (hash << 3), depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 1] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(newSize, 0, 0), newSize, playerPosition, (hash << 3) | 1, depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 2] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(0, 0, newSize), newSize, playerPosition, (hash << 3) | 2, depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 3] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(newSize, 0, newSize), newSize, playerPosition, (hash << 3) | 3, depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 4] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(0, newSize, 0), newSize, playerPosition, (hash << 3) | 4, depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 5] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(newSize, newSize, 0), newSize, playerPosition, (hash << 3) | 5, depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 6] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(0, newSize, newSize), newSize, playerPosition, (hash << 3) | 6, depth + 1, minChunkSize, lodArray);
-            chunks[(hash << 3) | 7] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, offset + new Vector3(newSize, newSize, newSize), newSize, playerPosition, (hash << 3) | 7, depth + 1, minChunkSize, lodArray);
-            eventQueue.AddEvent(new DeleteRenderNodeGameDataEvent(hash, offset, size));
+            uint newSize = Size / 2;
+            chunks[Hash << 3] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset, newSize, playerPosition, (Hash << 3), Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 1] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(newSize, 0, 0), newSize, playerPosition, (Hash << 3) | 1, Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 2] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(0, 0, newSize), newSize, playerPosition, (Hash << 3) | 2, Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 3] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(newSize, 0, newSize), newSize, playerPosition, (Hash << 3) | 3, Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 4] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(0, newSize, 0), newSize, playerPosition, (Hash << 3) | 4, Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 5] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(newSize, newSize, 0), newSize, playerPosition, (Hash << 3) | 5, Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 6] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(0, newSize, newSize), newSize, playerPosition, (Hash << 3) | 6, Depth + 1, minChunkSize, lodArray);
+            chunks[(Hash << 3) | 7] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(newSize, newSize, newSize), newSize, playerPosition, (Hash << 3) | 7, Depth + 1, minChunkSize, lodArray);
+            eventQueue.AddEvent(new DeleteRenderNodeTerrainChunkEvent(Hash, Offset, Size));
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    AbstractOctreeNode child = chunks[(hash << 3) | i];
+                    AbstractOctreeNode child = chunks[(Hash << 3) | i];
                     bool childPlayerDstCheck = child.PlayerDistanceCheck(playerPosition, lodArray);
 
                     bool childHasChildren = child.HasChildren(chunks);
@@ -95,7 +95,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                     if (childPlayerDstCheck)
                     {
                         // Divide child up if it has no children
-                        if (!childHasChildren && (child.size / 2 > minChunkSize && child.depth < lodArray.Length - 1))
+                        if (!childHasChildren && (child.Size / 2 > minChunkSize && child.Depth < lodArray.Length - 1))
                         {
                             // Split up child
                             child.MakeChildren(chunks, eventQueue, false, playerPosition, minChunkSize, lodArray);
@@ -124,14 +124,14 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         {
             if (HasChildren(chunks))
             {
-                eventQueue.AddEvent(new GetRenderNodeGameDataEvent(hash, offset, size));
+                eventQueue.AddEvent(new GetRenderNodeTerrainChunkEvent(Hash, Offset, Size));
                 for (int i = 0; i < 8; i++)
                 {
-                    AbstractOctreeNode child = chunks[(hash << 3) | i];
+                    AbstractOctreeNode child = chunks[(Hash << 3) | i];
                     child.CollapseChildren(chunks, eventQueue);
                     // Remove parent's children
-                    eventQueue.AddEvent(new DisposeRenderNodeEvent(child.hash, child.offset, child.size));
-                    chunks[child.hash] = null;
+                    eventQueue.AddEvent(new DisposeRenderNodeEvent(child.Hash, child.Offset, child.Size));
+                    chunks[child.Hash] = null;
                 }
             }
         }
@@ -143,7 +143,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <returns></returns>
         public bool HasChildren(AbstractOctreeNode[] chunks)
         {
-            return (hash << 3) < chunks.Length && chunks[(hash << 3)] != null;
+            return (Hash << 3) < chunks.Length && chunks[(Hash << 3)] != null;
         }
 
         /// <summary>
@@ -154,9 +154,9 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <returns></returns>
         public bool PlayerDistanceCheck(Vector3 playerPosition, TerrainLod[] lodArray)
         {
-            Vector3 center = offset + new Vector3(size / 2, size / 2, size / 2);
+            Vector3 center = Offset + new Vector3(Size / 2, Size / 2, Size / 2);
             float sqDistFromPlayer = center.DistanceSquaredTo(playerPosition);
-            int chosenLod = lodArray[0].lodDivider;
+            uint chosenLod = lodArray[0].lodDivider;
             for (int i = 1; i < lodArray.Length; i++)
             {
                 float sqLodDistanceCutoff = lodArray[i].lodDistanceCutoff * lodArray[i].lodDistanceCutoff;
@@ -170,7 +170,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                 }
             }
 
-            return chosenLod < lod;
+            return chosenLod < Lod;
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <returns></returns>
         public string GetOctalOfHash()
         {
-            return Convert.ToString(hash, 8);
+            return Convert.ToString(Hash, 8);
         }
 
         /// <summary>
@@ -194,12 +194,12 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    oldChunks[(hash << 3) | i].UpdateHash((newHash << 3) | i, oldChunks, newChunks);
+                    oldChunks[(Hash << 3) | i].UpdateHash((newHash << 3) | i, oldChunks, newChunks);
                 }
             }
 
-            hash = newHash;
-            newChunks[hash] = this;
+            Hash = newHash;
+            newChunks[Hash] = this;
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="offset"></param>
         public void SetOffset(Vector3 offset)
         {
-            this.offset = offset;
+            this.Offset = offset;
         }
     }
 }

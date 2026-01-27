@@ -129,6 +129,10 @@ public class Transvoxel
                 terrainMesh.Dispose();
             }
         }
+        else
+        {
+            GD.PrintErr("Tried to return terrain mesh when it was null");
+        }
     }
 
     /// <summary>

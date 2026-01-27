@@ -132,4 +132,20 @@ public class TransvoxelTerrainGenerator
 
         return Transvoxel.GetTerrainMesh(TransvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
     }
+
+    /// <summary>
+    /// Returns the terrain mesh back to the pool
+    /// </summary>
+    /// <param name="terrainChunk"></param>
+    public void ReturnTerrainMesh(TerrainMesh terrainMesh)
+    {
+        Transvoxel.ReturnTerrainMesh(terrainMesh);
+    }
+
+    public void Dispose()
+    {
+        SDFGenerator.Dispose();
+        NormalsShader.Dispose();
+        Transvoxel.Dispose();
+    }
 }

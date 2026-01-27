@@ -16,10 +16,10 @@ public struct TerrainMeshParameters
     public float BorderWidth;
 
     [FieldOffset(8)]
-    public uint ExpandBorders;
+    public int ExpandBorders;
 
     [FieldOffset(12)]
-    public uint RetractBorders;
+    public int RetractBorders;
 
     [FieldOffset(16)]
     public Vector4 ChunkOffset;

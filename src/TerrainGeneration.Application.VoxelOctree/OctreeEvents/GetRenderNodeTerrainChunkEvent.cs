@@ -9,9 +9,9 @@ using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
 
 namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 {
-    public class DeleteRenderNodeGameDataEvent : IOctreeEvent
+    public class GetRenderNodeTerrainChunkEvent : IOctreeEvent
     {
-        public DeleteRenderNodeGameDataEvent(int hash, Vector3 offset, int size)
+        public GetRenderNodeTerrainChunkEvent(int hash, Vector3 offset, uint size)
         {
             Hash = hash;
             Offset = offset;
@@ -20,6 +20,6 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 
         public int Hash { get; set; }
         public Vector3 Offset { get; set; }
-        public int Size { get; set; }
+        public uint Size { get; set; }
     }
 }

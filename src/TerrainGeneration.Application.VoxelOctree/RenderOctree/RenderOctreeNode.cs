@@ -6,19 +6,21 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Utilities;
 
 namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 {
     public class RenderOctreeNode
     {
-        private TerrainChunk terrainChunk;
+        private TerrainChunk? terrainChunk;
         public Vector3 Offset;
         private uint Size;
         private uint Lod;
         private int Depth;
         private int Hash;
 
-        public RenderOctreeNode(RenderOctreeNode[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, RenderOctreeDescriptor descriptor)
+        public RenderOctreeNode(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, TransvoxelTerrainGenerator transvoxelTerrainGenerator, RenderOctreeDescriptor descriptor)
         {
             Offset = descriptor.Offset;
             Size = descriptor.Size;
@@ -27,7 +29,8 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             Hash = descriptor.Hash;
 
             // Create chunk mesh
-            //terrainChunk = new TerrainChunk(offset, size, lod, depth);
+            transvoxelTerrainGenerator.SetSDFShaderParameters(new SDFGenerator.SDFShaderParameters(Offset, Size, Lod));
+            transvoxelTerrainGenerator.GetTerrainMesh();
             leafHashes[Hash] = true;
 
             // Only used for chunks  that get made when shifting the world center
@@ -38,7 +41,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         }
 
         // Removes terrain chunk
-        public void DisposeTerrainChunk(RenderOctreeNode[] chunks, bool[] leafHashes, Queue<int> updatedChunks)
+        public void DisposeTerrainChunk(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
             // If it has children, set the borders of the children
             if (((Hash << 3) | 7) < chunks.Length /* && terrainChunk != null*/)
@@ -51,43 +54,49 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
             leafHashes[Hash] = false;
 
-            //if (terrainChunk != null)
-            //{
-            //    terrainChunk.Dispose();
-            //    terrainChunk = null;
-            //}
+            if (terrainChunk != null)
+            {
+                transvoxelTerrainGenerator.ReturnTerrainMesh(terrainChunk.TerrainMesh);
+                terrainChunk = null;
+            }
         }
 
         // Removes from tree
-        public void Dispose(RenderOctreeNode[] chunks, bool[] leafHashes, Queue<int> updatedChunks)
+        public void Dispose(RenderOctreeNode?[] chunks, bool[] leafHashes, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
 
             //if (terrainChunk == null)
             //    throw new Exception("Tried removing chunk" + hash + "from tree but it was missing a terrain chunk");
 
-            leafHashes[Hash] = false;
-            //terrainChunk.Dispose();
-            //terrainChunk = null;
-            chunks[Hash] = null;
+            if (terrainChunk == null)
+            {
+                throw new Exception("Tried removing chunk" + Hash + "from tree but it was missing a terrain chunk");
+            }
+
+            leafHashes[Hash] = false; // No longer a leaf
+            transvoxelTerrainGenerator.ReturnTerrainMesh(terrainChunk.TerrainMesh); // Remove render data
+            terrainChunk = null;
+            chunks[Hash] = null; // No longer in tree
         }
 
-        public void Render(RenderOctreeNode[] chunks, /*TerrainSpawnBatch terrainSpawnBatch,*/ Vector3 playerPosition)
+        public void Render(RenderOctreeNode[] chunks, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor, /*TerrainSpawnBatch terrainSpawnBatch,*/ Plane[] frustumPlanes)
         {
-            //if (terrainChunk != null)
-            //{
-            //    terrainChunk.Render(terrainSpawnBatch, playerPosition);
-            //}
-            //else
-            //{
-            //    for (int i = 0; i < 8; i++)
-            //    {
-            //        RenderOctreeNode child = chunks[(hash << 3) | i];
-            //        if (child != null)
-            //        {
-            //            child.Render(chunks, terrainSpawnBatch, playerPosition);
-            //        }
-            //    }
-            //}
+            // If there's no chunk, but the frustum planes intersectbounds go deeper in the tree
+            if (terrainChunk != null && terrainChunk.Bounds.IsWithinFrustumPlanes(frustumPlanes))
+            {
+                terrainChunk.Render(terrainMeshRenderDescriptor);
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    RenderOctreeNode child = chunks[(Hash << 3) | i];
+                    if (child != null)
+                    {
+                        child.Render(chunks, terrainMeshRenderDescriptor, frustumPlanes);
+                    }
+                }
+            }
         }
 
         public void SetTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks)
@@ -210,34 +219,36 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             retractBorders >>= 1;
 
             // Finally set the borders for the mesh
-            //if (terrainChunk != null)
-            //    terrainChunk.SetBorders(retractBorders, expandBorders);
+            if (terrainChunk != null)
+            {
+                terrainChunk.SetTerrainMeshBorders(retractBorders, expandBorders);
+            }
 
             return adjacentChunkHashes;
         }
 
 
-        public void UpdateHash(int newHash, RenderOctreeNode[] oldChunks, RenderOctreeNode[] newChunks, bool[] newLeafHashes)
+        public void UpdateHash(int newHash, RenderOctreeNode?[] oldChunks, RenderOctreeNode?[] newChunks, bool[] newLeafHashes)
         {
-            //// If it has children
-            //if (terrainChunk == null)
-            //{
-            //    for (int i = 0; i < 8; i++)
-            //    {
-            //        // There's a chance when the world is moved that there were create events that got disposed of resulting in the chunks to be null
-            //        if (oldChunks[(hash << 3) | i] != null)
-            //        {
-            //            oldChunks[(hash << 3) | i].UpdateHash((newHash << 3) | i, oldChunks, newChunks, newLeafHashes);
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    newLeafHashes[newHash] = true;
-            //}
+            // If it has children
+            if (terrainChunk == null)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    // There's a chance when the world is moved that there were create events that got disposed of resulting in the chunks to be null
+                    if (oldChunks[(Hash << 3) | i] != null)
+                    {
+                        oldChunks[(Hash << 3) | i].UpdateHash((newHash << 3) | i, oldChunks, newChunks, newLeafHashes);
+                    }
+                }
+            }
+            else
+            {
+                newLeafHashes[newHash] = true;
+            }
 
-            //hash = newHash;
-            //newChunks[hash] = this;
+            Hash = newHash;
+            newChunks[Hash] = this;
         }
 
         public void SetOffset(Vector3 offset)

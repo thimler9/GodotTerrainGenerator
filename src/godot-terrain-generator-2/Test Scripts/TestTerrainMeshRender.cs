@@ -63,8 +63,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
     // Terrain rendering data
     public TerrainMeshParameters TerrainMeshParameters;
-    public uint ExpandBorders = 0b101011;
-    public uint RetractBorders = 0b010100; 
+    public int ExpandBorders = 0b101011;
+    public int RetractBorders = 0b010100; 
 
     public TestTerrainMeshRender() : base()
     {
