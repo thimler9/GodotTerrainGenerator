@@ -40,6 +40,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
                 ChunkOffset = descriptor.Offset,
                 Depth = descriptor.Depth,
                 ChunkSize = descriptor.Size,
+                Lod = descriptor.Lod,
                 ExpandBorders = 0,
                 RetractBorders = 0,
             };

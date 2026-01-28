@@ -312,5 +312,8 @@ public class TerrainMesh
         Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer);
         Rd.DrawListEnd();
         Rd.DrawCommandEndLabel();
+
+        Rd.FreeRid(VertexBufferUniformSet);
+        Rd.FreeRid(TerrainMeshParamsUniformSet);
     }
 }

@@ -34,6 +34,7 @@ internal class RenderOctree : IRenderOctree
         Size = size;
         MinChunkSize = minChunkSize;
         LodArrayLength = lodArrayLength;
+        BorderWidth = borderWidth;
 
         int deepestDepth = GetDeepestDepth();
         Chunks = new RenderOctreeNode[((1 << ((deepestDepth + 2) * 3)) - 1) / 7];

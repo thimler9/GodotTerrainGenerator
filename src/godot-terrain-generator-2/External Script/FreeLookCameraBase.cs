@@ -7,7 +7,7 @@ partial class FreeLookCameraBase : Camera3D
     // This is a translation from the original free camera found in AssetStore 
 
     // Modifier keys' speed multiplier
-    const float SHIFT_MULTIPLIER = 2.5f;
+    const float SHIFT_MULTIPLIER = 20.5f;
     const float ALT_MULTIPLIER = 1.0f / SHIFT_MULTIPLIER;
 
     [Export(PropertyHint.Range, "0.0f,1.0f")]
@@ -57,13 +57,13 @@ partial class FreeLookCameraBase : Camera3D
 
                 case MouseButton.WheelUp: // Increases max velocity
                 {
-                    _vel_multiplier = Mathf.Clamp(_vel_multiplier * 1.1f, 0.2f, 20f);
+                    _vel_multiplier = Mathf.Clamp(_vel_multiplier * 1.1f, 0.2f, 500f);
                 }
                 break;
 
                 case MouseButton.WheelDown: // Decreases max velocity
                 {
-                    _vel_multiplier = Mathf.Clamp(_vel_multiplier / 1.1f, 0.2f, 20f);
+                    _vel_multiplier = Mathf.Clamp(_vel_multiplier / 1.1f, 0.2f, 500f);
                 }
                 break;
             }

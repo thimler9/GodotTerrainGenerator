@@ -66,7 +66,7 @@ public partial class TestVoxelOctree : Node
 
 		RenderingDevice rd = RenderingServer.GetRenderingDevice();
 
-		TerrainLods = new TerrainLod[6]
+		TerrainLods = new TerrainLod[2]
 		{
 			new TerrainLod()
 			{
@@ -78,26 +78,26 @@ public partial class TestVoxelOctree : Node
 				LodDivider = 32,
 				LodDistanceCutoff = 200000.0f
 			},
-			new TerrainLod()
-			{
-				LodDivider = 16,
-				LodDistanceCutoff = 50000.0f
-			},
-			new TerrainLod()
-			{
-				LodDivider = 8,
-				LodDistanceCutoff = 1200.0f
-			},
-			new TerrainLod()
-			{
-				LodDivider = 4,
-				LodDistanceCutoff = 750.0f
-			},
-			new TerrainLod()
-			{
-				LodDivider = 2,
-				LodDistanceCutoff = 350.0f
-			}
+			//new TerrainLod()
+			//{
+			//	LodDivider = 16,
+			//	LodDistanceCutoff = 50000.0f
+			//},
+			//new TerrainLod()
+			//{
+			//	LodDivider = 8,
+			//	LodDistanceCutoff = 1200.0f
+			//},
+			//new TerrainLod()
+			//{
+			//	LodDivider = 4,
+			//	LodDistanceCutoff = 750.0f
+			//},
+			//new TerrainLod()
+			//{
+			//	LodDivider = 2,
+			//	LodDistanceCutoff = 350.0f
+			//}
 		};
 
 		SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(Seed, Scale, Strength, NumOctaves, Frequency, Amplitude, Lacunarity, Gain);

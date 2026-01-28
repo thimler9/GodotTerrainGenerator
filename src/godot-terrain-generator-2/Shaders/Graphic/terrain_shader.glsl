@@ -33,12 +33,12 @@ void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
 
     vec4 positionOS = vec4(vertex.position.xyz, 1.0);
-    vec3 adjustedPositionOS;
+    // vec3 adjustedPositionOS;
     // Fix border positions
-    AdjustPosition(positionOS.xyz, vertex.normal.xyz, terrain_params.chunk_size,
-        terrain_params.border_width, terrain_params.expand_borders,
-        terrain_params.retract_borders, adjustedPositionOS);
-    positionOS.xyz = adjustedPositionOS;
+    // AdjustPosition(positionOS.xyz, vertex.normal.xyz, terrain_params.chunk_size,
+    //     terrain_params.border_width, terrain_params.expand_borders,
+    //     terrain_params.retract_borders, adjustedPositionOS);
+    // positionOS.xyz = adjustedPositionOS;
     
     vec4 positionWS = positionOS + terrain_params.chunkOffset;
     vec4 positionVS = scene.data.view_matrix * positionOS;
