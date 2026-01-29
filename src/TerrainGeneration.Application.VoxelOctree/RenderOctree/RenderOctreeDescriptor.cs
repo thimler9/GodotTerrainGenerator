@@ -13,5 +13,4 @@ public class RenderOctreeDescriptor
     public uint Lod;
     public int Depth;
     public int Hash;
-    public float BorderWidth;
 }

@@ -11,6 +11,7 @@ struct TerrainParams {
     uint chunk_size;
     uint expand_borders;
     uint retract_borders;
+    uint lod;
 };
 
 struct TerrainConstants {
@@ -40,11 +41,11 @@ void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
 
     vec4 positionOS = vec4(vertex.position.xyz, 1.0);
-    vec3 adjustedPositionOS;
     // Fix border positions
-    AdjustPosition(positionOS.xyz, vertex.normal.xyz, terrain_params.chunk_size,
-        terrain_constants.border_width, terrain_params.expand_borders,
-        terrain_params.retract_borders, adjustedPositionOS);
+    vec3 adjustedPositionOS = AdjustPosition(positionOS.xyz, vertex.normal.xyz, terrain_params.chunk_size,
+        terrain_constants.border_width, terrain_params.lod, terrain_params.expand_borders,
+        terrain_params.retract_borders);
+
     positionOS.xyz = adjustedPositionOS;
     
     vec4 positionWS = positionOS + terrain_params.chunk_offset;

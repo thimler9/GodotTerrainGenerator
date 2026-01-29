@@ -137,7 +137,7 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
         RDPipelineRasterizationState rasterizationState = new RDPipelineRasterizationState()
         {
             Wireframe = false,
-            CullMode = RenderingDevice.PolygonCullMode.Front,
+            CullMode = RenderingDevice.PolygonCullMode.Back,
             EnableDepthClamp = false,
             LineWidth = 1.0f,
             FrontFace = RenderingDevice.PolygonFrontFace.Clockwise,

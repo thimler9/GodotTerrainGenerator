@@ -50,7 +50,7 @@ const int transition_cell_num_tri_index = 5144;
 const int transition_edge_to_vertices_index = 5200;
 const int transition_vertex_data_index = 5232;
 
-const float EPSILON = 0.001;
+const float EPSILON = 1.0;
 
 void WriteVertex(uint index, vec3 position, vec3 normal) {
     vertex_buffer.vertex[index].position = vec4(position, 1.0);
@@ -174,9 +174,9 @@ void MainVoxels(uvec3 id) {
             return;
         }
 
-        vec3 vertex1 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + triangle_lookup_index]];
+        vec3 vertex1 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + 2 + triangle_lookup_index]];
         vec3 vertex2 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + 1 + triangle_lookup_index]];
-        vec3 vertex3 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + 2 + triangle_lookup_index]];
+        vec3 vertex3 = triangleVertices[lookup_tables.data[edgeIndex * 16 + i * 3 + triangle_lookup_index]];
 
         vec3 normal1 = SampleTrilinear(vertex1);
         vec3 normal2 = SampleTrilinear(vertex2);
@@ -185,16 +185,6 @@ void MainVoxels(uvec3 id) {
         WriteVertex(count, vertex1, normal1);
         WriteVertex(count + 1, vertex2, normal2);
         WriteVertex(count + 2, vertex3, normal3);
-
-        // Testing output
-        // vec4 vertex1 = currVertices[0];
-        // vertex1.x = float(edgeIndex);
-        // vec4 vertex2 = currVertices[1];
-        // vec4 vertex3 = currVertices[2];
-
-        // WriteVertex(count, vertex1, vec4(0));
-        // WriteVertex(count + 1, vertex2, vec4(0));
-        // WriteVertex(count + 2, vertex3, vec4(0));
     }
 }
 
@@ -248,15 +238,6 @@ void MakeTransitionTriangles(vec4 currVertices[13], uint windingNumber)
         vec3 vertex2 = windInReverse == windingNumber ? triangleVertices[index1] : triangleVertices[index1];
         vec3 vertex3 = windInReverse == windingNumber ? triangleVertices[index2] : triangleVertices[index0];
 
-        // vertex1 = windInReverse == windingNumber ? triangleVertices[lookup_tables.data[equClassSum * 36 + k * 3 + transition_vertex_data_index]] :
-        //     triangleVertices[lookup_tables.data[equClassSum * 36 + k * 3 + 2 + transition_vertex_data_index]];
-
-        // vertex3 = windInReverse == windingNumber ? triangleVertices[lookup_tables.data[equClassSum * 36 + k * 3 + 2 + transition_vertex_data_index]] :
-        //     triangleVertices[lookup_tables.data[equClassSum * 36 + k * 3 + transition_vertex_data_index]];
-
-        // vertex2 = windInReverse == windingNumber ? triangleVertices[lookup_tables.data[equClassSum * 36 + k * 3 + 1 + transition_vertex_data_index]] :
-        //     triangleVertices[lookup_tables.data[equClassSum * 36 + k * 3 + 1 + transition_vertex_data_index]];
-
         vec3 normal1 = SampleTrilinear(vertex1);
         vec3 normal2 = SampleTrilinear(vertex2);
         vec3 normal3 = SampleTrilinear(vertex3);
@@ -275,7 +256,7 @@ void ETransitionVoxels(uvec3 id)
 {
     uint lod = params.lod;
     uint chunkSize = params.chunk_size;
-    float width = params.transition_width;
+    float width = params.transition_width * lod;
 
     uint maxX = chunkSize / lod * lod;
     uint tempY = id.y * lod * 2;
@@ -308,14 +289,14 @@ void ETransitionVoxels(uvec3 id)
         { maxX + width + EPSILON, tempY + lod * 2, tempZ + lod * 2, sdf_buffer.data[(adjustedSize - 2) + (id.y + 2) * adjustedSize + (id.z + 2) * adjustedSize * adjustedSize] }
     };
 
-    MakeTransitionTriangles(currVertices, 0);    
+    MakeTransitionTriangles(currVertices, 1);    
 }
 
 void WTransitionVoxels(uvec3 id)
 {
     uint lod = params.lod;
     uint size = params.chunk_size;
-    float width = params.transition_width;
+    float width = params.transition_width * lod;
 
     uint tempY = id.y * lod * 2;
     uint tempZ = id.z * lod * 2;
@@ -343,14 +324,14 @@ void WTransitionVoxels(uvec3 id)
         { -width - EPSILON, tempY + lod * 2, tempZ + lod * 2, sdf_buffer.data[0 + (id.y + 2) * adjustedSize + (id.z + 2) * adjustedSize * adjustedSize] }
     };
 
-    MakeTransitionTriangles(currVertices, 1);
+    MakeTransitionTriangles(currVertices, 0);
 }
 
 void NTransitionVoxels(uvec3 id)
 {
     uint lod = params.lod;
     uint size = params.chunk_size;
-    float width = params.transition_width;
+    float width = params.transition_width * lod;
     
     uint maxZ = size / lod * lod;
     uint tempY = id.y * lod * 2;
@@ -379,14 +360,14 @@ void NTransitionVoxels(uvec3 id)
         { tempX + lod * 2, tempY + lod * 2, maxZ + width + EPSILON, sdf_buffer.data[id.x + 2 + (id.y + 2) * adjustedSize + (adjustedSize - 2) * adjustedSize * adjustedSize] }
     };
 
-    MakeTransitionTriangles(currVertices, 1);
+    MakeTransitionTriangles(currVertices, 0);
 }
 
 void STransitionVoxels(uvec3 id)
 {
     uint lod = params.lod;
     uint size = params.chunk_size;
-    float width = params.transition_width;
+    float width = params.transition_width * lod;
 
     uint tempY = id.y * lod * 2;
     uint tempX = id.x * lod * 2;
@@ -414,14 +395,14 @@ void STransitionVoxels(uvec3 id)
         { tempX + lod * 2, tempY + lod * 2, -width - EPSILON, sdf_buffer.data[id.x + 2 + (id.y + 2) * adjustedSize] }
     };
 
-    MakeTransitionTriangles(currVertices, 0);
+    MakeTransitionTriangles(currVertices, 1);
 }
 
 void TTransitionVoxels(uvec3 id)
 {
     uint lod = params.lod;
     uint size = params.chunk_size;
-    float width = params.transition_width;
+    float width = params.transition_width * lod;
 
     uint maxY = size / lod * lod;
     uint tempX = id.x * lod * 2;
@@ -450,14 +431,14 @@ void TTransitionVoxels(uvec3 id)
         { tempX + lod * 2, maxY + width + EPSILON, tempZ + lod * 2, sdf_buffer.data[(id.x + 2) + (adjustedSize - 2) * adjustedSize + (id.z + 2) * adjustedSize * adjustedSize] }
     };
 
-    MakeTransitionTriangles(currVertices, 0);
+    MakeTransitionTriangles(currVertices, 1);
 }
 
 void BTransitionVoxels(uvec3 id)
 {
     uint lod = params.lod;
     uint size = params.chunk_size;
-    float width = params.transition_width;
+    float width = params.transition_width * lod;
 
     uint tempX = id.x * lod * 2;
     uint tempZ = id.z * lod * 2;
@@ -485,7 +466,7 @@ void BTransitionVoxels(uvec3 id)
         { tempX + lod * 2, -width - EPSILON, tempZ + lod * 2, sdf_buffer.data[id.x + 2 + (id.z + 2) * adjustedSize * adjustedSize] }
     };
 
-    MakeTransitionTriangles(currVertices, 1);
+    MakeTransitionTriangles(currVertices, 0);
 }
 
 void main() {

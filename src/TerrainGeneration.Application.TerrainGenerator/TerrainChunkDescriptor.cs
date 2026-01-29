@@ -11,5 +11,4 @@ public class TerrainChunkDescriptor
     public Vector3 ChunkOffset;
     public uint ChunkSize;
     public uint Lod;
-    public float BorderWidth;
 }

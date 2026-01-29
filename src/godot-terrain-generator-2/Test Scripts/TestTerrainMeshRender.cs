@@ -305,6 +305,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             ChunkSize = ChunkSize,  
             ExpandBorders = ExpandBorders,
             RetractBorders = RetractBorders,
+            Lod = Lod,
         };
         TerrainMesh.SetShaderParameters(TerrainMeshParameters);
         TerrainMesh.SetTerrainMeshParametersUniformSet(TerrainShader);

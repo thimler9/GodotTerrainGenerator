@@ -36,12 +36,12 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             // Create chunk mesh
             TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
             {
-                BorderWidth = descriptor.BorderWidth,
                 ChunkOffset = descriptor.Offset,
                 ChunkSize = descriptor.Size,
                 Lod = descriptor.Lod,
             };
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
+            leafHashes[Hash] = true;
 
             // Only used for chunks  that get made when shifting the world center
             if (updateBorders)

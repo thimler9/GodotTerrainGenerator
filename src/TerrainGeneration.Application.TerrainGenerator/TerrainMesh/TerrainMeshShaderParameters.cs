@@ -22,7 +22,7 @@ public struct TerrainMeshShaderParameters
     public int RetractBorders;
 
     [FieldOffset(28)]
-    private uint Padding;
+    public uint Lod;
     public override bool Equals(object? obj)
     {
         if (obj == null || !(obj is TerrainMeshShaderParameters))

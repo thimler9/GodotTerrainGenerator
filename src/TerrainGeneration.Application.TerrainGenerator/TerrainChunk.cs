@@ -31,6 +31,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
                 RetractBorders = 0,
                 ChunkOffset = new Vector4(descriptor.ChunkOffset.X, descriptor.ChunkOffset.Y, descriptor.ChunkOffset.Z, 0.0f),
                 ChunkSize = descriptor.ChunkSize,
+                Lod = descriptor.Lod,
             };
             TerrainMesh.SetShaderParameters(TerrainMeshParameters);
         }
@@ -55,6 +56,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
             {
                 ExpandBorders = expandBorders,
                 RetractBorders = retractBorders,
+                Lod = TerrainMeshParameters.Lod,
                 ChunkOffset = TerrainMeshParameters.ChunkOffset,
                 ChunkSize = TerrainMeshParameters.ChunkSize,
             });

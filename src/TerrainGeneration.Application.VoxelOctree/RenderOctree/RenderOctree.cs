@@ -179,7 +179,6 @@ internal class RenderOctree : IRenderOctree
                         Lod = currEvent.Lod,
                         Offset = currEvent.Offset,
                         Size = currEvent.Size,
-                        BorderWidth = BorderWidth,
                     });
                 }
 
@@ -198,7 +197,7 @@ internal class RenderOctree : IRenderOctree
                 if (octreeEvent is GetRenderNodeTerrainChunkEvent)
                 {
                     GetRenderNodeTerrainChunkEvent currEvent = octreeEvent as GetRenderNodeTerrainChunkEvent;
-                    Chunks[currEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+                    Chunks[currEvent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
                 }
 
                 if (octreeEvent is MoveWorldCenterEvent)
