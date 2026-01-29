@@ -7,11 +7,14 @@
 #include "Includes/adjust_position.glsl"
 
 struct TerrainParams {
+    vec4 chunk_offset;
     uint chunk_size;
-    float border_width;
     uint expand_borders;
     uint retract_borders;
-    vec4 chunk_offset;
+};
+
+struct TerrainConstants {
+    float border_width;
 };
 
 struct VertexInput {
@@ -27,6 +30,10 @@ layout(set = 2, binding = 0) uniform TerrainParamsBuffer {
     TerrainParams terrain_params;
 };
 
+layout(set = 3, binding = 0) uniform TerrainConstantsBuffer {
+    TerrainConstants terrain_constants;
+};
+
 layout(location = 0) out vec3 fragNormal;
 
 void main() {
@@ -36,7 +43,7 @@ void main() {
     vec3 adjustedPositionOS;
     // Fix border positions
     AdjustPosition(positionOS.xyz, vertex.normal.xyz, terrain_params.chunk_size,
-        terrain_params.border_width, terrain_params.expand_borders,
+        terrain_constants.border_width, terrain_params.expand_borders,
         terrain_params.retract_borders, adjustedPositionOS);
     positionOS.xyz = adjustedPositionOS;
     

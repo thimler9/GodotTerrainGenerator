@@ -2,9 +2,11 @@ using Godot;
 using GodotTerrainGenerator2.Test_Scripts;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree;
 using TerrainGeneration.Application.VoxelOctree.AbstractOctree;
+using TerrainGeneration.Utilities.Struct;
 
 public partial class TestVoxelOctree : Node
 {
@@ -139,9 +141,18 @@ public partial class TestVoxelOctree : Node
 
 		VoxelOctree = new VoxelOctree(voxelOctreeDescriptor);
 
+
+		TerrainMeshShaderConstants terrainMeshConstants = new TerrainMeshShaderConstants()
+		{
+			BorderWidth = BorderWidth
+		};
+		byte[] terrainMeshConstantsBytes = StructHelpers.ToByteArray(terrainMeshConstants);
+		Rid terrainMeshConstantsBuffer = rd.UniformBufferCreate((uint)terrainMeshConstantsBytes.Length, terrainMeshConstantsBytes);
+
 		TestVoxelOctreeRenderer compEffect = Camera.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
 		compEffect.Camera = Camera;
 		compEffect.VoxelOctree = VoxelOctree;
+		compEffect.TerrainMeshConstantsBuffer = terrainMeshConstantsBuffer;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

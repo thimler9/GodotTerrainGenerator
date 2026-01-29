@@ -31,6 +31,10 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
     public RDUniform RenderSceneDataUniform;
     public Rid RenderSceneDataUniformSet;
 
+    public Rid TerrainMeshConstantsBuffer;
+    public RDUniform TerrainConstantsUniform;
+    public Rid TerrainConstantsUniformSet;
+
     public void Init(RenderSceneBuffersRD renderSceneBuffers, Rid renderSceneDataBuffer)
     {
         SetRenderPipeline(renderSceneBuffers, renderSceneDataBuffer);
@@ -90,7 +94,8 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
                     ClearColors = ClearColors,
                     EmptyVertexArray = EmptyVertexArray,
                     ScreenBuffer = ScreenBuffer,
-                    Shader = TerrainShader
+                    Shader = TerrainShader,
+                    TerrainConstantsUniformSet = TerrainConstantsUniformSet,
                 });
             }
 
@@ -207,6 +212,15 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
         };
         RenderSceneDataUniform.AddId(renderSceneDataBuffer);
         RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], TerrainShader, 0);
+
+        // Set camera projection
+        TerrainConstantsUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.UniformBuffer,
+            Binding = 0,
+        };
+        TerrainConstantsUniform.AddId(TerrainMeshConstantsBuffer);
+        TerrainConstantsUniformSet = Rd.UniformSetCreate([TerrainConstantsUniform], TerrainShader, 3);
     }
 
 }

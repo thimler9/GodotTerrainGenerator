@@ -10,20 +10,19 @@ namespace TerrainGeneration.Application.TerrainGenerator;
 public struct TerrainMeshShaderParameters
 {
     [FieldOffset(0)]
-    public uint ChunkSize;
-
-    [FieldOffset(4)]
-    public float BorderWidth;
-
-    [FieldOffset(8)]
-    public int ExpandBorders;
-
-    [FieldOffset(12)]
-    public int RetractBorders;
-
-    [FieldOffset(16)]
     public Vector4 ChunkOffset;
 
+    [FieldOffset(16)]
+    public uint ChunkSize;
+
+    [FieldOffset(20)]
+    public int ExpandBorders;
+
+    [FieldOffset(24)]
+    public int RetractBorders;
+
+    [FieldOffset(28)]
+    private uint Padding;
     public override bool Equals(object? obj)
     {
         if (obj == null || !(obj is TerrainMeshShaderParameters))
@@ -35,7 +34,6 @@ public struct TerrainMeshShaderParameters
 
         return
             ChunkSize == other.ChunkSize &&
-            BorderWidth == other.BorderWidth &&
             ExpandBorders == other.ExpandBorders &&
             RetractBorders == other.RetractBorders &&
             ChunkOffset == other.ChunkOffset;

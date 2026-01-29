@@ -29,6 +29,9 @@ internal class RenderOctree : IRenderOctree
     // How we get the triangle for the terrain meshes
     private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
 
+    // Shader constants for rendering mesh
+
+
     public RenderOctree(uint size, uint minChunkSize, int lodArrayLength, float borderWidth, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
     {
         Size = size;

@@ -307,6 +307,7 @@ public class TerrainMesh
         Rd.DrawListBindUniformSet(drawList, renderDescriptor.RenderSceneDataUniformSet, 0);
         Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 1);
         Rd.DrawListBindUniformSet(drawList, TerrainMeshShaderParametersUniformSet, 2);
+        Rd.DrawListBindUniformSet(drawList, renderDescriptor.TerrainConstantsUniformSet, 3);
 
         // Draw call
         Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer);

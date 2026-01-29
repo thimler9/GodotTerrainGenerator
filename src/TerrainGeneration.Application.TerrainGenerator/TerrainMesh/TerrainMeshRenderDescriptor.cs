@@ -14,4 +14,5 @@ public class TerrainMeshRenderDescriptor
     public required Rid ScreenBuffer;
     public required Rid Shader;
     public required Rid RenderSceneDataUniformSet;
+    public required Rid TerrainConstantsUniformSet;
 }

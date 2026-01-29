@@ -11,6 +11,7 @@ using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
+using TerrainGeneration.Utilities.Struct;
 
 namespace GodotTerrainGenerator2.Test_Scripts;
 
@@ -60,6 +61,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public Rid ScreenBuffer;
     public RDUniform RenderSceneDataUniform;
     public Rid RenderSceneDataUniformSet;
+    public RDUniform TerrainMeshConstantsUniform;
+    public Rid TerrainMeshConstantsUniformSet;
 
     // Terrain rendering data
     public TerrainMeshShaderParameters TerrainMeshParameters;
@@ -136,7 +139,8 @@ public partial class TestTerrainMeshRender : CompositorEffect
                     ClearColors = ClearColors,
                     EmptyVertexArray = EmptyVertexArray,
                     ScreenBuffer = ScreenBuffer,
-                    Shader = TerrainShader
+                    Shader = TerrainShader,
+                    TerrainConstantsUniformSet = TerrainMeshConstantsUniformSet,
                 });
             }
 
@@ -297,7 +301,6 @@ public partial class TestTerrainMeshRender : CompositorEffect
         TerrainMesh.SetVertexUniformSet(TerrainShader);
         TerrainMeshParameters = new TerrainMeshShaderParameters()
         {
-            BorderWidth = TransitionWidth,
             ChunkOffset = new Vector4(ChunkOffset.X, ChunkOffset.Y, ChunkOffset.Z, 1.0f),
             ChunkSize = ChunkSize,  
             ExpandBorders = ExpandBorders,
@@ -314,6 +317,21 @@ public partial class TestTerrainMeshRender : CompositorEffect
         };
         RenderSceneDataUniform.AddId(renderSceneDataBuffer);
         RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], TerrainShader, 0);
+
+
+        TerrainMeshShaderConstants terrainMeshConstants = new TerrainMeshShaderConstants()
+        {
+            BorderWidth = 0.0f
+        };
+        byte[] terrainMeshConstantsBytes = StructHelpers.ToByteArray(terrainMeshConstants);
+        Rid terrainMeshConstantsBuffer = Rd.UniformBufferCreate((uint)terrainMeshConstantsBytes.Length, terrainMeshConstantsBytes);
+        TerrainMeshConstantsUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.UniformBuffer,
+            Binding = 0
+        };
+        TerrainMeshConstantsUniform.AddId(terrainMeshConstantsBuffer);
+        TerrainMeshConstantsUniformSet = Rd.UniformSetCreate([TerrainMeshConstantsUniform], TerrainShader, 3);
     }
 
 
