@@ -18,6 +18,12 @@ public struct TransvoxelShaderParameters
     [FieldOffset(12)]
     public uint MaxNumVertices;
 
+    public TransvoxelShaderParameters(uint chunkSize, uint lod)
+    {
+        ChunkSize = chunkSize;
+        Lod = lod;
+    }
+
     public override bool Equals(object? obj)
     {
         if (obj == null || !(obj is TransvoxelShaderParameters))

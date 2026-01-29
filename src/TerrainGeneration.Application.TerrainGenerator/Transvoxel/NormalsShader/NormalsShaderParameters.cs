@@ -21,6 +21,12 @@ public struct NormalsShaderParameters
     [FieldOffset(8)]
     readonly Vector2 Padding;
 
+    public NormalsShaderParameters(uint chunkSize, uint lod)
+    {
+        ChunkSize = chunkSize;
+        Lod = lod;
+    }
+
     public override bool Equals(object? obj)
     {
         if (obj == null || !(obj is NormalsShaderParameters))

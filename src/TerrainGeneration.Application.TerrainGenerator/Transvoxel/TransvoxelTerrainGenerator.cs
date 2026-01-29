@@ -111,6 +111,9 @@ public class TransvoxelTerrainGenerator
     /// <param name="transvoxelShaderParameters"></param>
     public void SetTransvoxelShaderParameters(TransvoxelShaderParameters transvoxelShaderParameters)
     {
+        transvoxelShaderParameters.BorderWidth = TransvoxelShaderParameters.BorderWidth; // These are constant
+        transvoxelShaderParameters.MaxNumVertices = TransvoxelShaderParameters.MaxNumVertices; // These are constant
+
         TransvoxelShaderParameters = transvoxelShaderParameters;
     }
 
