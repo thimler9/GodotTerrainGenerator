@@ -14,7 +14,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         private TerrainLod[] LodArray;
         private uint MinChunkSize;
 
-        public AbstractOctreeNode[] Chunks;
+        public AbstractOctreeNode?[] Chunks;
         private Vector3 Center;
         private uint Size;
 
@@ -86,7 +86,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         public void MoveWorldCenter(Vector3 playerPosition, Vector3 newWorldCenter, IOctreeEventQueue eventQueue)
         {
             Vector3 diff = newWorldCenter - Center;
-            AbstractOctreeNode[,,] children = new AbstractOctreeNode[4, 4, 4];
+            AbstractOctreeNode?[,,] children = new AbstractOctreeNode?[4, 4, 4];
             // Adds the root children into an x,y,z grid
             for (int i = 0; i < 8; i++)
             {
@@ -328,7 +328,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             }
 
             // Create new chunks array
-            AbstractOctreeNode[] newChunks = new AbstractOctreeNode[Chunks.Length];
+            AbstractOctreeNode?[] newChunks = new AbstractOctreeNode?[Chunks.Length];
 
             List<UpdatedHash> updatedHashes = new List<UpdatedHash>(64);
             List<(int hash, Vector3 offset)> newChunkHashAndOffset = new List<(int, Vector3)>(64);
@@ -401,11 +401,11 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                 Vector3 worldCenter = new Vector3(MathF.Round(newPlayerPosition.X / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4),
                     MathF.Round(newPlayerPosition.Y / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4), MathF.Round(newPlayerPosition.Z / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4));
 
-                // Move world if player has moved far enough
-                if (!(Center.X == worldCenter.X && Center.Y == worldCenter.Y && Center.Z == worldCenter.Z))
-                {
-                    MoveWorldCenter(newPlayerPosition, worldCenter, eventQueue);
-                }
+                //// Move world if player has moved far enough
+                //if (!(Center.X == worldCenter.X && Center.Y == worldCenter.Y && Center.Z == worldCenter.Z))
+                //{
+                //    MoveWorldCenter(newPlayerPosition, worldCenter, eventQueue);
+                //}
             }
         }
 

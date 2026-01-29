@@ -54,7 +54,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         public void DisposeTerrainChunk(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
             // If it has children, set the borders of the children
-            if (((Hash << 3) | 7) < chunks.Length /* && terrainChunk != null*/)
+            if (((Hash << 3) | 7) < chunks.Length && TerrainChunk != null)
             {
                 for (int i = 0; i < 8; i++)
                 {

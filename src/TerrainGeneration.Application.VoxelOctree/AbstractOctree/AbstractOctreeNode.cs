@@ -31,7 +31,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="depth">The depth of the current node</param>
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
-        public AbstractOctreeNode(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 offset, uint size, Vector3 playerPosition, int hash,
+        public AbstractOctreeNode(AbstractOctreeNode?[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 offset, uint size, Vector3 playerPosition, int hash,
             int depth, uint minChunkSize, TerrainLod[] lodArray)
         {
 
@@ -59,7 +59,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="playerPosition"></param>
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
-        private void MakeChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 playerPosition, uint minChunkSize, TerrainLod[] lodArray)
+        private void MakeChildren(AbstractOctreeNode?[] chunks, IOctreeEventQueue eventQueue, bool updateBorders, Vector3 playerPosition, uint minChunkSize, TerrainLod[] lodArray)
         {
             uint newSize = Size / 2;
             chunks[Hash << 3] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset, newSize, playerPosition, (Hash << 3), Depth + 1, minChunkSize, lodArray);
@@ -81,13 +81,13 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="playerPosition"></param>
         /// <param name="minChunkSize"></param>
         /// <param name="lodArray"></param>
-        public void Update(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue, Vector3 playerPosition, uint minChunkSize, TerrainLod[] lodArray)
+        public void Update(AbstractOctreeNode?[] chunks, IOctreeEventQueue eventQueue, Vector3 playerPosition, uint minChunkSize, TerrainLod[] lodArray)
         {
             if (HasChildren(chunks))
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    AbstractOctreeNode child = chunks[(Hash << 3) | i];
+                    AbstractOctreeNode? child = chunks[(Hash << 3) | i];
                     bool childPlayerDstCheck = child.PlayerDistanceCheck(playerPosition, lodArray);
 
                     bool childHasChildren = child.HasChildren(chunks);
@@ -120,14 +120,14 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// </summary>
         /// <param name="chunks"></param>
         /// <param name="eventQueue"></param>
-        public void CollapseChildren(AbstractOctreeNode[] chunks, IOctreeEventQueue eventQueue)
+        public void CollapseChildren(AbstractOctreeNode?[] chunks, IOctreeEventQueue eventQueue)
         {
             if (HasChildren(chunks))
             {
                 eventQueue.AddEvent(new GetRenderNodeTerrainChunkEvent(Hash, Offset, Size));
                 for (int i = 0; i < 8; i++)
                 {
-                    AbstractOctreeNode child = chunks[(Hash << 3) | i];
+                    AbstractOctreeNode? child = chunks[(Hash << 3) | i];
                     child.CollapseChildren(chunks, eventQueue);
                     // Remove parent's children
                     eventQueue.AddEvent(new DisposeRenderNodeEvent(child.Hash, child.Offset, child.Size));
@@ -141,7 +141,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// </summary>
         /// <param name="chunks"></param>
         /// <returns></returns>
-        public bool HasChildren(AbstractOctreeNode[] chunks)
+        public bool HasChildren(AbstractOctreeNode?[] chunks)
         {
             return (Hash << 3) < chunks.Length && chunks[(Hash << 3)] != null;
         }
@@ -188,7 +188,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         /// <param name="newHash"></param>
         /// <param name="oldChunks"></param>
         /// <param name="newChunks"></param>
-        public void UpdateHash(int newHash, AbstractOctreeNode[] oldChunks, AbstractOctreeNode[] newChunks)
+        public void UpdateHash(int newHash, AbstractOctreeNode?[] oldChunks, AbstractOctreeNode?[] newChunks)
         {
             if (HasChildren(oldChunks))
             {

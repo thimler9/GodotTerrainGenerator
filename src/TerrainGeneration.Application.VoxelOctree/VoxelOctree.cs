@@ -24,6 +24,11 @@ public class VoxelOctree
         AbstractOctree = new AbstractOctree.AbstractOctree(OctreeEventQueue, descriptor.Center, descriptor.PlayerPosition, descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods, descriptor.PlayerPositionChangeThreshold);
     }
 
+    public void UpdateAbstractTree(Vector3 playerPosition)
+    {
+        AbstractOctree.Update(OctreeEventQueue, playerPosition);
+    }
+
     public void ProcessEventQueue()
     {
         OctreeEventQueue.Process();

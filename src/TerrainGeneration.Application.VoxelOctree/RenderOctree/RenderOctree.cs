@@ -185,18 +185,34 @@ internal class RenderOctree : IRenderOctree
                 if (octreeEvent is DeleteRenderNodeTerrainChunkEvent)
                 {
                     DeleteRenderNodeTerrainChunkEvent currEvent = octreeEvent as DeleteRenderNodeTerrainChunkEvent;
+                    if (Chunks[currEvent.Hash] == null)
+                    {
+                        GD.Print(currEvent.Hash);
+                    }
+
                     Chunks[currEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
                 }
 
                 if (octreeEvent is DisposeRenderNodeEvent)
                 {
                     DisposeRenderNodeEvent currEvent = octreeEvent as DisposeRenderNodeEvent;
+                    if (Chunks[currEvent.Hash] == null)
+                    {
+                        GD.Print(currEvent.Hash);
+                    }
+
                     Chunks[currEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
                 }
 
                 if (octreeEvent is GetRenderNodeTerrainChunkEvent)
                 {
                     GetRenderNodeTerrainChunkEvent currEvent = octreeEvent as GetRenderNodeTerrainChunkEvent;
+                    if (Chunks[currEvent.Hash] == null)
+                    {
+                        GD.Print(currEvent.Hash);
+                    }
+
+
                     Chunks[currEvent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
                 }
 
