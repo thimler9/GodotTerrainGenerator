@@ -21,10 +21,10 @@ public class TerrainMesh
     public Rid IndirectArgsBuffer;
     public RDUniform IndirectArgsBufferUniform;
 
-    private TerrainMeshShaderParameters? TerrainMeshShaderParameters;
+    public TerrainMeshShaderParameters? TerrainMeshShaderParameters;
     private Rid TerrainMeshShaderParametersBuffer;
-    public RDUniform TerrainMeshShaderParametersUniform;
-    public Rid TerrainMeshShaderParametersUniformSet;
+    private RDUniform TerrainMeshShaderParametersUniform;
+    private Rid TerrainMeshShaderParametersUniformSet;
 
     private TerrainMeshDescriptor Descriptor;
 
@@ -209,7 +209,7 @@ public class TerrainMesh
         }
 
         // The two are the same, don't replace
-        if (TerrainMeshShaderParameters != null && TerrainMeshShaderParameters.Equals(parameters))
+        if (TerrainMeshShaderParameters == parameters)
         {
             return;
         }

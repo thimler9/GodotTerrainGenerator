@@ -63,7 +63,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         /// Used to update parameters for the draw shader.
         /// </summary>
         /// <param name="newParams"></param>
-        private void SetTerrainMeshParamsBuffer(TerrainMeshShaderParameters newParams)
+        public void SetTerrainMeshParamsBuffer(TerrainMeshShaderParameters newParams)
         {
             if (TerrainMesh != null)
             {

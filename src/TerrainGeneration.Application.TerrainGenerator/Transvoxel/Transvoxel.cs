@@ -85,6 +85,7 @@ public class Transvoxel
                 MaxNumTriangles = parameters.MaxNumVertices,
             };
             terrainMesh = new TerrainMesh(Rd, terrainMeshParameters);
+            terrainMesh.TerrainMeshShaderParameters = null;
         }
 
         if (terrainMesh == null)
