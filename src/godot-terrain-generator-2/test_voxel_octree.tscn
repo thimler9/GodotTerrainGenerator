@@ -29,7 +29,6 @@ script = ExtResource("2_jae4j")
 environment = SubResource("Environment_jae4j")
 
 [node name="Node" type="Node" parent="." node_paths=PackedStringArray("Camera")]
-process_mode = 4
 script = ExtResource("1_won1t")
 Camera = NodePath("../Camera3D")
 StartSize = 2048
