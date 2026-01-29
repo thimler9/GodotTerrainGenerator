@@ -87,11 +87,10 @@ public partial class TestTransvoxelShader : Node3D
 
         TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters()
         {
-            ChunkOffset = ChunkOffset,
             Lod = Lod,
             ChunkSize = ChunkSize,
             MaxNumVertices = MaxNumOfVertices,
-            TransitionWidth = TransitionWidth,
+            BorderWidth = TransitionWidth,
         };
 
         TransvoxelShaderDescriptor transvoxelShaderDescriptor = new TransvoxelShaderDescriptor()

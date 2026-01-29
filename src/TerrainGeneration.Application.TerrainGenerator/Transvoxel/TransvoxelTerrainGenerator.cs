@@ -59,10 +59,9 @@ public class TransvoxelTerrainGenerator
 
         TransvoxelShaderParameters = new TransvoxelShaderParameters()
         {
-            ChunkOffset = descriptor.ChunkOffset,
             ChunkSize = descriptor.ChunkSize,
             Lod = descriptor.Lod,
-            TransitionWidth = descriptor.TransitionWidth,
+            BorderWidth = descriptor.TransitionWidth,
             MaxNumVertices = descriptor.MaxNumVertices,
         };
 

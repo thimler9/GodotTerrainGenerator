@@ -13,7 +13,6 @@ layout(set = 0, binding = 0) restrict readonly uniform Params {
     uint lod;
     float transition_width;
     uint max_num_vertices;
-    vec3 chunk_offset;
 }
 params;
 

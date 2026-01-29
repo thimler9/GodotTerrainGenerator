@@ -13,16 +13,10 @@ public struct TransvoxelShaderParameters
     public uint Lod;
 
     [FieldOffset(8)]
-    public float TransitionWidth;
+    public float BorderWidth;
 
     [FieldOffset(12)]
     public uint MaxNumVertices;
-
-    [FieldOffset(16)]
-    public Vector3 ChunkOffset;
-
-    [FieldOffset(28)]
-    public uint Padding;
 
     public override bool Equals(object? obj)
     {
@@ -35,7 +29,9 @@ public struct TransvoxelShaderParameters
 
         return
             ChunkSize == other.ChunkSize &&
-            Lod == other.Lod;
+            Lod == other.Lod &&
+            BorderWidth == other.BorderWidth &&
+            MaxNumVertices == other.MaxNumVertices;
     }
     public static bool operator ==(TransvoxelShaderParameters left, TransvoxelShaderParameters right)
     {
