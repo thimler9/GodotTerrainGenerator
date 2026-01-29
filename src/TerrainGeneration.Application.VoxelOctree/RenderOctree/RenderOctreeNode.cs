@@ -41,8 +41,6 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
                 Depth = descriptor.Depth,
                 ChunkSize = descriptor.Size,
                 Lod = descriptor.Lod,
-                ExpandBorders = 0,
-                RetractBorders = 0,
             };
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
 

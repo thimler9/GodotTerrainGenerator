@@ -13,6 +13,4 @@ public class TerrainChunkDescriptor
     public uint Lod;
     public int Depth;
     public float BorderWidth;
-    public int ExpandBorders;
-    public int RetractBorders;
 }

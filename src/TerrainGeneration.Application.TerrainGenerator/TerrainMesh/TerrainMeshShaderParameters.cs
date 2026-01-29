@@ -7,7 +7,7 @@ namespace TerrainGeneration.Application.TerrainGenerator;
 
 
 [StructLayout(LayoutKind.Explicit)]
-public struct TerrainMeshParameters
+public struct TerrainMeshShaderParameters
 {
     [FieldOffset(0)]
     public uint ChunkSize;
@@ -26,23 +26,26 @@ public struct TerrainMeshParameters
 
     public override bool Equals(object? obj)
     {
-        if (obj == null || !(obj is TerrainMeshParameters))
+        if (obj == null || !(obj is TerrainMeshShaderParameters))
         {
             return false;
         }
 
-        TerrainMeshParameters other = (TerrainMeshParameters)obj;
+        TerrainMeshShaderParameters other = (TerrainMeshShaderParameters)obj;
 
         return
             ChunkSize == other.ChunkSize &&
-            BorderWidth == other.BorderWidth;
+            BorderWidth == other.BorderWidth &&
+            ExpandBorders == other.ExpandBorders &&
+            RetractBorders == other.RetractBorders &&
+            ChunkOffset == other.ChunkOffset;
     }
-    public static bool operator ==(TerrainMeshParameters left, TerrainMeshParameters right)
+    public static bool operator ==(TerrainMeshShaderParameters left, TerrainMeshShaderParameters right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(TerrainMeshParameters left, TerrainMeshParameters right)
+    public static bool operator !=(TerrainMeshShaderParameters left, TerrainMeshShaderParameters right)
     {
         return !(left == right);
     }

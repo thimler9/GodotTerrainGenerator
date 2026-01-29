@@ -21,10 +21,10 @@ public class TerrainMesh
     public Rid IndirectArgsBuffer;
     public RDUniform IndirectArgsBufferUniform;
 
-    private TerrainMeshParameters? DrawParameters;
-    private Rid TerrainMeshParamsBuffer;
-    public RDUniform TerrainMeshParamsUniform;
-    public Rid TerrainMeshParamsUniformSet;
+    private TerrainMeshShaderParameters? TerrainMeshShaderParameters;
+    private Rid TerrainMeshShaderParametersBuffer;
+    public RDUniform TerrainMeshShaderParametersUniform;
+    public Rid TerrainMeshShaderParametersUniformSet;
 
     private TerrainMeshDescriptor Descriptor;
 
@@ -78,13 +78,13 @@ public class TerrainMesh
         };
         IndirectArgsBufferUniform.AddId(IndirectArgsBuffer);
 
-        TerrainMeshParamsBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TerrainMeshParameters>());
-        TerrainMeshParamsUniform = new RDUniform()
+        TerrainMeshShaderParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TerrainMeshShaderParameters>());
+        TerrainMeshShaderParametersUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,
             Binding = 0
         };
-        TerrainMeshParamsUniform.AddId(TerrainMeshParamsBuffer);
+        TerrainMeshShaderParametersUniform.AddId(TerrainMeshShaderParametersBuffer);
     }
 
     /// <summary>
@@ -183,9 +183,9 @@ public class TerrainMesh
     {
         Rd.FreeRid(IndirectArgsBuffer);
         Rd.FreeRid(VertexBuffer);
-        Rd.FreeRid(TerrainMeshParamsBuffer);
+        Rd.FreeRid(TerrainMeshShaderParametersBuffer);
         Rd.FreeRid(VertexBufferUniformSet);
-        Rd.FreeRid(TerrainMeshParamsUniformSet);
+        Rd.FreeRid(TerrainMeshShaderParametersUniformSet);
     }
 
     /// <summary>
@@ -201,22 +201,22 @@ public class TerrainMesh
     /// </summary>
     /// <param name="parameters"></param>
     /// <exception cref="ArgumentException"></exception>
-    public void SetParamsBuffer(TerrainMeshParameters parameters)
+    public void SetShaderParameters(TerrainMeshShaderParameters parameters)
     {
-        if (!TerrainMeshParamsBuffer.IsValid)
+        if (!TerrainMeshShaderParametersBuffer.IsValid)
         {
-            throw new ArgumentException($"{nameof(TerrainMeshParamsBuffer)} is not valid.");
+            throw new ArgumentException($"{nameof(TerrainMeshShaderParametersBuffer)} is not valid.");
         }
 
         // The two are the same, don't replace
-        if (DrawParameters != null && DrawParameters.Equals(parameters))
+        if (TerrainMeshShaderParameters != null && TerrainMeshShaderParameters.Equals(parameters))
         {
             return;
         }
 
         byte[] parameterBytes = StructHelpers.ToByteArray(parameters);
-        Rd.BufferUpdate(TerrainMeshParamsBuffer, 0, (uint)parameterBytes.Length, parameterBytes);
-        DrawParameters = parameters;
+        Rd.BufferUpdate(TerrainMeshShaderParametersBuffer, 0, (uint)parameterBytes.Length, parameterBytes);
+        TerrainMeshShaderParameters = parameters;
     }
 
     /// <summary>
@@ -232,12 +232,12 @@ public class TerrainMesh
             throw new ArgumentNullException($"{shader} is not valid. Must pass valid shader.");
         }
 
-        if (DrawParameters == null)
+        if (TerrainMeshShaderParameters == null)
         {
-            throw new ArgumentException($"Must set {DrawParameters} before trying to get uniform set.");
+            throw new ArgumentException($"Must set {TerrainMeshShaderParameters} before trying to get uniform set.");
         }
 
-        TerrainMeshParamsUniformSet = Rd.UniformSetCreate([TerrainMeshParamsUniform], shader, 2);
+        TerrainMeshShaderParametersUniformSet = Rd.UniformSetCreate([TerrainMeshShaderParametersUniform], shader, 2);
     }
 
     /// <summary>
@@ -306,7 +306,7 @@ public class TerrainMesh
         // Set the buffers for drawing
         Rd.DrawListBindUniformSet(drawList, renderDescriptor.RenderSceneDataUniformSet, 0);
         Rd.DrawListBindUniformSet(drawList, VertexBufferUniformSet, 1);
-        Rd.DrawListBindUniformSet(drawList, TerrainMeshParamsUniformSet, 2);
+        Rd.DrawListBindUniformSet(drawList, TerrainMeshShaderParametersUniformSet, 2);
 
         // Draw call
         Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer);
@@ -314,6 +314,6 @@ public class TerrainMesh
         Rd.DrawCommandEndLabel();
 
         Rd.FreeRid(VertexBufferUniformSet);
-        Rd.FreeRid(TerrainMeshParamsUniformSet);
+        Rd.FreeRid(TerrainMeshShaderParametersUniformSet);
     }
 }

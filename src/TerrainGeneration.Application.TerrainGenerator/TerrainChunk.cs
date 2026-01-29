@@ -8,7 +8,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         //private TerrainSpawns TerrainSpawns;
 
         public TerrainMesh TerrainMesh;
-        private TerrainMeshParameters TerrainMeshParameters;
+        private TerrainMeshShaderParameters TerrainMeshParameters;
 
 
         /// <summary>
@@ -22,16 +22,15 @@ namespace TerrainGeneration.Application.TerrainGenerator
             TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh();
 
             // Set the terrian mesh params
-            TerrainMeshParameters = new TerrainMeshParameters()
+            TerrainMeshParameters = new TerrainMeshShaderParameters()
             {
-                ExpandBorders = descriptor.ExpandBorders,
-                RetractBorders = descriptor.RetractBorders,
+                ExpandBorders = 0, // These have to be set later
+                RetractBorders = 0,
                 ChunkOffset = new Vector4(descriptor.ChunkOffset.X, descriptor.ChunkOffset.Y, descriptor.ChunkOffset.Z, 0.0f),
                 ChunkSize = descriptor.ChunkSize,
                 BorderWidth = descriptor.BorderWidth
             };
-            TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
-
+            TerrainMesh.SetShaderParameters(TerrainMeshParameters);
         }
 
         /// <summary>
@@ -50,7 +49,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         /// <param name="expandBorders"></param>
         public void SetTerrainMeshBorders(int retractBorders, int expandBorders)
         {
-            SetTerrainMeshParamsBuffer(new TerrainMeshParameters()
+            SetTerrainMeshParamsBuffer(new TerrainMeshShaderParameters()
             {
                 ExpandBorders = expandBorders,
                 RetractBorders = retractBorders,
@@ -64,13 +63,13 @@ namespace TerrainGeneration.Application.TerrainGenerator
         /// Used to update parameters for the draw shader.
         /// </summary>
         /// <param name="newParams"></param>
-        private void SetTerrainMeshParamsBuffer(TerrainMeshParameters newParams)
+        private void SetTerrainMeshParamsBuffer(TerrainMeshShaderParameters newParams)
         {
             if (TerrainMesh != null)
             {
                 if (newParams != TerrainMeshParameters)
                 {
-                    TerrainMesh.SetParamsBuffer(newParams);
+                    TerrainMesh.SetShaderParameters(newParams);
                 }
             }
             else

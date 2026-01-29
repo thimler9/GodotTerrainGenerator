@@ -62,7 +62,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
     public Rid RenderSceneDataUniformSet;
 
     // Terrain rendering data
-    public TerrainMeshParameters TerrainMeshParameters;
+    public TerrainMeshShaderParameters TerrainMeshParameters;
     public int ExpandBorders = 0b101011;
     public int RetractBorders = 0b010100; 
 
@@ -295,7 +295,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
 
         // Terrain mesh render data
         TerrainMesh.SetVertexUniformSet(TerrainShader);
-        TerrainMeshParameters = new TerrainMeshParameters()
+        TerrainMeshParameters = new TerrainMeshShaderParameters()
         {
             BorderWidth = TransitionWidth,
             ChunkOffset = new Vector4(ChunkOffset.X, ChunkOffset.Y, ChunkOffset.Z, 1.0f),
@@ -303,7 +303,7 @@ public partial class TestTerrainMeshRender : CompositorEffect
             ExpandBorders = ExpandBorders,
             RetractBorders = RetractBorders,
         };
-        TerrainMesh.SetParamsBuffer(TerrainMeshParameters);
+        TerrainMesh.SetShaderParameters(TerrainMeshParameters);
         TerrainMesh.SetTerrainMeshParametersUniformSet(TerrainShader);
 
         // Set camera projection
