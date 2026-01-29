@@ -114,8 +114,8 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
         public void SetTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
-            //if (terrainChunk != null)
-            //    throw new ArgumentException("Tried creating a terrain chunk, but it already exists, hash: " + hash);
+            if (TerrainChunk != null)
+                throw new ArgumentException("Tried creating a terrain chunk, but it already exists, hash: " + Hash);
 
             TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
             {

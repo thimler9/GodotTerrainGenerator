@@ -64,8 +64,6 @@ public partial class TestVoxelOctree : Node
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		GD.Print("Test");
-
 		RenderingDevice rd = RenderingServer.GetRenderingDevice();
 
 		TerrainLods = new TerrainLod[6]
