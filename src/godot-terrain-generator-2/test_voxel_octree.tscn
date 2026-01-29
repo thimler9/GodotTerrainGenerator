@@ -36,7 +36,7 @@ MinChunkSize = 32
 BorderWidth = 1.5
 PlayerPositionChangeThreshold = 25.0
 EventQueueWorkBudget = 5
-MaxNumVertices = 150000
+MaxNumVertices = 50000
 MaxNumTerrainMeshesInQueue = 20
 Seed = 1234
 Scale = 1000.0
@@ -51,7 +51,7 @@ Gain = 0.4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.5, 10.5)
 
 [node name="CSGPolygon3D2" type="CSGPolygon3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 10.5, 10.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1)
 
 [node name="CSGPolygon3D3" type="CSGPolygon3D" parent="."]
 transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 512, 512, 512)

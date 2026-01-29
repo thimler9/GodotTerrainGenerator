@@ -101,7 +101,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
                 }
                 else
                 {
-                    for (int i = 0; i < 1; i++)
+                    for (int i = 0; i < 8; i++)
                     {
                         RenderOctreeNode child = chunks[(Hash << 3) | i];
                         if (child != null)
@@ -113,12 +113,21 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             }
         }
 
-        public void SetTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks)
+        public void SetTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
             //if (terrainChunk != null)
             //    throw new ArgumentException("Tried creating a terrain chunk, but it already exists, hash: " + hash);
 
             //terrainChunk = new TerrainChunk(offset, size, lod, depth);
+            //TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
+            //{
+            //    BorderWidth = BorderWidth,
+            //    ChunkOffset = Offset,
+            //    Depth = Depth,
+            //    ChunkSize = Size,
+            //    Lod = Lod,
+            //};
+            //TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
             leafHashes[Hash] = true;
             updatedChunks.Enqueue(Hash);
         }

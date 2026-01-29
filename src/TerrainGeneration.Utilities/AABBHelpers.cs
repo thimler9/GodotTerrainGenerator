@@ -13,27 +13,24 @@ public static class AABBHelpers
     /// <returns></returns>
     public static bool IsWithinFrustumPlanes(this Aabb aabb, Array<Plane> planes)
     {
-        // Cache AABB bounds to avoid repeated property access
-        Vector3 min = aabb.Position;
-        Vector3 max = aabb.End;
+        Vector3 center = aabb.Position + aabb.Size * 0.5f;
+        Vector3 extents = aabb.Size * 0.5f;
 
-        // Test against all 6 frustum planes
-        for (int i = 0; i < 6; i++)
+        foreach (Plane plane in planes)
         {
-            Plane plane = planes[i];
-            Vector3 normal = plane.Normal;
+            Vector3 n = plane.Normal.Abs();
 
-            // Get the positive vertex (furthest point in direction of plane normal)
-            // Using ternary with cached values is faster than creating new Vector3
-            float px = normal.X >= 0 ? max.X : min.X;
-            float py = normal.Y >= 0 ? max.Y : min.Y;
-            float pz = normal.Z >= 0 ? max.Z : min.Z;
+            float radius =
+                extents.X * n.X +
+                extents.Y * n.Y +
+                extents.Z * n.Z;
 
-            // Manual distance calculation is faster than plane.DistanceTo()
-            // Distance = dot(normal, point) + d
-            if (normal.X * px + normal.Y * py + normal.Z * pz + plane.D < 0)
+            float distance = plane.DistanceTo(center);
+
+            // IMPORTANT: Godot frustum planes face OUTWARD
+            if (distance > radius)
             {
-                return false; // AABB is completely outside the frustum
+                return false;
             }
         }
 
