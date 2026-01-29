@@ -24,8 +24,6 @@ public partial class TestVoxelOctree : Node
 	[Export]
 	public float BorderWidth;
 	[Export]
-	public Vector3 PlayerPosition;
-	[Export]
 	public float PlayerPositionChangeThreshold;
 	[Export]
 	public uint EventQueueWorkBudget;
@@ -131,7 +129,7 @@ public partial class TestVoxelOctree : Node
 			EventQueueWorkBudget = EventQueueWorkBudget,
 			TransvoxelTerrainGeneratorDescriptor = transvoxelTerrainGeneratorDescriptor,
 			MinChunkSize = MinChunkSize,
-			PlayerPosition = PlayerPosition,
+			PlayerPosition = Camera.Position,
 			PlayerPositionChangeThreshold = PlayerPositionChangeThreshold,
 			Size = StartSize,
 			TerrainLods = TerrainLods,
