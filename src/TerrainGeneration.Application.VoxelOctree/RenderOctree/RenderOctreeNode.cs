@@ -103,7 +103,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
                 }
                 else
                 {
-                    for (int i = 0; i < 8; i++)
+                    for (int i = 0; i < 1; i++)
                     {
                         RenderOctreeNode child = chunks[(Hash << 3) | i];
                         if (child != null)
