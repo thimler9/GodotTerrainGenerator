@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
@@ -45,15 +46,12 @@ public class TransvoxelTerrainGenerator
         SDFGenerator = new Application.SDFGenerator.SDFGenerator(rd, sDFGeneratorSettings);
 
         // Setup normals generator
-        NormalsShaderParameters = new NormalsShaderParameters()
-        {
-            ChunkSize = descriptor.ChunkSize,
-            Lod = descriptor.Lod
-        };
+        NormalsShaderParameters = new NormalsShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
         NormalsShaderDescriptor normalsDescriptor = new NormalsShaderDescriptor()
         {
             Parameters = NormalsShaderParameters,
             ShaderPath = descriptor.NormalsShaderPath,
+            SimplexNoiseParameters = (sdfShader as SimplexNoiseShader).GetSimplexShaderParameters().Value,
         };
         NormalsShader = new NormalsShader.NormalsShader(Rd, normalsDescriptor);
 

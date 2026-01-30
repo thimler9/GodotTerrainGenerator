@@ -89,8 +89,6 @@ public class SDFGenerator
 
         // Run the shaders
         SimplexNoise();
-
-        Rd.ComputeListEnd();
     }
 
     /// <summary>

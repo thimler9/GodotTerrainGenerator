@@ -144,6 +144,7 @@ public class SimplexNoiseShader : ISDFShader
         Rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, SDF_PARAMETERS_SHADER_SET);
         Rd.ComputeListBindUniformSet(computeList, OutputUniformSet, OUTPUT_SHADER_SET);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 2, yGroups: chunkSize / (8 * lod) + 2, zGroups: chunkSize / (8 * lod) + 2);
+        Rd.ComputeListEnd();
     }
 
     /// <summary>
@@ -158,5 +159,10 @@ public class SimplexNoiseShader : ISDFShader
         Rd.FreeRid(OutputUniformSet);
         Rd.FreeRid(SDFParamtersUniformSet);
         Rd.FreeRid(Shader);
+    }
+
+    public SimplexNoiseShaderParameters? GetSimplexShaderParameters()
+    {
+        return Parameters;
     }
 }

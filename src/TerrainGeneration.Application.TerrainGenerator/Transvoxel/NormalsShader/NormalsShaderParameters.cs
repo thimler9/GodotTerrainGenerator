@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Godot;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,16 +13,20 @@ namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShade
 public struct NormalsShaderParameters
 {
     [FieldOffset(0)]
+    public Vector4 ChunkOffset;
+
+    [FieldOffset(16)]
     public uint ChunkSize;
     
-    [FieldOffset(4)]
+    [FieldOffset(20)]
     public uint Lod;
 
-    [FieldOffset(8)]
+    [FieldOffset(24)]
     readonly Vector2 Padding;
 
-    public NormalsShaderParameters(uint chunkSize, uint lod)
+    public NormalsShaderParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
+        ChunkOffset = new Vector4(chunkOffset.X, chunkOffset.Y, chunkOffset.Z, 0.0f);
         ChunkSize = chunkSize;
         Lod = lod;
     }
@@ -37,6 +41,7 @@ public struct NormalsShaderParameters
         NormalsShaderParameters other = (NormalsShaderParameters)obj;
 
         return
+            ChunkOffset == other.ChunkOffset &&
             ChunkSize == other.ChunkSize &&
             Lod == other.Lod;
     }

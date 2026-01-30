@@ -94,6 +94,7 @@ vec3 AdjustPosition(vec3 positionOS, vec3 normalOS, uint chunkSize, float width,
     dz = positionOS.z < 0 ? dz + BORDER_EPISLON : dz;
 
     vec3 transpositions = vec3(dx, dy, dz);
+    normalOS = normalize(normalOS);
     vec3 newPosition = positionOS + transpositions;
 
     // bool expandEast = positionOS.x > chunkSize + BORDER_EPISLON + BORDER_EPISLON * 0.001 && (y1 && y4 && z1 && z4) && ((expandBorders >> 5) & 1) == 1;
