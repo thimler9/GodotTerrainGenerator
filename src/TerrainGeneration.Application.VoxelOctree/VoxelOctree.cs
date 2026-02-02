@@ -26,7 +26,7 @@ public class VoxelOctree
 
     public void UpdateAbstractTree(Vector3 playerPosition)
     {
-        //AbstractOctree.Update(OctreeEventQueue, playerPosition);
+        AbstractOctree.Update(OctreeEventQueue, playerPosition);
     }
 
     public void ProcessEventQueue()
