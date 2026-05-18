@@ -148,5 +148,6 @@ public class Transvoxel
         }
 
         TransvoxelShader.Dispose();
+        IndirectArgsShader.Dispose();
     }
 }

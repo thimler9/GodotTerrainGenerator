@@ -25,6 +25,7 @@ internal class RenderOctree : IRenderOctree
 
     public RenderOctreeNode[] Chunks;
     public bool[] LeafHashes;
+    private System.Collections.Generic.Dictionary<int, ChunkIntentEvent> DeferredChunkIntents = new System.Collections.Generic.Dictionary<int, ChunkIntentEvent>();
 
     // How we get the triangle for the terrain meshes
     private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
@@ -106,8 +107,26 @@ internal class RenderOctree : IRenderOctree
             newChunks[(1 << 3) | i] = Chunks[(1 << 3) | i];
         }
 
+        DisposeChunksNotMovedToNewCenter(newChunks);
         Chunks = newChunks;
         LeafHashes = newLeafHashes;
+    }
+
+    private void DisposeChunksNotMovedToNewCenter(RenderOctreeNode?[] newChunks)
+    {
+        HashSet<RenderOctreeNode> retainedChunks = newChunks
+            .Where(chunk => chunk != null)
+            .Select(chunk => chunk!)
+            .ToHashSet();
+
+        for (int i = 0; i < Chunks.Length; i++)
+        {
+            RenderOctreeNode? chunk = Chunks[i];
+            if (chunk != null && !retainedChunks.Contains(chunk))
+            {
+                chunk.Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+            }
+        }
     }
 
 
@@ -163,70 +182,191 @@ internal class RenderOctree : IRenderOctree
     public void ProcessEvents(IOctreeEvent[] events)
     {
         Queue<int> updatedChunks = new Queue<int>();
+        System.Collections.Generic.Dictionary<int, ChunkIntentEvent> chunkIntents = new System.Collections.Generic.Dictionary<int, ChunkIntentEvent>(DeferredChunkIntents);
+        DeferredChunkIntents.Clear();
 
         foreach (IOctreeEvent octreeEvent in events) 
         {
             if (octreeEvent != null)
             {
-                // Process Events
-                if (octreeEvent is CreateRenderNodeEvent)
+                if (octreeEvent is ChunkIntentEvent intentEvent)
                 {
-                    CreateRenderNodeEvent currEvent = octreeEvent as CreateRenderNodeEvent;
-                    Chunks[currEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, new RenderOctreeDescriptor()
-                    {
-                        Depth = currEvent.Depth,
-                        Hash = currEvent.Hash,
-                        Lod = currEvent.Lod,
-                        Offset = currEvent.Offset,
-                        Size = currEvent.Size,
-                    });
-                }
-
-                if (octreeEvent is DeleteRenderNodeTerrainChunkEvent)
-                {
-                    DeleteRenderNodeTerrainChunkEvent currEvent = octreeEvent as DeleteRenderNodeTerrainChunkEvent;
-                    if (Chunks[currEvent.Hash] == null)
-                    {
-                        GD.Print(currEvent.Hash);
-                    }
-
-                    Chunks[currEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
-                }
-
-                if (octreeEvent is DisposeRenderNodeEvent)
-                {
-                    DisposeRenderNodeEvent currEvent = octreeEvent as DisposeRenderNodeEvent;
-                    if (Chunks[currEvent.Hash] == null)
-                    {
-                        GD.Print(currEvent.Hash);
-                    }
-
-                    Chunks[currEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
-                }
-
-                if (octreeEvent is GetRenderNodeTerrainChunkEvent)
-                {
-                    GetRenderNodeTerrainChunkEvent currEvent = octreeEvent as GetRenderNodeTerrainChunkEvent;
-                    if (Chunks[currEvent.Hash] == null)
-                    {
-                        GD.Print(currEvent.Hash);
-                    }
-
-
-                    Chunks[currEvent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
-                }
-
-                if (octreeEvent is MoveWorldCenterEvent)
-                {
-                    // To be implemented
+                    chunkIntents[intentEvent.Hash] = intentEvent;
+                    continue;
                 }
             }
 
+        }
+
+        HashSet<int> removedSubtrees = new HashSet<int>();
+        foreach (ChunkIntentEvent intent in SortChunkIntents(chunkIntents.Values))
+        {
+            if (HasAncestorInSet(intent.Hash, removedSubtrees))
+            {
+                continue;
+            }
+
+            if (!ReconcileChunkIntent(intent, updatedChunks))
+            {
+                DeferredChunkIntents[intent.Hash] = intent;
+            }
+            else if (intent.State == ChunkIntentState.Missing)
+            {
+                removedSubtrees.Add(intent.Hash);
+            }
         }
 
         if (updatedChunks.Count > 0)
         {
             UpdateBorders(updatedChunks);
         }
+    }
+
+    private IEnumerable<ChunkIntentEvent> SortChunkIntents(IEnumerable<ChunkIntentEvent> intents)
+    {
+        return intents
+            .OrderBy(intent => intent.State == ChunkIntentState.Missing ? 0 : intent.State == ChunkIntentState.Internal ? 1 : 2)
+            .ThenBy(intent => intent.State == ChunkIntentState.Missing ? -intent.Depth : intent.Depth)
+            .ToArray();
+    }
+
+    private bool ReconcileChunkIntent(ChunkIntentEvent intent, Queue<int> updatedChunks)
+    {
+        if (!IsValidHash(intent.Hash))
+        {
+            return true;
+        }
+
+        switch (intent.State)
+        {
+            case ChunkIntentState.Missing:
+                if (Chunks[intent.Hash] != null)
+                {
+                    if (!CanSafelyRemoveNode(intent.Hash))
+                    {
+                        return false;
+                    }
+
+                    Chunks[intent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+                    updatedChunks.Enqueue(intent.Hash >> 3);
+                }
+                return true;
+
+            case ChunkIntentState.Internal:
+                if (!HasParent(intent.Hash))
+                {
+                    return false;
+                }
+
+                CreateRenderNode(intent, updatedChunks);
+                if (Chunks[intent.Hash] == null)
+                {
+                    return false;
+                }
+
+                if (!ChildrenHaveCompleteCoverage(intent.Hash))
+                {
+                    Chunks[intent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                    return false;
+                }
+
+                Chunks[intent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                return true;
+
+            case ChunkIntentState.Leaf:
+                if (!HasParent(intent.Hash))
+                {
+                    return false;
+                }
+
+                CreateRenderNode(intent, updatedChunks);
+                Chunks[intent.Hash]?.SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                return Chunks[intent.Hash] != null && Chunks[intent.Hash].HasTerrain;
+        }
+
+        return true;
+    }
+
+    private bool ChildrenHaveCompleteCoverage(int hash)
+    {
+        if (((hash << 3) | 7) >= Chunks.Length)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            RenderOctreeNode? child = Chunks[(hash << 3) | i];
+            if (child == null || !child.HasCompleteRenderCoverage(Chunks))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool CanSafelyRemoveNode(int hash)
+    {
+        if (hash == 1)
+        {
+            return true;
+        }
+
+        int parentHash = hash >> 3;
+        if (!IsValidHash(parentHash))
+        {
+            return true;
+        }
+
+        RenderOctreeNode? parent = Chunks[parentHash];
+        return parent == null || parent.HasTerrain;
+    }
+
+    private bool HasParent(int hash)
+    {
+        if (hash == 1)
+        {
+            return true;
+        }
+
+        int parentHash = hash >> 3;
+        return IsValidHash(parentHash) && Chunks[parentHash] != null;
+    }
+
+    private static bool HasAncestorInSet(int hash, HashSet<int> ancestors)
+    {
+        while (hash > 1)
+        {
+            hash >>= 3;
+            if (ancestors.Contains(hash))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CreateRenderNode(ChunkIntentEvent intent, Queue<int> updatedChunks)
+    {
+        if (!IsValidHash(intent.Hash) || Chunks[intent.Hash] != null || intent.Lod == 0)
+        {
+            return;
+        }
+
+        Chunks[intent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, new RenderOctreeDescriptor()
+        {
+            Depth = intent.Depth,
+            Hash = intent.Hash,
+            Lod = intent.Lod,
+            Offset = intent.Offset,
+            Size = intent.Size,
+        }, false);
+    }
+
+    private bool IsValidHash(int hash)
+    {
+        return hash > 0 && hash < Chunks.Length;
     }
 }

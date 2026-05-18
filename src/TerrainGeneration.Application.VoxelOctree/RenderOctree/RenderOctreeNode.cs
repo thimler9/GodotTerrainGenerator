@@ -23,8 +23,10 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
         private Aabb Bounds;
 
+        public bool HasTerrain => TerrainChunk != null;
 
-        public RenderOctreeNode(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, TransvoxelTerrainGenerator transvoxelTerrainGenerator, RenderOctreeDescriptor descriptor)
+
+        public RenderOctreeNode(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, TransvoxelTerrainGenerator transvoxelTerrainGenerator, RenderOctreeDescriptor descriptor, bool createTerrain = true)
         {
             Offset = descriptor.Offset;
             Size = descriptor.Size;
@@ -33,15 +35,10 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             Hash = descriptor.Hash;
             Bounds = new Aabb(descriptor.Offset, Vector3.One * descriptor.Size);
 
-            // Create chunk mesh
-            TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
+            if (createTerrain)
             {
-                ChunkOffset = descriptor.Offset,
-                ChunkSize = descriptor.Size,
-                Lod = descriptor.Lod,
-            };
-            TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
-            leafHashes[Hash] = true;
+                CreateTerrainChunk(leafHashes, updatedChunks, transvoxelTerrainGenerator);
+            }
 
             // Only used for chunks  that get made when shifting the world center
             if (updateBorders)
@@ -74,18 +71,21 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         // Removes from tree
         public void Dispose(RenderOctreeNode?[] chunks, bool[] leafHashes, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
-
-            //if (terrainChunk == null)
-            //    throw new Exception("Tried removing chunk" + hash + "from tree but it was missing a terrain chunk");
-
-            if (TerrainChunk == null)
+            if (((Hash << 3) | 7) < chunks.Length)
             {
-                throw new Exception("Tried removing chunk" + Hash + "from tree but it was missing a terrain chunk");
+                for (int i = 0; i < 8; i++)
+                {
+                    int childHash = (Hash << 3) | i;
+                    chunks[childHash]?.Dispose(chunks, leafHashes, transvoxelTerrainGenerator);
+                }
             }
 
             leafHashes[Hash] = false; // No longer a leaf
-            transvoxelTerrainGenerator.ReturnTerrainMesh(TerrainChunk.TerrainMesh); // Remove render data
-            TerrainChunk = null;
+            if (TerrainChunk != null)
+            {
+                transvoxelTerrainGenerator.ReturnTerrainMesh(TerrainChunk.TerrainMesh); // Remove render data
+                TerrainChunk = null;
+            }
             chunks[Hash] = null; // No longer in tree
         }
 
@@ -115,8 +115,16 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         public void SetTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
             if (TerrainChunk != null)
-                throw new ArgumentException("Tried creating a terrain chunk, but it already exists, hash: " + Hash);
+            {
+                leafHashes[Hash] = true;
+                return;
+            }
 
+            CreateTerrainChunk(leafHashes, updatedChunks, transvoxelTerrainGenerator);
+        }
+
+        private void CreateTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
+        {
             TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
             {
                 ChunkOffset = Offset,
@@ -126,6 +134,30 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
             leafHashes[Hash] = true;
             updatedChunks.Enqueue(Hash);
+        }
+
+        public bool HasCompleteRenderCoverage(RenderOctreeNode?[] chunks)
+        {
+            if (TerrainChunk != null)
+            {
+                return true;
+            }
+
+            if (((Hash << 3) | 7) >= chunks.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                RenderOctreeNode? child = chunks[(Hash << 3) | i];
+                if (child == null || !child.HasCompleteRenderCoverage(chunks))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public int[] SetBorders(bool[] leafHashes)

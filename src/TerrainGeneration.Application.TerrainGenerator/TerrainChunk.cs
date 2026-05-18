@@ -73,6 +73,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
                 if (newParams != TerrainMeshParameters)
                 {
                     TerrainMesh.SetShaderParameters(newParams);
+                    TerrainMeshParameters = newParams;
                 }
             }
             else

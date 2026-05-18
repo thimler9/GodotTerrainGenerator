@@ -85,6 +85,7 @@ public class SimplexNoiseShader : ISDFShader
                 Rd.FreeRid(ParametersUniformSet);
             }
             ParametersUniformSet = Rd.UniformSetCreate([ParametersUniform], Shader, PARAMETERS_SHADER_SET);
+            Parameters = parameters;
         }
     }
 

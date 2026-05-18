@@ -76,6 +76,7 @@ public class SDFGenerator
         if (!this.SDFShaderParameters.Equals(parameters))
         {
             Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
+            SDFShaderParameters = parameters;
         }
     }
 

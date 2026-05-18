@@ -108,6 +108,16 @@ public class TerrainMesh
         return maxNumVerts;
     }
 
+    public bool CanStore(TerrainMeshDescriptor descriptor)
+    {
+        uint requestedChunkSizeToLodRatio = descriptor.ChunkSize / descriptor.Lod;
+        uint requestedMaxNumInternalVerts = requestedChunkSizeToLodRatio * requestedChunkSizeToLodRatio * requestedChunkSizeToLodRatio * 5 * 3;
+        uint requestedMaxNumBorderVerts = requestedChunkSizeToLodRatio * requestedChunkSizeToLodRatio * 12 * 6 * 3;
+        uint requestedMaxNumVerts = Math.Min((requestedMaxNumBorderVerts + requestedMaxNumInternalVerts) / VERT_DIVISOR, descriptor.MaxNumTriangles);
+
+        return GetMaxNumVerts() >= requestedMaxNumVerts;
+    }
+
     /// <summary>
     /// Prints all vertices in the vertex buffer. Use only for debug purposes; requires CPU readback.
     /// </summary>

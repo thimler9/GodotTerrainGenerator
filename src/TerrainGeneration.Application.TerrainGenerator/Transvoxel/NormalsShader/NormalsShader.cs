@@ -170,6 +170,8 @@ public class NormalsShader
         Rd.FreeRid(ParametersUniformSet);
         Rd.FreeRid(ParametersBuffer);
         Rd.FreeRid(OutputNormalsUniformSet);
+        Rd.FreeRid(SimplexNoiseParametersUniformSet);
+        Rd.FreeRid(SimplexNoiseParametersBuffer);
         Rd.FreeRid(Shader);
         Rd.FreeRid(OutputNormalsBuffer);
     }

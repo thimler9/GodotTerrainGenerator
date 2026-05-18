@@ -78,4 +78,10 @@ public class IndirectArgsShader
         Rd.FreeRid(counterUniformSet);
         Rd.FreeRid(indirectArgsUniformSet);
     }
+
+    public void Dispose()
+    {
+        Rd.FreeRid(Pipeline);
+        Rd.FreeRid(Shader);
+    }
 }

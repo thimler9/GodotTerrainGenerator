@@ -1,30 +1,30 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEventQueue;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
+using TerrainGeneration.Application.VoxelOctree.OctreeEvents;
 
 namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
 {
     public class OctreeEventQueue : IOctreeEventQueue
     {
-        public Queue<IOctreeEvent> EventQueue;
         public IRenderOctree EventTargetTree;
         public uint WorkBudget;
 
+        private readonly Dictionary<int, ChunkIntentEvent> PendingChunkIntents;
+
         /// <summary>
-        /// Creates an octree event queue. Processes the events sent from the abstract octree against the render octree.
+        /// Creates an octree event queue. Processes the latest desired octree state against the render octree.
         /// </summary>
         /// <param name="eventTargetTree"></param>
         /// <param name="workBudget"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentException"></exception>
-        public OctreeEventQueue(IRenderOctree eventTargetTree, uint workBudget) 
-        { 
-            if (eventTargetTree== null)
+        public OctreeEventQueue(IRenderOctree eventTargetTree, uint workBudget)
+        {
+            if (eventTargetTree == null)
             {
                 throw new ArgumentNullException(nameof(eventTargetTree), "Cannot be null");
             }
@@ -34,36 +34,73 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
                 throw new ArgumentException(nameof(eventTargetTree), "Must be positive");
             }
 
-            this.EventTargetTree = eventTargetTree;
-            this.WorkBudget = workBudget;
-            EventQueue = new Queue<IOctreeEvent>();
+            EventTargetTree = eventTargetTree;
+            WorkBudget = workBudget;
+            PendingChunkIntents = new Dictionary<int, ChunkIntentEvent>();
         }
 
         /// <summary>
-        /// Adds a new event to the tree.
+        /// Adds a new octree change. Chunk intents are coalesced so only the latest state per chunk is processed.
         /// </summary>
         /// <param name="octreeEvent"></param>
         public void AddEvent(IOctreeEvent octreeEvent)
         {
-            EventQueue.Enqueue(octreeEvent);
+            if (octreeEvent == null)
+            {
+                return;
+            }
+
+            if (octreeEvent is ChunkIntentEvent intent)
+            {
+                PendingChunkIntents[intent.Hash] = intent;
+                return;
+            }
         }
 
         /// <summary>
-        /// Processes events in the tree. Will process up to the work budget or until the queue is empty, whatever is smaller.
+        /// Processes pending changes. Will process up to the work budget or until the queue is empty, whatever is smaller.
         /// </summary>
         public void Process()
         {
-            uint numWork = Math.Min(WorkBudget, (uint)EventQueue.Count);
+            uint numWork = Math.Min(WorkBudget, (uint)PendingChunkIntents.Count);
             IOctreeEvent[] eventsToProcess = new IOctreeEvent[numWork];
 
-            // Grab events to process this frame
-            for (int i = 0; i < numWork; i++)
+            int eventIndex = 0;
+
+            foreach (ChunkIntentEvent intent in SelectChunkIntents(numWork - (uint)eventIndex))
             {
-                IOctreeEvent currEvent = EventQueue.Dequeue();
-                eventsToProcess[i] = currEvent;
+                PendingChunkIntents.Remove(intent.Hash);
+                eventsToProcess[eventIndex] = intent;
+                eventIndex++;
             }
 
             EventTargetTree.ProcessEvents(eventsToProcess);
+        }
+
+        private IEnumerable<ChunkIntentEvent> SelectChunkIntents(uint maxCount)
+        {
+            int count = (int)maxCount;
+            return PendingChunkIntents.Values
+                .OrderBy(intent => GetIntentPriority(intent.State))
+                .ThenBy(intent => GetDepthPriority(intent))
+                .Take(count)
+                .ToArray();
+        }
+
+        private static int GetIntentPriority(ChunkIntentState state)
+        {
+            return state switch
+            {
+                ChunkIntentState.Missing => 0,
+                ChunkIntentState.Internal => 1,
+                ChunkIntentState.Leaf => 2,
+                _ => 3,
+            };
+        }
+
+        private static int GetDepthPriority(ChunkIntentEvent intent)
+        {
+            return intent.State == ChunkIntentState.Missing ? -intent.Depth : intent.Depth;
         }
     }
 }
