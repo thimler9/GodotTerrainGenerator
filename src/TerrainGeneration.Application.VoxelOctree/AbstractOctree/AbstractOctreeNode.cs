@@ -41,7 +41,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             this.Depth = depth;
             this.Lod = lodArray[depth].LodDivider;
 
-            eventQueue.AddEvent(new ChunkIntentEvent(hash, offset, size, Lod, depth, ChunkIntentState.Leaf));
+            eventQueue.AddEvent(new ChunkStateEvent(hash, offset, size, Lod, depth, ChunkIntentState.Leaf));
 
             // If the chunk can be split up because: it's not too small, there is a small lod, and the player is close enough
             if (this.Size / 2 > minChunkSize && this.Depth < lodArray.Length - 1 && PlayerDistanceCheck(playerPosition, lodArray))
@@ -70,7 +70,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
             chunks[(Hash << 3) | 5] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(newSize, newSize, 0), newSize, playerPosition, (Hash << 3) | 5, Depth + 1, minChunkSize, lodArray);
             chunks[(Hash << 3) | 6] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(0, newSize, newSize), newSize, playerPosition, (Hash << 3) | 6, Depth + 1, minChunkSize, lodArray);
             chunks[(Hash << 3) | 7] = new AbstractOctreeNode(chunks, eventQueue, updateBorders, Offset + new Vector3(newSize, newSize, newSize), newSize, playerPosition, (Hash << 3) | 7, Depth + 1, minChunkSize, lodArray);
-            eventQueue.AddEvent(new ChunkIntentEvent(Hash, Offset, Size, Lod, Depth, ChunkIntentState.Internal));
+            eventQueue.AddEvent(new ChunkStateEvent(Hash, Offset, Size, Lod, Depth, ChunkIntentState.Internal));
         }
 
         /// <summary>
@@ -124,13 +124,13 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
         {
             if (HasChildren(chunks))
             {
-                eventQueue.AddEvent(new ChunkIntentEvent(Hash, Offset, Size, Lod, Depth, ChunkIntentState.Leaf));
+                eventQueue.AddEvent(new ChunkStateEvent(Hash, Offset, Size, Lod, Depth, ChunkIntentState.Leaf));
                 for (int i = 0; i < 8; i++)
                 {
                     AbstractOctreeNode? child = chunks[(Hash << 3) | i];
                     child.CollapseChildren(chunks, eventQueue);
                     // Remove parent's children
-                    eventQueue.AddEvent(new ChunkIntentEvent(child.Hash, child.Offset, child.Size, child.Lod, child.Depth, ChunkIntentState.Missing));
+                    eventQueue.AddEvent(new ChunkStateEvent(child.Hash, child.Offset, child.Size, child.Lod, child.Depth, ChunkIntentState.Missing));
                     chunks[child.Hash] = null;
                 }
             }

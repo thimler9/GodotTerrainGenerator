@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Application.VoxelOctree.OctreeEvents;
 using TerrainGeneration.Utilities;
 
 namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
@@ -39,6 +40,11 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             {
                 CreateTerrainChunk(leafHashes, updatedChunks, transvoxelTerrainGenerator);
             }
+
+            //if (AllChildrenFilled(chunks) && chunks[Hash >> 3] != null)
+            //{
+            //    chunks[Hash >> 3].DisposeTerrainChunk(chunks);
+            //}
 
             // Only used for chunks  that get made when shifting the world center
             if (updateBorders)
@@ -134,30 +140,6 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
             leafHashes[Hash] = true;
             updatedChunks.Enqueue(Hash);
-        }
-
-        public bool HasCompleteRenderCoverage(RenderOctreeNode?[] chunks)
-        {
-            if (TerrainChunk != null)
-            {
-                return true;
-            }
-
-            if (((Hash << 3) | 7) >= chunks.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < 8; i++)
-            {
-                RenderOctreeNode? child = chunks[(Hash << 3) | i];
-                if (child == null || !child.HasCompleteRenderCoverage(chunks))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public int[] SetBorders(bool[] leafHashes)
@@ -306,6 +288,19 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         {
             Offset = offset;
             Bounds = new Aabb(offset, Vector3.One * Size);
+        }
+
+        private bool AllChildrenFilled(RenderOctreeNode?[] chunks)
+        {
+            int parentHash = Hash >> 3;
+            for (int i = 0; i < 8; i++)
+            {
+                if (chunks[parentHash | i] == null)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

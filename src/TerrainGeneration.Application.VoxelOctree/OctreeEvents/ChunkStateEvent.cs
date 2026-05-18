@@ -10,9 +10,9 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
         Leaf
     }
 
-    public class ChunkIntentEvent : IOctreeEvent
+    public class ChunkStateEvent : OctreeEvent
     {
-        public ChunkIntentEvent(int hash, Vector3 offset, uint size, uint lod, int depth, ChunkIntentState state)
+        public ChunkStateEvent(int hash, Vector3 offset, uint size, uint lod, int depth, ChunkIntentState state)
         {
             Hash = hash;
             Offset = offset;

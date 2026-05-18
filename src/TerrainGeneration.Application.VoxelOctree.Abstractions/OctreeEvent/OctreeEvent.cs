@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TerrainGeneration.Application.VoxelOctree.Abstractions.AbstractOctree
+namespace TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent
 {
-    public abstract class AbstractOctreeNodeSplitData
+    public abstract class OctreeEvent
     {
     }
 }

@@ -19,6 +19,6 @@ namespace TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree
         /// </summary>
         public void Dispose();
 
-        public void ProcessEvents(IOctreeEvent[] events);
+        public void ProcessEvents(OctreeEvent.OctreeEvent[] events);
     }
 }

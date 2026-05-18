@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d3ooqb23b5dfj" path="res://Test Scripts/TestTerrainMeshRender.cs" id="1_3gk3a"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_nywjq"]
-[ext_resource type="Script" uid="uid://c07so32ltxghu" path="res://Test Scripts/TestInjectDataIntoRender.cs" id="3_phlrk"]
+[ext_resource type="Script" uid="uid://3rx3e6vwcmxk" path="res://Test Scripts/TestVoxelOctree.cs" id="3_phlrk"]
 
 [sub_resource type="CompositorEffect" id="CompositorEffect_nywjq"]
 resource_local_to_scene = false
@@ -43,6 +43,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 10.5, 10.5)
 [node name="CSGPolygon3D4" type="CSGPolygon3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5.644107)
 
-[node name="Node3D" type="Node3D" parent="." node_paths=PackedStringArray("test")]
+[node name="Node3D" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
 script = ExtResource("3_phlrk")
-test = NodePath("../Camera3D")
+Camera = NodePath("../Camera3D")
+StartSize = 1024
+MinChunkSize = 32
+BorderWidth = 1.0
+PlayerPositionChangeThreshold = 10.0
+EventQueueWorkBudget = 5
+MaxNumVertices = 50000
+MaxNumTerrainMeshesInQueue = 50
+Scale = 100.0
+Strength = 1.0
+NumOctaves = 3
+Frequency = 1.0
+Amplitude = 1.0
+Lacunarity = 0.8
+Gain = 1.2

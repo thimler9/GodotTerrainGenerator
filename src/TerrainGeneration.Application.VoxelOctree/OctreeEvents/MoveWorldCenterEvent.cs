@@ -10,7 +10,7 @@ using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
 
 namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 {
-    public class MoveWorldCenterEvent : IOctreeEvent
+    public class MoveWorldCenterEvent : OctreeEvent
     {
         public MoveWorldCenterEvent(List<UpdatedHash> updatedHashes, Vector3 newWorldCenter)
         {

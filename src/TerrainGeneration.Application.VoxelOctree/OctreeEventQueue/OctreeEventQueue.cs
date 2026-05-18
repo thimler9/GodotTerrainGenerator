@@ -13,7 +13,7 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         public IRenderOctree EventTargetTree;
         public uint WorkBudget;
 
-        private readonly Dictionary<int, ChunkIntentEvent> PendingChunkIntents;
+        private readonly Dictionary<int, ChunkStateEvent> PendingChunkIntents;
 
         /// <summary>
         /// Creates an octree event queue. Processes the latest desired octree state against the render octree.
@@ -36,21 +36,21 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
 
             EventTargetTree = eventTargetTree;
             WorkBudget = workBudget;
-            PendingChunkIntents = new Dictionary<int, ChunkIntentEvent>();
+            PendingChunkIntents = new Dictionary<int, ChunkStateEvent>();
         }
 
         /// <summary>
         /// Adds a new octree change. Chunk intents are coalesced so only the latest state per chunk is processed.
         /// </summary>
         /// <param name="octreeEvent"></param>
-        public void AddEvent(IOctreeEvent octreeEvent)
+        public void AddEvent(OctreeEvent octreeEvent)
         {
             if (octreeEvent == null)
             {
                 return;
             }
 
-            if (octreeEvent is ChunkIntentEvent intent)
+            if (octreeEvent is ChunkStateEvent intent)
             {
                 PendingChunkIntents[intent.Hash] = intent;
                 return;
@@ -63,11 +63,11 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         public void Process()
         {
             uint numWork = Math.Min(WorkBudget, (uint)PendingChunkIntents.Count);
-            IOctreeEvent[] eventsToProcess = new IOctreeEvent[numWork];
+            OctreeEvent[] eventsToProcess = new OctreeEvent[numWork];
 
             int eventIndex = 0;
 
-            foreach (ChunkIntentEvent intent in SelectChunkIntents(numWork - (uint)eventIndex))
+            foreach (ChunkStateEvent intent in SelectChunkIntents(numWork - (uint)eventIndex))
             {
                 PendingChunkIntents.Remove(intent.Hash);
                 eventsToProcess[eventIndex] = intent;
@@ -77,7 +77,7 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
             EventTargetTree.ProcessEvents(eventsToProcess);
         }
 
-        private IEnumerable<ChunkIntentEvent> SelectChunkIntents(uint maxCount)
+        private IEnumerable<ChunkStateEvent> SelectChunkIntents(uint maxCount)
         {
             int count = (int)maxCount;
             return PendingChunkIntents.Values
@@ -98,7 +98,7 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
             };
         }
 
-        private static int GetDepthPriority(ChunkIntentEvent intent)
+        private static int GetDepthPriority(ChunkStateEvent intent)
         {
             return intent.State == ChunkIntentState.Missing ? -intent.Depth : intent.Depth;
         }

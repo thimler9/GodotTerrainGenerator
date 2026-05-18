@@ -9,7 +9,7 @@ namespace TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEventQueu
 {
     public interface IOctreeEventQueue
     {
-        public void AddEvent(IOctreeEvent octreeEvent);
+        public void AddEvent(OctreeEvent.OctreeEvent octreeEvent);
 
         public void Process();
     }
