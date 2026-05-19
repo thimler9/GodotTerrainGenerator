@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TerrainGeneration.Application.VoxelOctree.RenderOctree;
-public class RenderOctreeDescriptor
+public class RenderOctreeNodeDescriptor
 {
     public Vector3 Offset;
     public uint Size;

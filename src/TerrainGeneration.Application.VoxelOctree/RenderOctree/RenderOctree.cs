@@ -165,7 +165,13 @@ internal class RenderOctree : IRenderOctree
     {
         Queue<int> updatedChunks = new Queue<int>();
 
-
+        foreach (var octreeEvent in events)
+        {
+            if (octreeEvent is ChunkStateEvent stateEvent)
+            {
+                ProcessChunkStateEvent(stateEvent, updatedChunks);
+            }
+        }
 
         if (updatedChunks.Count > 0)
         {
@@ -173,28 +179,63 @@ internal class RenderOctree : IRenderOctree
         }
     }
 
-    private void ProcessChunkItent(ChunkStateEvent intent, Queue<int> updatedChunks)
+    private void ProcessChunkStateEvent(ChunkStateEvent stateEvent, Queue<int> updatedChunks)
     {
-        if (!IsValidHash(intent.Hash))
+        if (!IsValidHash(stateEvent.Hash))
         {
             return;
         }
 
-        switch (intent.State)
+        switch (stateEvent.State)
         {
-            case ChunkIntentState.Missing:
+            case ChunkState.Missing:
                 // The node is missing; we need to deallocate it
-
-            case ChunkIntentState.Internal:
-                // If it is internal, it got split up; deallocate the terrain
-
-            case ChunkIntentState.Leaf:
+                if (Chunks[stateEvent.Hash] != null)
+                {
+                    Chunks[stateEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+                }
+                break;
+            case ChunkState.Internal:
+                // If it is internal and has terrain, it got split up; deallocate the terrain
+                if (Chunks[stateEvent.Hash] != null)
+                {
+                    Chunks[stateEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                }
+                // If it doesn't exist, then we need to make a terrain-less internal node
+                else
+                {
+                    RenderOctreeNodeDescriptor descriptor = new RenderOctreeNodeDescriptor()
+                    {
+                        Hash = stateEvent.Hash,
+                        Depth = stateEvent.Depth,
+                        Offset = stateEvent.Offset,
+                        Lod = stateEvent.Lod,
+                        Size = stateEvent.Size,
+                    };
+                    Chunks[stateEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, descriptor, false);
+                }
+                break;
+            case ChunkState.Leaf:
                 // If it is a leaf, we need to get the terrain
-
+                if (Chunks[stateEvent.Hash] == null)
+                {
+                    RenderOctreeNodeDescriptor descriptor = new RenderOctreeNodeDescriptor()
+                    {
+                        Hash = stateEvent.Hash,
+                        Depth = stateEvent.Depth,
+                        Offset = stateEvent.Offset,
+                        Lod = stateEvent.Lod,
+                        Size = stateEvent.Size,
+                    };
+                    Chunks[stateEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, descriptor);
+                }
+                // Was internal, now is leaf, so we just need to get the terrain chunk
+                else
+                {
+                    Chunks[stateEvent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                }
                 // If it is the last node in the children set to be made, we can deallocate the parent if hasn't already
-
-            default:
-                return;
+                break;
 
         }
     }

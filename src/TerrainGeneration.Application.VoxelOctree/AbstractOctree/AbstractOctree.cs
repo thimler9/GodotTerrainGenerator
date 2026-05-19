@@ -116,7 +116,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                     for (int z = 0; z < 4; z++)
                     {
                         children[0, y, z].CollapseChildren(Chunks, eventQueue);
-                        eventQueue.AddEvent(new ChunkStateEvent(children[0, y, z].Hash, children[0, y, z].Offset, children[0, y, z].Size, children[0, y, z].Lod, children[0, y, z].Depth, ChunkIntentState.Missing));
+                        eventQueue.AddEvent(new ChunkStateEvent(children[0, y, z].Hash, children[0, y, z].Offset, children[0, y, z].Size, children[0, y, z].Lod, children[0, y, z].Depth, ChunkState.Missing));
                     }
                 }
 
@@ -151,7 +151,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                     for (int z = 0; z < 4; z++)
                     {
                         children[3, y, z].CollapseChildren(Chunks, eventQueue);
-                        eventQueue.AddEvent(new ChunkStateEvent(children[3, y, z].Hash, children[3, y, z].Offset, children[3, y, z].Size, children[3, y, z].Lod, children[3, y, z].Depth, ChunkIntentState.Missing));
+                        eventQueue.AddEvent(new ChunkStateEvent(children[3, y, z].Hash, children[3, y, z].Offset, children[3, y, z].Size, children[3, y, z].Lod, children[3, y, z].Depth, ChunkState.Missing));
                     }
                 }
 
@@ -188,7 +188,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                         if (children[x, 0, z] != null)
                         {
                             children[x, 0, z].CollapseChildren(Chunks, eventQueue);
-                            eventQueue.AddEvent(new ChunkStateEvent(children[x, 0, z].Hash, children[x, 0, z].Offset, children[x, 0, z].Size, children[x, 0, z].Lod, children[x, 0, z].Depth, ChunkIntentState.Missing));
+                            eventQueue.AddEvent(new ChunkStateEvent(children[x, 0, z].Hash, children[x, 0, z].Offset, children[x, 0, z].Size, children[x, 0, z].Lod, children[x, 0, z].Depth, ChunkState.Missing));
                         }
                     }
                 }
@@ -225,7 +225,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                         if (children[x, 3, z] != null)
                         {
                             children[x, 3, z].CollapseChildren(Chunks, eventQueue);
-                            eventQueue.AddEvent(new ChunkStateEvent(children[x, 3, z].Hash, children[x, 3, z].Offset, children[x, 3, z].Size, children[x, 3, z].Lod, children[x, 3, z].Depth, ChunkIntentState.Missing));
+                            eventQueue.AddEvent(new ChunkStateEvent(children[x, 3, z].Hash, children[x, 3, z].Offset, children[x, 3, z].Size, children[x, 3, z].Lod, children[x, 3, z].Depth, ChunkState.Missing));
                         }
                     }
                 }
@@ -263,7 +263,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                         if (children[x, y, 0] != null)
                         {
                             children[x, y, 0].CollapseChildren(Chunks, eventQueue);
-                            eventQueue.AddEvent(new ChunkStateEvent(children[x, y, 0].Hash, children[x, y, 0].Offset, children[x, y, 0].Size, children[x, y, 0].Lod, children[x, y, 0].Depth, ChunkIntentState.Missing));
+                            eventQueue.AddEvent(new ChunkStateEvent(children[x, y, 0].Hash, children[x, y, 0].Offset, children[x, y, 0].Size, children[x, y, 0].Lod, children[x, y, 0].Depth, ChunkState.Missing));
                         }
                     }
                 }
@@ -300,7 +300,7 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                         if (children[x, y, 3] != null)
                         {
                             children[x, y, 3].CollapseChildren(Chunks, eventQueue);
-                            eventQueue.AddEvent(new ChunkStateEvent(children[x, y, 3].Hash, children[x, y, 3].Offset, children[x, y, 3].Size, children[x, y, 3].Lod, children[x, y, 3].Depth, ChunkIntentState.Missing));
+                            eventQueue.AddEvent(new ChunkStateEvent(children[x, y, 3].Hash, children[x, y, 3].Offset, children[x, y, 3].Size, children[x, y, 3].Lod, children[x, y, 3].Depth, ChunkState.Missing));
                         }
                     }
                 }

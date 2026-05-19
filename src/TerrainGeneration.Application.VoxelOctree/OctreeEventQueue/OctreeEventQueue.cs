@@ -1,6 +1,9 @@
+using Godot;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEventQueue;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
@@ -13,7 +16,11 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         public IRenderOctree EventTargetTree;
         public uint WorkBudget;
 
-        private readonly Dictionary<int, ChunkStateEvent> PendingChunkIntents;
+        //private Queue<ChunkStateEvent> MissingEvents = new Queue<ChunkStateEvent>();
+        //private Queue<ChunkStateEvent> InternalEvents = new Queue<ChunkStateEvent>();
+        //private Queue<ChunkStateEvent> LeafEvents = new Queue<ChunkStateEvent>();
+
+        private Dictionary<int, OctreeEvent> ChunkStateEvents = new Dictionary<int, OctreeEvent>();
 
         /// <summary>
         /// Creates an octree event queue. Processes the latest desired octree state against the render octree.
@@ -36,7 +43,6 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
 
             EventTargetTree = eventTargetTree;
             WorkBudget = workBudget;
-            PendingChunkIntents = new Dictionary<int, ChunkStateEvent>();
         }
 
         /// <summary>
@@ -50,10 +56,9 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
                 return;
             }
 
-            if (octreeEvent is ChunkStateEvent intent)
+            if (octreeEvent is ChunkStateEvent stateEvent)
             {
-                PendingChunkIntents[intent.Hash] = intent;
-                return;
+                ChunkStateEvents[stateEvent.Hash] = stateEvent;
             }
         }
 
@@ -62,45 +67,55 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         /// </summary>
         public void Process()
         {
-            uint numWork = Math.Min(WorkBudget, (uint)PendingChunkIntents.Count);
+            uint numWork = Math.Min(WorkBudget, (uint)ChunkStateEvents.Count);
+
             OctreeEvent[] eventsToProcess = new OctreeEvent[numWork];
-
             int eventIndex = 0;
-
-            foreach (ChunkStateEvent intent in SelectChunkIntents(numWork - (uint)eventIndex))
+            IEnumerable<OctreeEvent> eventsToProcessEnumerable = GetEventsToProcess(numWork);
+            foreach (var chunkEvent in eventsToProcessEnumerable)
             {
-                PendingChunkIntents.Remove(intent.Hash);
-                eventsToProcess[eventIndex] = intent;
-                eventIndex++;
+                if (chunkEvent is ChunkStateEvent stateEvent)
+                {
+                    eventsToProcess[eventIndex] = stateEvent;
+                    ChunkStateEvents.Remove(stateEvent.Hash);
+                    eventIndex++;
+                }
             }
 
             EventTargetTree.ProcessEvents(eventsToProcess);
         }
 
-        private IEnumerable<ChunkStateEvent> SelectChunkIntents(uint maxCount)
+        private IEnumerable<OctreeEvent> GetEventsToProcess(uint numWork)
         {
-            int count = (int)maxCount;
-            return PendingChunkIntents.Values
-                .OrderBy(intent => GetIntentPriority(intent.State))
-                .ThenBy(intent => GetDepthPriority(intent))
-                .Take(count)
-                .ToArray();
+            // We want to prioritize leaf events, then internal events, then missing events. We also want to prioritize deeper chunks over shallower chunks.
+            return ChunkStateEvents.Values
+                .OrderBy(v => GetChunkEventPriority(v))
+                .ThenBy(v => GetChunkDepthPriority(v))
+                .Take((int)numWork);
         }
 
-        private static int GetIntentPriority(ChunkIntentState state)
+        private int GetChunkEventPriority(OctreeEvent octreeEvent)
         {
-            return state switch
+            return octreeEvent switch
             {
-                ChunkIntentState.Missing => 0,
-                ChunkIntentState.Internal => 1,
-                ChunkIntentState.Leaf => 2,
-                _ => 3,
+                ChunkStateEvent stateEvent => stateEvent.State switch
+                {
+                    ChunkState.Leaf => 0,
+                    ChunkState.Internal => 1,
+                    ChunkState.Missing => 2,
+                    _ => 3
+                },
+                _ => 4
             };
         }
 
-        private static int GetDepthPriority(ChunkStateEvent intent)
+        private int GetChunkDepthPriority(OctreeEvent octreeEvent)
         {
-            return intent.State == ChunkIntentState.Missing ? -intent.Depth : intent.Depth;
+            return octreeEvent switch
+            {
+                ChunkStateEvent stateEvent => -stateEvent.Depth,
+                _ => int.MaxValue
+            };
         }
     }
 }

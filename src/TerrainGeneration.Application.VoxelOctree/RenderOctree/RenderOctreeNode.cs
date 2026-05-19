@@ -27,7 +27,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         public bool HasTerrain => TerrainChunk != null;
 
 
-        public RenderOctreeNode(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, TransvoxelTerrainGenerator transvoxelTerrainGenerator, RenderOctreeDescriptor descriptor, bool createTerrain = true)
+        public RenderOctreeNode(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, bool updateBorders, TransvoxelTerrainGenerator transvoxelTerrainGenerator, RenderOctreeNodeDescriptor descriptor, bool createTerrain = true)
         {
             Offset = descriptor.Offset;
             Size = descriptor.Size;
@@ -40,11 +40,6 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             {
                 CreateTerrainChunk(leafHashes, updatedChunks, transvoxelTerrainGenerator);
             }
-
-            //if (AllChildrenFilled(chunks) && chunks[Hash >> 3] != null)
-            //{
-            //    chunks[Hash >> 3].DisposeTerrainChunk(chunks);
-            //}
 
             // Only used for chunks  that get made when shifting the world center
             if (updateBorders)

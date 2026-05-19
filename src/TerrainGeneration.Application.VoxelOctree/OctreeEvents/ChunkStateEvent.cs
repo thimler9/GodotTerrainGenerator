@@ -3,7 +3,7 @@ using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
 
 namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 {
-    public enum ChunkIntentState
+    public enum ChunkState
     {
         Missing,
         Internal,
@@ -12,7 +12,7 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
 
     public class ChunkStateEvent : OctreeEvent
     {
-        public ChunkStateEvent(int hash, Vector3 offset, uint size, uint lod, int depth, ChunkIntentState state)
+        public ChunkStateEvent(int hash, Vector3 offset, uint size, uint lod, int depth, ChunkState state)
         {
             Hash = hash;
             Offset = offset;
@@ -27,6 +27,6 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEvents
         public uint Size { get; set; }
         public uint Lod { get; set; }
         public int Depth { get; set; }
-        public ChunkIntentState State { get; set; }
+        public ChunkState State { get; set; }
     }
 }
