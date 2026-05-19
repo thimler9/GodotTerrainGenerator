@@ -69,45 +69,55 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         {
             uint numWork = Math.Min(WorkBudget, (uint)ChunkStateEvents.Count);
 
-            OctreeEvent[] eventsToProcess = new OctreeEvent[numWork];
-            int eventIndex = 0;
-            IEnumerable<OctreeEvent> eventsToProcessEnumerable = GetEventsToProcess(numWork);
-            foreach (var chunkEvent in eventsToProcessEnumerable)
+            // Process all of the other events immediately
+            OctreeEvent[] otherEvents = ChunkStateEvents.Values
+                .Where(v => (v is ChunkStateEvent stateEvent) && (stateEvent.State != ChunkState.Leaf))
+                .ToArray();
+            foreach (var octreeEvent in otherEvents)
             {
-                if (chunkEvent is ChunkStateEvent stateEvent)
+                if (octreeEvent is ChunkStateEvent stateEvent)
                 {
-                    eventsToProcess[eventIndex] = stateEvent;
                     ChunkStateEvents.Remove(stateEvent.Hash);
-                    eventIndex++;
                 }
             }
 
-            EventTargetTree.ProcessEvents(eventsToProcess);
+            // We only want to complete the events that terrain over several frames
+            OctreeEvent[] leafEvents = GetEventsToProcess(numWork).ToArray();
+            foreach (var chunkEvent in leafEvents)
+            {
+                if (chunkEvent is ChunkStateEvent stateEvent)
+                {
+                    ChunkStateEvents.Remove(stateEvent.Hash);
+                }
+            }
+
+            EventTargetTree.ProcessEvents(otherEvents);
+            EventTargetTree.ProcessEvents(leafEvents);
         }
 
         private IEnumerable<OctreeEvent> GetEventsToProcess(uint numWork)
         {
             // We want to prioritize leaf events, then internal events, then missing events. We also want to prioritize deeper chunks over shallower chunks.
             return ChunkStateEvents.Values
-                .OrderBy(v => GetChunkEventPriority(v))
-                .ThenBy(v => GetChunkDepthPriority(v))
+                .Where(v => v is ChunkStateEvent stateEvent && (stateEvent.State == ChunkState.Leaf))
+                .OrderBy(v => GetChunkDepthPriority(v))
                 .Take((int)numWork);
         }
 
-        private int GetChunkEventPriority(OctreeEvent octreeEvent)
-        {
-            return octreeEvent switch
-            {
-                ChunkStateEvent stateEvent => stateEvent.State switch
-                {
-                    ChunkState.Leaf => 0,
-                    ChunkState.Internal => 1,
-                    ChunkState.Missing => 2,
-                    _ => 3
-                },
-                _ => 4
-            };
-        }
+        //private int GetChunkEventPriority(OctreeEvent octreeEvent)
+        //{
+        //    return octreeEvent switch
+        //    {
+        //        ChunkStateEvent stateEvent => stateEvent.State switch
+        //        {
+        //            ChunkState.Leaf => 0,
+        //            ChunkState.Internal => 1,
+        //            ChunkState.Missing => 2,
+        //            _ => 3
+        //        },
+        //        _ => 4
+        //    };
+        //}
 
         private int GetChunkDepthPriority(OctreeEvent octreeEvent)
         {

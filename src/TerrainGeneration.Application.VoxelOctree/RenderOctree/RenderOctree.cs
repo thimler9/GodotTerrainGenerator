@@ -189,19 +189,19 @@ internal class RenderOctree : IRenderOctree
         switch (stateEvent.State)
         {
             case ChunkState.Missing:
-                // The node is missing; we need to deallocate it
+                // Leaf -> Missing, Internal -> Missing, dispose of terrain, remove it and children from tree
                 if (Chunks[stateEvent.Hash] != null)
                 {
                     Chunks[stateEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
                 }
                 break;
             case ChunkState.Internal:
-                // If it is internal and has terrain, it got split up; deallocate the terrain
+                // Leaf -> Internal, dispose terrain, keep in tree
                 if (Chunks[stateEvent.Hash] != null)
                 {
                     Chunks[stateEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
                 }
-                // If it doesn't exist, then we need to make a terrain-less internal node
+                // Missing -> Internal, add to tree, don't create terrain
                 else
                 {
                     RenderOctreeNodeDescriptor descriptor = new RenderOctreeNodeDescriptor()
@@ -216,7 +216,7 @@ internal class RenderOctree : IRenderOctree
                 }
                 break;
             case ChunkState.Leaf:
-                // If it is a leaf, we need to get the terrain
+                // Missing -> Leaf, add to tree and create terrain
                 if (Chunks[stateEvent.Hash] == null)
                 {
                     RenderOctreeNodeDescriptor descriptor = new RenderOctreeNodeDescriptor()
@@ -228,13 +228,18 @@ internal class RenderOctree : IRenderOctree
                         Size = stateEvent.Size,
                     };
                     Chunks[stateEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, descriptor);
+
+                    // We can dispose of the parent's terrain if this is the last child to be filled
+                    if (AllChildrenFilled(stateEvent.Hash >> 3))
+                    {
+                        Chunks[stateEvent.Hash >> 3]?.DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                    }
                 }
-                // Was internal, now is leaf, so we just need to get the terrain chunk
+                // Internal -> Leaf, create terrain
                 else
                 {
                     Chunks[stateEvent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
                 }
-                // If it is the last node in the children set to be made, we can deallocate the parent if hasn't already
                 break;
 
         }
@@ -243,5 +248,17 @@ internal class RenderOctree : IRenderOctree
     private bool IsValidHash(int hash)
     {
         return hash > 0 && hash < Chunks.Length;
+    }
+
+    private bool AllChildrenFilled(int hash)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            if (Chunks[(hash << 3) | i] == null)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -398,8 +398,8 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                 Chunks[1].Update(Chunks, eventQueue, newPlayerPosition, MinChunkSize, LodArray);
                 OldPlayerPosition = newPlayerPosition;
 
-                Vector3 worldCenter = new Vector3(MathF.Round(newPlayerPosition.X / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4),
-                    MathF.Round(newPlayerPosition.Y / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4), MathF.Round(newPlayerPosition.Z / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4));
+                //Vector3 worldCenter = new Vector3(MathF.Round(newPlayerPosition.X / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4),
+                //    MathF.Round(newPlayerPosition.Y / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4), MathF.Round(newPlayerPosition.Z / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4));
 
                 //// Move world if player has moved far enough
                 //if (!(Center.X == worldCenter.X && Center.Y == worldCenter.Y && Center.Z == worldCenter.Z))

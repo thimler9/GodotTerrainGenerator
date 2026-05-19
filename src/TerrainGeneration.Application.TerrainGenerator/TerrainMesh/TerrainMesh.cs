@@ -194,17 +194,6 @@ public class TerrainMesh
         Rd.FreeRid(IndirectArgsBuffer);
         Rd.FreeRid(VertexBuffer);
         Rd.FreeRid(TerrainMeshShaderParametersBuffer);
-
-        // At the moment we're making these every frame
-        // There's a chance during update that we dispose of this without ever rendering it
-        //if (VertexBufferUniformSet.IsValid)
-        //{
-        //    Rd.FreeRid(VertexBufferUniformSet);
-        //}
-        //if (TerrainMeshShaderParametersUniformSet.IsValid)
-        //{
-        //    Rd.FreeRid(TerrainMeshShaderParametersUniformSet);
-        //}
     }
 
     /// <summary>
