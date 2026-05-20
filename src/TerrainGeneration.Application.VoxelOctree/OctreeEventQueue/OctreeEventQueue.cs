@@ -90,9 +90,10 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
                     ChunkStateEvents.Remove(stateEvent.Hash);
                 }
             }
-
-            EventTargetTree.ProcessEvents(otherEvents);
+            
+            // We want to process leaf events first; if the leaves have the terrain first, we can avoid unecessary allocations in the internals
             EventTargetTree.ProcessEvents(leafEvents);
+            EventTargetTree.ProcessEvents(otherEvents);
         }
 
         private IEnumerable<OctreeEvent> GetEventsToProcess(uint numWork)

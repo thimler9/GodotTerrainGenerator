@@ -38,7 +38,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
             if (createTerrain)
             {
-                CreateTerrainChunk(leafHashes, updatedChunks, transvoxelTerrainGenerator);
+                CreateTerrainChunk(chunks, leafHashes, updatedChunks, transvoxelTerrainGenerator);
             }
 
             // Only used for chunks  that get made when shifting the world center
@@ -113,18 +113,20 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             }
         }
 
-        public void SetTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
+        public void SetTerrainChunk(RenderOctreeNode?[] chunks, bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
             if (TerrainChunk != null)
             {
                 leafHashes[Hash] = true;
                 return;
             }
-
-            CreateTerrainChunk(leafHashes, updatedChunks, transvoxelTerrainGenerator);
+            else
+            {
+                CreateTerrainChunk(chunks, leafHashes, updatedChunks, transvoxelTerrainGenerator);
+            }
         }
 
-        private void CreateTerrainChunk(bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
+        private void CreateTerrainChunk(RenderOctreeNode?[] chunks,  bool[] leafHashes, Queue<int> updatedChunks, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
         {
             TerrainChunkDescriptor terrainChunkDescriptor = new TerrainChunkDescriptor()
             {
@@ -135,6 +137,16 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
             leafHashes[Hash] = true;
             updatedChunks.Enqueue(Hash);
+
+            // Remove the children if there are any
+            for (int i = 0; i < 8; i++)
+            {
+                int childHash = (Hash << 3) | i;
+                if (childHash > 0 && childHash < chunks.Length && chunks[childHash] != null)
+                {
+                    chunks[childHash]?.Dispose(chunks, leafHashes, transvoxelTerrainGenerator);
+                }
+            }
         }
 
         public int[] SetBorders(bool[] leafHashes)

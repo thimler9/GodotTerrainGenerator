@@ -193,16 +193,23 @@ internal class RenderOctree : IRenderOctree
                 if (Chunks[stateEvent.Hash] != null)
                 {
                     Chunks[stateEvent.Hash].Dispose(Chunks, LeafHashes, TransvoxelTerrainGenerator);
+
+                    // If we dispose of this chunk, we need to make sure the parent has a terrain chunk to render. Could probably make this more efficient so that it doesn't make it unless necesary.
+                    // There could be another event that removes it.
+                    if (IsValidHash(stateEvent.Hash >> 3) && Chunks[stateEvent.Hash >> 3] != null)
+                    {
+                        Chunks[stateEvent.Hash >> 3].SetTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                    }
                 }
                 break;
             case ChunkState.Internal:
                 // Leaf -> Internal, dispose terrain, keep in tree
-                if (Chunks[stateEvent.Hash] != null)
-                {
-                    Chunks[stateEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
-                }
+                //if (Chunks[stateEvent.Hash] != null)
+                //{
+                //    Chunks[stateEvent.Hash].DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                //}
                 // Missing -> Internal, add to tree, don't create terrain
-                else
+                if (Chunks[stateEvent.Hash] == null)
                 {
                     RenderOctreeNodeDescriptor descriptor = new RenderOctreeNodeDescriptor()
                     {
@@ -212,7 +219,15 @@ internal class RenderOctree : IRenderOctree
                         Lod = stateEvent.Lod,
                         Size = stateEvent.Size,
                     };
-                    Chunks[stateEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, descriptor, false);
+
+                    // If not all of the children have been made yet, we need the terrain to render. Once all of the children get filled, it will get disposed
+                    bool createTerrain = !AllChildrenFilled(stateEvent.Hash);
+                    if (createTerrain)
+                    {
+                        GD.Print("Creating terrain for internal node with hash " + stateEvent.Hash);
+                    }
+
+                    Chunks[stateEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, descriptor, createTerrain);
                 }
                 break;
             case ChunkState.Leaf:
@@ -229,16 +244,21 @@ internal class RenderOctree : IRenderOctree
                     };
                     Chunks[stateEvent.Hash] = new RenderOctreeNode(Chunks, LeafHashes, updatedChunks, true, TransvoxelTerrainGenerator, descriptor);
 
-                    // We can dispose of the parent's terrain if this is the last child to be filled
+                    // We can dispose of the parent's terrain if this is the last child to be filled. We also need to check all ancestors in case they have terrain still
                     if (AllChildrenFilled(stateEvent.Hash >> 3))
                     {
-                        Chunks[stateEvent.Hash >> 3]?.DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                        int currentAncestorHash = stateEvent.Hash >> 3;
+                        while (currentAncestorHash > 0)
+                        {
+                            Chunks[currentAncestorHash]?.DisposeTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                            currentAncestorHash = currentAncestorHash >> 3;
+                        }
                     }
                 }
                 // Internal -> Leaf, create terrain
                 else
                 {
-                    Chunks[stateEvent.Hash].SetTerrainChunk(LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
+                    Chunks[stateEvent.Hash].SetTerrainChunk(Chunks, LeafHashes, updatedChunks, TransvoxelTerrainGenerator);
                 }
                 break;
 
@@ -254,7 +274,8 @@ internal class RenderOctree : IRenderOctree
     {
         for (int i = 0; i < 8; i++)
         {
-            if (Chunks[(hash << 3) | i] == null)
+            int childHash = (hash << 3) | i;
+            if (IsValidHash(childHash) && Chunks[childHash] == null)
             {
                 return false;
             }
