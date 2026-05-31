@@ -12,7 +12,13 @@ partial class FreeLookCamera : FreeLookCameraBase
             if (_enabled)
             {
                 // save current active camera
-                _previousCamera = GetViewport().GetCamera3D();
+                Viewport viewport = GetViewport();
+                if (viewport == null)
+                {
+                    return;
+                }
+
+                _previousCamera = viewport.GetCamera3D();
                 _previousMouseMode = Input.MouseMode;
 
                 if (_previousCamera != null)
@@ -52,10 +58,13 @@ partial class FreeLookCamera : FreeLookCameraBase
     private Camera3D _previousCamera;
     private Input.MouseModeEnum _previousMouseMode;
 
+    // Starts disabled so the scene's normal camera remains active until free-look is requested.
     public override void _Ready()
     {
         Current = false;
     }
+
+    // Forwards input to the base free-look controls only while this camera is active.
     public override void _Input(InputEvent _event)
     {
         if (! Enabled)
@@ -64,6 +73,8 @@ partial class FreeLookCamera : FreeLookCameraBase
         }
         base._Input(_event);
     }
+
+    // Updates movement only while free-look mode is enabled.
     public override void _Process(double delta)
     {
         if (! Enabled)

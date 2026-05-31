@@ -54,6 +54,7 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         public void Process()
         {
             uint numWork = Math.Min(WorkBudget, (uint)EventQueue.Count);
+
             IOctreeEvent[] eventsToProcess = new IOctreeEvent[numWork];
 
             // Grab events to process this frame
