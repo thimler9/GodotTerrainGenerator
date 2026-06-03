@@ -80,16 +80,16 @@ internal class RenderOctree : IRenderOctree
         TransvoxelTerrainGenerator.Dispose();
     }
 
-    public void MoveWorldCenterHashAndOffsets(List<(int oldHash, int newHash)> updatedHashes, Vector3 newWorldCenter)
+    public void MoveWorldCenterHashAndOffsets(List<UpdatedHash> updatedHashes, Vector3 newWorldCenter)
     {
         RenderOctreeNode[] newChunks = new RenderOctreeNode[Chunks.Length];
         bool[] newLeafHashes = new bool[LeafHashes.Length];
         // Set new hashes
         for (int i = 0; i < updatedHashes.Count; i++)
         {
-            if (Chunks[updatedHashes[i].oldHash] != null)
+            if (Chunks[updatedHashes[i].OldHash] != null)
             {
-                Chunks[updatedHashes[i].oldHash].UpdateHash(updatedHashes[i].newHash, Chunks, newChunks, newLeafHashes);
+                Chunks[updatedHashes[i].OldHash].UpdateHash(updatedHashes[i].NewHash, Chunks, newChunks, newLeafHashes);
             }
         }
 
@@ -218,7 +218,8 @@ internal class RenderOctree : IRenderOctree
 
                 if (octreeEvent is MoveWorldCenterEvent)
                 {
-                    // To be implemented
+                    MoveWorldCenterEvent currEvent = octreeEvent as MoveWorldCenterEvent;
+                    MoveWorldCenterHashAndOffsets(currEvent.UpdatedHashes, currEvent.NewWorldCenter);
                 }
             }
 

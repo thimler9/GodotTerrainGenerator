@@ -402,10 +402,10 @@ namespace TerrainGeneration.Application.VoxelOctree.AbstractOctree
                     MathF.Round(newPlayerPosition.Y / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4), MathF.Round(newPlayerPosition.Z / (Size / 4), MidpointRounding.ToPositiveInfinity) * (Size / 4));
 
                 //// Move world if player has moved far enough
-                //if (!(Center.X == worldCenter.X && Center.Y == worldCenter.Y && Center.Z == worldCenter.Z))
-                //{
-                //    MoveWorldCenter(newPlayerPosition, worldCenter, eventQueue);
-                //}
+                if (!(Center.X == worldCenter.X && Center.Y == worldCenter.Y && Center.Z == worldCenter.Z))
+                {
+                    MoveWorldCenter(newPlayerPosition, worldCenter, eventQueue);
+                }
             }
         }
 
