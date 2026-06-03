@@ -10,7 +10,7 @@ using TerrainGeneration.Utilities.Struct;
 namespace TerrainGeneration.Application.TerrainGenerator;
 public class TerrainMesh
 {
-    private const uint VERT_DIVISOR = 1;
+    private const uint VERT_DIVISOR = 16;
 
     private RenderingDevice Rd;
 
