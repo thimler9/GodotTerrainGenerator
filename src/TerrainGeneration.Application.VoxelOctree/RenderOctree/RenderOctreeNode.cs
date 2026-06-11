@@ -20,6 +20,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
         private uint Lod;
         private int Depth;
         private int Hash;
+        private TerrainGeneration.Application.TerrainGenerator.TerrainSpawns.ITerrainSpawnFactory? TerrainSpawnFactory;
 
         private Aabb Bounds;
 
@@ -31,6 +32,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             Lod = descriptor.Lod;
             Depth = descriptor.Depth;
             Hash = descriptor.Hash;
+            TerrainSpawnFactory = descriptor.TerrainSpawnFactory;
             Bounds = new Aabb(descriptor.Offset, Vector3.One * descriptor.Size);
 
             // Create chunk mesh
@@ -39,6 +41,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
                 ChunkOffset = descriptor.Offset,
                 ChunkSize = descriptor.Size,
                 Lod = descriptor.Lod,
+                TerrainSpawnFactory = TerrainSpawnFactory,
             };
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
             leafHashes[Hash] = true;
@@ -66,6 +69,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
 
             if (TerrainChunk != null)
             {
+                TerrainChunk.DisposeTerrainSpawns();
                 transvoxelTerrainGenerator.ReturnTerrainMesh(TerrainChunk.TerrainMesh);
                 TerrainChunk = null;
             }
@@ -84,6 +88,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
             }
 
             leafHashes[Hash] = false; // No longer a leaf
+            TerrainChunk.DisposeTerrainSpawns();
             transvoxelTerrainGenerator.ReturnTerrainMesh(TerrainChunk.TerrainMesh); // Remove render data
             TerrainChunk = null;
             chunks[Hash] = null; // No longer in tree
@@ -122,6 +127,7 @@ namespace TerrainGeneration.Application.VoxelOctree.RenderOctree
                 ChunkOffset = Offset,
                 ChunkSize = Size,
                 Lod = Lod,
+                TerrainSpawnFactory = TerrainSpawnFactory,
             };
             TerrainChunk = new TerrainChunk(transvoxelTerrainGenerator, terrainChunkDescriptor);
             leafHashes[Hash] = true;

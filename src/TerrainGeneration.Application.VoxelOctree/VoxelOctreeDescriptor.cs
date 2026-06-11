@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Application.TerrainGenerator.TerrainSpawns;
 using TerrainGeneration.Application.VoxelOctree.AbstractOctree;
 
 namespace TerrainGeneration.Application.VoxelOctree;
@@ -20,4 +21,5 @@ public class VoxelOctreeDescriptor
     public required uint EventQueueWorkBudget;
 
     public required TransvoxelTerrainGeneratorDescriptor TransvoxelTerrainGeneratorDescriptor;
+    public ITerrainSpawnFactory? TerrainSpawnFactory;
 }

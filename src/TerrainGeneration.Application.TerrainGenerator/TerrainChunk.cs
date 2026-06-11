@@ -1,11 +1,12 @@
 ﻿using Godot;
+using TerrainGeneration.Application.TerrainGenerator.TerrainSpawns;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 
 namespace TerrainGeneration.Application.TerrainGenerator
 {
     public class TerrainChunk
     {
-        //private TerrainSpawns TerrainSpawns;
+        public ITerrainSpawns? TerrainSpawns;
 
         public TerrainMesh TerrainMesh;
         private TerrainMeshShaderParameters TerrainMeshParameters;
@@ -34,6 +35,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
                 Lod = descriptor.Lod,
             };
             TerrainMesh.SetShaderParameters(TerrainMeshParameters);
+            TerrainSpawns = descriptor.TerrainSpawnFactory?.CreateTerrainSpawns(descriptor);
         }
 
         /// <summary>
@@ -41,7 +43,14 @@ namespace TerrainGeneration.Application.TerrainGenerator
         /// </summary>
         public void Dispose()
         {
+            DisposeTerrainSpawns();
             TerrainMesh.Dispose();
+        }
+
+        public void DisposeTerrainSpawns()
+        {
+            TerrainSpawns?.Dispose();
+            TerrainSpawns = null;
         }
 
 
@@ -88,6 +97,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         public void Render(TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
         {
             TerrainMesh.Render(terrainMeshRenderDescriptor);
+            TerrainSpawns?.Render();
         }
     }
 }

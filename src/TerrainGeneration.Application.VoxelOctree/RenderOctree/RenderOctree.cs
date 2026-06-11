@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator;
+using TerrainGeneration.Application.TerrainGenerator.TerrainSpawns;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.OctreeEvent;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
@@ -28,11 +29,12 @@ internal class RenderOctree : IRenderOctree
 
     // How we get the triangle for the terrain meshes
     private TransvoxelTerrainGenerator TransvoxelTerrainGenerator;
+    private ITerrainSpawnFactory? TerrainSpawnFactory;
 
     // Shader constants for rendering mesh
 
 
-    public RenderOctree(uint size, uint minChunkSize, int lodArrayLength, float borderWidth, TransvoxelTerrainGenerator transvoxelTerrainGenerator)
+    public RenderOctree(uint size, uint minChunkSize, int lodArrayLength, float borderWidth, TransvoxelTerrainGenerator transvoxelTerrainGenerator, ITerrainSpawnFactory? terrainSpawnFactory)
     {
         Size = size;
         MinChunkSize = minChunkSize;
@@ -43,6 +45,7 @@ internal class RenderOctree : IRenderOctree
         Chunks = new RenderOctreeNode[((1 << ((deepestDepth + 2) * 3)) - 1) / 7];
         LeafHashes = new bool[Chunks.Length];
         TransvoxelTerrainGenerator = transvoxelTerrainGenerator;
+        TerrainSpawnFactory = terrainSpawnFactory;
     }
 
     private int GetDeepestDepth()
@@ -179,6 +182,7 @@ internal class RenderOctree : IRenderOctree
                         Lod = currEvent.Lod,
                         Offset = currEvent.Offset,
                         Size = currEvent.Size,
+                        TerrainSpawnFactory = TerrainSpawnFactory,
                     });
                 }
 

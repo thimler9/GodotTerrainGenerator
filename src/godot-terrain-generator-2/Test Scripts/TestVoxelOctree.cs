@@ -1,4 +1,5 @@
 using Godot;
+using GodotTerrainGenerator2.TerrainSpawns;
 using GodotTerrainGenerator2.Test_Scripts;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
@@ -56,7 +57,36 @@ public partial class TestVoxelOctree : Node
 	[Export]
 	public float Gain;
 
+	// Terrain spawn params
+	[Export]
+	public Godot.Collections.Array<TerrainSpawnDefinition> SpawnDefinitions = [];
+	[Export]
+	public int SpawnMaxQuadtreeLevel = 4;
+	[Export]
+	public float SpawnBasePdsRadius = 64.0f;
+	[Export]
+	public float SpawnRadiusFalloff = 0.5f;
+	[Export]
+	public float SpawnRayTopY = 512.0f;
+	[Export]
+	public float SpawnRayBottomY = -512.0f;
+	[Export]
+	public float SpawnRayStepSize = 2.0f;
+	[Export]
+	public uint SpawnRayRefineSteps = 6;
+	[Export]
+	public uint SpawnMaxHitsPerRay = 4;
+	[Export]
+	public float SpawnSeaLevel = 0.0f;
+	[Export]
+	public float SpawnSunLight = 1.0f;
+	[Export]
+	public uint SpawnMaxCandidates = 65536;
+	[Export]
+	public uint SpawnMaxSelections = 65536;
+
 	private VoxelOctree VoxelOctree;
+	private GodotTerrainSpawnFactory TerrainSpawnFactory;
 
 
 	// Called when the node enters the scene tree for the first time.
@@ -121,6 +151,7 @@ public partial class TestVoxelOctree : Node
 			TransvoxelShaderPath = TransvoxelShaderPath,
 		};
 		TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(rd, transvoxelTerrainGeneratorDescriptor);
+		TerrainSpawnFactory = CreateTerrainSpawnFactory(rd);
 
 		VoxelOctreeDescriptor voxelOctreeDescriptor = new VoxelOctreeDescriptor()
 		{
@@ -133,6 +164,7 @@ public partial class TestVoxelOctree : Node
 			PlayerPositionChangeThreshold = PlayerPositionChangeThreshold,
 			Size = StartSize,
 			TerrainLods = TerrainLods,
+			TerrainSpawnFactory = TerrainSpawnFactory,
 		};
 
 		VoxelOctree = new VoxelOctree(voxelOctreeDescriptor);
@@ -156,5 +188,45 @@ public partial class TestVoxelOctree : Node
 	{
 		VoxelOctree.UpdateAbstractTree(Camera.Position);
 		VoxelOctree.ProcessEventQueue();
+	}
+
+	public override void _ExitTree()
+	{
+		TerrainSpawnFactory?.Dispose();
+		TerrainSpawnFactory = null;
+	}
+
+	private GodotTerrainSpawnFactory CreateTerrainSpawnFactory(RenderingDevice rd)
+	{
+		if (SpawnDefinitions.Count == 0)
+		{
+			return null;
+		}
+
+		return new GodotTerrainSpawnFactory(rd, this, SpawnDefinitions, new GodotTerrainSpawnFactory.Settings
+		{
+			Seed = Seed,
+			WorldSize = StartSize,
+			MaxQuadtreeLevel = SpawnMaxQuadtreeLevel,
+			BasePdsRadius = SpawnBasePdsRadius,
+			RadiusFalloff = SpawnRadiusFalloff,
+			TopY = SpawnRayTopY,
+			BottomY = SpawnRayBottomY,
+			StepSize = SpawnRayStepSize,
+			RefineSteps = SpawnRayRefineSteps,
+			MaxHitsPerRay = SpawnMaxHitsPerRay,
+			SeaLevel = SpawnSeaLevel,
+			SunLight = SpawnSunLight,
+			MaxCandidates = SpawnMaxCandidates,
+			MaxSelections = SpawnMaxSelections,
+			NoiseSeed = Seed,
+			NoiseScale = Scale,
+			NoiseStrength = Strength,
+			NoiseOctaves = NumOctaves,
+			NoiseFrequency = Frequency,
+			NoiseAmplitude = Amplitude,
+			NoiseLacunarity = Lacunarity,
+			NoiseGain = Gain,
+		});
 	}
 }

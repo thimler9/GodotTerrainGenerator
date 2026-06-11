@@ -19,7 +19,7 @@ public class VoxelOctree
     public VoxelOctree(VoxelOctreeDescriptor descriptor)
     {
         TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(RenderingServer.GetRenderingDevice(), descriptor.TransvoxelTerrainGeneratorDescriptor);
-        RenderOctree = new RenderOctree.RenderOctree(descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods.Length, descriptor.BorderWidth, transvoxelTerrainGenerator);
+        RenderOctree = new RenderOctree.RenderOctree(descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods.Length, descriptor.BorderWidth, transvoxelTerrainGenerator, descriptor.TerrainSpawnFactory);
         OctreeEventQueue = new OctreeEventQueue.OctreeEventQueue(RenderOctree, descriptor.EventQueueWorkBudget);
         AbstractOctree = new AbstractOctree.AbstractOctree(OctreeEventQueue, descriptor.Center, descriptor.PlayerPosition, descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods, descriptor.PlayerPositionChangeThreshold);
     }

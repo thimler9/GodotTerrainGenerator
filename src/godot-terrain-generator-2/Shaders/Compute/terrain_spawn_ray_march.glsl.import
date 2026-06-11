@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dli8po41t3r6u"
+path="res://.godot/imported/terrain_spawn_ray_march.glsl-5600cfa4481ae8ee5a5871f3f27499cf.res"
+
+[deps]
+
+source_file="res://Shaders/Compute/terrain_spawn_ray_march.glsl"
+dest_files=["res://.godot/imported/terrain_spawn_ray_march.glsl-5600cfa4481ae8ee5a5871f3f27499cf.res"]
+
+[params]
+

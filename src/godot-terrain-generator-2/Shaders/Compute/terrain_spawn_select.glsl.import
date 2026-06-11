@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dc8x6iqsf3j2y"
+path="res://.godot/imported/terrain_spawn_select.glsl-f414e9104ec1e2fe1cd107a68b82a40b.res"
+
+[deps]
+
+source_file="res://Shaders/Compute/terrain_spawn_select.glsl"
+dest_files=["res://.godot/imported/terrain_spawn_select.glsl-f414e9104ec1e2fe1cd107a68b82a40b.res"]
+
+[params]
+
