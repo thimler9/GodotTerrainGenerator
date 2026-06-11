@@ -56,7 +56,7 @@ public partial class TestVoxelOctree : Node
 	[Export]
 	public float Gain;
 
-	private VoxelOctree VoxelOctree;
+	public VoxelOctree VoxelOctree;
 
 
 	// Called when the node enters the scene tree for the first time.

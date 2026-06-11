@@ -34,6 +34,11 @@ public class VoxelOctree
         OctreeEventQueue.Process();
     }
 
+    public int GetNumEventsInQueue()
+    {
+        return OctreeEventQueue.EventQueue.Count();
+    }
+
     public void Render(Array<Plane> frustumPlanes, TerrainMeshRenderDescriptor terrainMeshRenderDescriptor)
     {
         RenderOctree.Render(frustumPlanes, terrainMeshRenderDescriptor);

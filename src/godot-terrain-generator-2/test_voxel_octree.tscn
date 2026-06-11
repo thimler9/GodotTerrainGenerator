@@ -1,5 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://bepinf15m7nmp"]
+[gd_scene load_steps=8 format=3 uid="uid://bepinf15m7nmp"]
 
+[ext_resource type="PackedScene" uid="uid://bu5h2bnh4gpar" path="res://Debug UI.tscn" id="1_820bx"]
 [ext_resource type="Script" uid="uid://bkirokmvgvtlk" path="res://Test Scripts/TestVoxelOctreeRenderer.cs" id="1_mxbe1"]
 [ext_resource type="Script" uid="uid://3rx3e6vwcmxk" path="res://Test Scripts/TestVoxelOctree.cs" id="1_won1t"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_jae4j"]
@@ -21,6 +22,8 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_jae4
 
 [node name="TestVoxelOctree" type="Node3D"]
 
+[node name="Control" parent="." instance=ExtResource("1_820bx")]
+
 [node name="Camera3D" type="Camera3D" parent="."]
 compositor = SubResource("Compositor_820bx")
 script = ExtResource("2_jae4j")
@@ -28,18 +31,18 @@ script = ExtResource("2_jae4j")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_jae4j")
 
-[node name="Node" type="Node" parent="." node_paths=PackedStringArray("Camera")]
+[node name="VoxelOctree" type="Node" parent="." node_paths=PackedStringArray("Camera")]
 script = ExtResource("1_won1t")
 Camera = NodePath("../Camera3D")
-StartSize = 2048
-MinChunkSize = 32
+StartSize = 1024
+MinChunkSize = 16
 BorderWidth = 1.5
 PlayerPositionChangeThreshold = 25.0
 EventQueueWorkBudget = 15
 MaxNumVertices = 75000
 MaxNumTerrainMeshesInQueue = 10
 Seed = 1234
-Scale = 1000.0
+Scale = 500.0
 Strength = 1.0
 NumOctaves = 8
 Frequency = 1.0

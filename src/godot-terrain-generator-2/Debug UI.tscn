@@ -1,0 +1,63 @@
+[gd_scene load_steps=4 format=3 uid="uid://bu5h2bnh4gpar"]
+
+[ext_resource type="Script" uid="uid://l6n6oy63rv4n" path="res://FpsText.cs" id="1_nf8jx"]
+[ext_resource type="Script" uid="uid://ddotjmvc28e6m" path="res://PlayerLocationDebugText.cs" id="2_masxj"]
+[ext_resource type="Script" uid="uid://ib7gf7d03cpb" path="res://EventsInQueueDebugText.cs" id="3_6er7o"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Game Info Container" type="GridContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/v_separation = 32
+
+[node name="Debug Info" type="Panel" parent="Game Info Container"]
+layout_mode = 2
+
+[node name="Debug Info Text" type="Label" parent="Game Info Container/Debug Info"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 227.0
+offset_bottom = 34.0
+text = "Debug Info:"
+
+[node name="FPS" type="Panel" parent="Game Info Container"]
+layout_mode = 2
+
+[node name="FPS Text" type="Label" parent="Game Info Container/FPS"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 227.0
+offset_bottom = 34.0
+script = ExtResource("1_nf8jx")
+
+[node name="Player Location" type="Panel" parent="Game Info Container"]
+layout_mode = 2
+
+[node name="Player Location Text" type="Label" parent="Game Info Container/Player Location"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 227.0
+offset_bottom = 34.0
+script = ExtResource("2_masxj")
+
+[node name="Events in Queue" type="Panel" parent="Game Info Container"]
+layout_mode = 2
+
+[node name="Events in Queue Text" type="Label" parent="Game Info Container/Events in Queue"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 1.0
+offset_right = 227.0
+offset_bottom = 34.0
+script = ExtResource("3_6er7o")
