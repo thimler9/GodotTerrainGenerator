@@ -5,6 +5,10 @@
     <RootNamespace>GodotTerrainGenerator2</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="data\TerrainPipeline.json" />
+  </ItemGroup>
+  <ItemGroup>
+	  <Folder Include="Data\" />
 	  <Folder Include="Shaders\Compute\" />
 	  <Folder Include="Shaders\Graphic\Includes\" />
   </ItemGroup>
