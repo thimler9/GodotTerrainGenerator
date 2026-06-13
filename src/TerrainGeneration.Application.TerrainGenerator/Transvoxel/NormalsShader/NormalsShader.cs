@@ -27,7 +27,7 @@ public class NormalsShader
 
     // We keep the buffer in the shader since the same buffer is used everytime
     private Rid OutputNormalsBuffer;
-    public RDUniform OutputNormalsUniform { get; }
+    private RDUniform OutputNormalsUniform;
     private Rid OutputNormalsUniformSet;
 
     /// <summary>
@@ -57,9 +57,7 @@ public class NormalsShader
         Pipeline = rd.ComputePipelineCreate(Shader);
 
         // Set Paramters
-        Parameters = descriptor.Parameters;
-        byte[] parameterBytes = StructHelpers.ToByteArray(descriptor.Parameters);
-        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<NormalsShaderParameters>(), parameterBytes);
+        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<NormalsShaderParameters>());
         RDUniform parametersUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,
@@ -67,21 +65,11 @@ public class NormalsShader
         };
         parametersUniform.AddId(ParametersBuffer);
 
-        //SimplexNoiseParameters = descriptor.SimplexNoiseParameters;
-        //byte[] sdfParameterBytes = StructHelpers.ToByteArray(descriptor.SimplexNoiseParameters);
-        //SimplexNoiseParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), sdfParameterBytes);
-        //RDUniform sdfParametersUniform = new RDUniform()
-        //{
-        //    UniformType = RenderingDevice.UniformType.UniformBuffer,
-        //    Binding = 0
-        //};
-        //sdfParametersUniform.AddId(SimplexNoiseParametersBuffer);
-
         // Create the output buffer used throughout calculations
-        uint chunkSizeToLodRatio = descriptor.Parameters.ChunkSize / descriptor.Parameters.Lod;
+        uint chunkSizeToLodRatio = descriptor.ChunkSize / descriptor.Lod;
         if (chunkSizeToLodRatio == 0)
         {
-            throw new ArgumentException($"{nameof(descriptor.Parameters.ChunkSize)} / {nameof(descriptor.Parameters.Lod)} must be greater than 0");
+            throw new ArgumentException($"{nameof(descriptor.ChunkSize)} / {nameof(descriptor.Lod)} must be greater than 0");
         }
 
         OutputNormalsBuffer = rd.StorageBufferCreate((chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * sizeof(float) * 3);
@@ -94,7 +82,6 @@ public class NormalsShader
 
         ParametersUniformSet = rd.UniformSetCreate([parametersUniform], Shader, 0);
         OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, 2);
-        //SimplexNoiseParametersUniformSet = rd.UniformSetCreate([sdfParametersUniform], Shader, 3);
     }
 
     /// <summary>
@@ -115,13 +102,15 @@ public class NormalsShader
     /// </summary>
     /// <param name="parameters"></param>
     /// <param name="inputSDFUniform"></param>
-    public void Dispatch(NormalsShaderParameters parameters, RDUniform inputSDFUniform)
+    public RDUniform Dispatch(NormalsShaderParameters parameters, RDUniform inputSDFUniform)
     {
         SetParameters(parameters);
 
         // No reason to run if parameters haven't been changed
         // Run the shaders
         RunNormalsShader(inputSDFUniform);
+
+        return OutputNormalsUniform;
     }
 
     /// <summary>
@@ -153,7 +142,6 @@ public class NormalsShader
         Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
         Rd.ComputeListBindUniformSet(computeList, inputSDFUniformSet, 1);
         Rd.ComputeListBindUniformSet(computeList, OutputNormalsUniformSet, 2);
-        //Rd.ComputeListBindUniformSet(computeList, SimplexNoiseParametersUniformSet, 3);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 1, yGroups: chunkSize / (8 * lod) + 1, zGroups: chunkSize / (8 * lod) + 1);
         Rd.ComputeListEnd();
 

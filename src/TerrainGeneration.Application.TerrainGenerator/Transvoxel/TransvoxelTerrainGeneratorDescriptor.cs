@@ -20,7 +20,7 @@ public class TransvoxelTerrainGeneratorDescriptor
     //Transvoxel Params
     public required uint ChunkSize;
     public required uint Lod;
-    public required float TransitionWidth;
+    public required float BorderWidth;
     public required Vector3 ChunkOffset;
     public required uint MaxNumVertices;
     public required string? TransvoxelShaderPath;

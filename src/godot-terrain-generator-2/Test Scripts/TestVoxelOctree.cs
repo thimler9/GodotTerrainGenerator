@@ -107,7 +107,7 @@ public partial class TestVoxelOctree : Node
 			MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
 			MaxNumVertices = MaxNumVertices,
 			NormalsShaderPath = NormalsShaderPath,
-			TransitionWidth = BorderWidth,
+			BorderWidth = BorderWidth,
 			TransvoxelShaderPath = TransvoxelShaderPath,
 		};
 		TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(rd, transvoxelTerrainGeneratorDescriptor);

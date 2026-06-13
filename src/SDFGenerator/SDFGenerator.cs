@@ -15,7 +15,7 @@ public class SDFGenerator
     private RenderingDevice Rd;
     SDFShaderParameters SDFShaderParameters;
 
-    public RDUniform OutputBufferUniform { get; set; }
+    RDUniform OutputBufferUniform;
     Rid OutputBuffer;
 
     RDUniform SDFParametersUniform;
@@ -62,9 +62,9 @@ public class SDFGenerator
         SDFParametersUniform.AddId(SDFParametersBuffer);
 
         // Setup the shaders
-        SDFShader = settings.SDFShader;
-        SDFShader.SetOutputUniformSet(OutputBufferUniform);
-        SDFShader.SetSDFParametersUniformSet(SDFParametersUniform);
+        //SDFShader = settings.SDFShader;
+        //SDFShader.SetOutputUniformSet(OutputBufferUniform);
+        //SDFShader.SetSDFParametersUniformSet(SDFParametersUniform);
     }
 
     /// <summary>
@@ -76,6 +76,7 @@ public class SDFGenerator
         if (!this.SDFShaderParameters.Equals(parameters))
         {
             Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
+            SDFShaderParameters = parameters;
         }
     }
 
@@ -83,12 +84,14 @@ public class SDFGenerator
     /// Executes the sdf shader. Will update the parameters if necessary.
     /// </summary>
     /// <param name="parameters"></param>
-    public void DispatchShaders(SDFShaderParameters parameters)
+    public RDUniform DispatchShaders(SDFShaderParameters parameters)
     {
         SetSDFParameters(parameters);
 
         // Run the shaders
         SimplexNoise();
+
+        return OutputBufferUniform;
     }
 
     /// <summary>
@@ -97,7 +100,7 @@ public class SDFGenerator
     /// <param name="computeList"></param>
     private void SimplexNoise()
     {
-        SDFShader.Dispatch(SDFShaderParameters.ChunkSize, SDFShaderParameters.Lod);
+        //SDFShader.Dispatch(SDFShaderParameters.ChunkSize, SDFShaderParameters.Lod);
     }
 
     /// <summary>

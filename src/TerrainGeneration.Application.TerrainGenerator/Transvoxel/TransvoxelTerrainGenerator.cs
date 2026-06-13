@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
@@ -14,14 +15,17 @@ public class TransvoxelTerrainGenerator
 {
     RenderingDevice Rd;
 
-    SDFGenerator.SDFGenerator SDFGenerator;
-    SDFShaderParameters SDFShaderParameters;
+    SDFPipeline SdfPipeline;
 
     NormalsShader.NormalsShader NormalsShader;
-    NormalsShaderParameters NormalsShaderParameters;
 
     Transvoxel Transvoxel;
     TransvoxelShaderParameters TransvoxelShaderParameters;
+
+    float BorderWidth;
+    uint MaxNumVertices;
+
+
 
     /// <summary>
     /// Creates a Transvoxel Terrain Generator instance. This uses the transvoxel meshing algorithm.
@@ -34,40 +38,33 @@ public class TransvoxelTerrainGenerator
     {
         Rd = rd;
 
-        // Setup sdfGenerator
-        //ISDFShader sdfShader = descriptor.SDFShader;
-        //SDFShaderParameters = new SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
+        if (descriptor == null)
+        {
+            throw new ArgumentNullException("Descriptor cannot be null");
+        }
 
-        //SDFGeneratorSettings sDFGeneratorSettings = new SDFGeneratorSettings()
-        //{
-        //    SDFShader = sdfShader,
-        //    SDFShaderParameters = SDFShaderParameters,
-        //};
-        //SDFGenerator = new Application.SDFGenerator.SDFGenerator(rd, sDFGeneratorSettings);
-        SDFGenerator = null;
+        if (descriptor.SDFPipeline == null)
+        {
+            throw new ArgumentNullException("SDFPipeline cannot be null");
+        }
 
+         SdfPipeline = descriptor.SDFPipeline;
 
         // Setup normals generator
-        NormalsShaderParameters = new NormalsShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
         NormalsShaderDescriptor normalsDescriptor = new NormalsShaderDescriptor()
         {
-            Parameters = NormalsShaderParameters,
             ShaderPath = descriptor.NormalsShaderPath,
+            ChunkSize = descriptor.ChunkSize, // These are used to allocate the normals buffer
+            Lod = descriptor.Lod
         };
         NormalsShader = new NormalsShader.NormalsShader(Rd, normalsDescriptor);
 
-        TransvoxelShaderParameters = new TransvoxelShaderParameters()
-        {
-            ChunkSize = descriptor.ChunkSize,
-            Lod = descriptor.Lod,
-            BorderWidth = descriptor.TransitionWidth,
-            MaxNumVertices = descriptor.MaxNumVertices,
-        };
+        BorderWidth = descriptor.BorderWidth;
+        MaxNumVertices = descriptor.MaxNumVertices;
 
         // Setup transvoxel
         TransvoxelShaderDescriptor transvoxelShaderDescriptor = new TransvoxelShaderDescriptor()
         {
-            Parameters = TransvoxelShaderParameters,
             ShaderPath = descriptor.TransvoxelShaderPath
         };
 
@@ -87,28 +84,10 @@ public class TransvoxelTerrainGenerator
     }
 
     /// <summary>
-    /// Sets the NormalsShaderParameters
-    /// </summary>
-    /// <param name="newNormalsShaderParameters"></param>
-    public void SetNormalsShaderParameters(NormalsShaderParameters newNormalsShaderParameters)
-    {
-        NormalsShaderParameters = newNormalsShaderParameters;
-    }
-
-    /// <summary>
-    /// Sets the NormalsShaderParameters
-    /// </summary>
-    /// <param name="newSDFShaderParameters"></param>
-    public void SetSDFShaderParameters(SDFShaderParameters newSDFShaderParameters)
-    {
-        SDFShaderParameters = newSDFShaderParameters;
-    }
-
-    /// <summary>
     /// Sets the TransvoxelShaderParamters
     /// </summary>
     /// <param name="transvoxelShaderParameters"></param>
-    public void SetTransvoxelShaderParameters(TransvoxelShaderParameters transvoxelShaderParameters)
+    private void SetTransvoxelShaderParameters(TransvoxelShaderParameters transvoxelShaderParameters)
     {
         transvoxelShaderParameters.BorderWidth = TransvoxelShaderParameters.BorderWidth; // These are constant
         transvoxelShaderParameters.MaxNumVertices = TransvoxelShaderParameters.MaxNumVertices; // These are constant
@@ -123,15 +102,14 @@ public class TransvoxelTerrainGenerator
     /// object with a different SDFShader.
     /// </summary>
     /// <returns></returns>
-    public TerrainMesh GetTerrainMesh()
+    public TerrainMesh GetTerrainMesh(SDFShaderParameters sdfShaderParameters, NormalsShaderParameters normalsShaderParameters, TransvoxelShaderParameters transvoxelShaderParameters)
     {
-        SDFGenerator.DispatchShaders(SDFShaderParameters);
-        RDUniform sdfBufferUniform = SDFGenerator.OutputBufferUniform;
+        RDUniform sdfBufferUniform = SdfPipeline.GetSDF(sdfShaderParameters);
+        RDUniform normalsBufferUniform = NormalsShader.Dispatch(normalsShaderParameters, sdfBufferUniform);
 
-        NormalsShader.Dispatch(NormalsShaderParameters, sdfBufferUniform);
-        RDUniform normalsBufferUniform = NormalsShader.OutputNormalsUniform;
+        SetTransvoxelShaderParameters(transvoxelShaderParameters);
 
-        return Transvoxel.GetTerrainMesh(TransvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+        return Transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
     }
 
     /// <summary>
@@ -145,7 +123,7 @@ public class TransvoxelTerrainGenerator
 
     public void Dispose()
     {
-        SDFGenerator.Dispose();
+        SdfPipeline.Dispose();
         NormalsShader.Dispose();
         Transvoxel.Dispose();
     }

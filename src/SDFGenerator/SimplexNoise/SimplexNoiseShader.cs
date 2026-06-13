@@ -16,7 +16,6 @@ public class SimplexNoiseShader : ISDFShader
     private const int OUTPUT_SHADER_SET = 2;
 
     private RenderingDevice Rd;
-    private readonly string ShaderPath;
     private Rid Shader;
     private Rid Pipeline;
 
@@ -25,9 +24,6 @@ public class SimplexNoiseShader : ISDFShader
     private RDUniform ParametersUniform;
     private Rid ParametersUniformSet;
 
-    private Rid SDFParamtersUniformSet;
-    private Rid OutputUniformSet;
-
     /// <summary>
     /// Creates a SimplexNoiseShader. Used to take in the map buffer, and apply the inputted simplex noise to the map. 
     /// </summary>
@@ -35,11 +31,11 @@ public class SimplexNoiseShader : ISDFShader
     /// <param name="shaderPath"></param>
     /// <param name="parameters"></param>
     /// <param name="outputUniformSet"></param>
-    public SimplexNoiseShader(RenderingDevice rd, string ShaderPath)
+    public SimplexNoiseShader(RenderingDevice rd, string shaderPath)
     {
-        if (string.IsNullOrWhiteSpace(ShaderPath))
+        if (string.IsNullOrWhiteSpace(shaderPath))
         {
-            throw new ArgumentNullException(nameof(ShaderPath), "Cannot be null or whitespace");
+            throw new ArgumentNullException(nameof(shaderPath), "Cannot be null or whitespace");
         }
 
         if (rd == null)
@@ -49,8 +45,7 @@ public class SimplexNoiseShader : ISDFShader
 
         Rd = rd;
 
-        ShaderPath = ShaderPath;
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(ShaderPath);
+        RDShaderFile shaderFile = GD.Load<RDShaderFile>(shaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
         Pipeline = rd.ComputePipelineCreate(Shader);
@@ -87,33 +82,11 @@ public class SimplexNoiseShader : ISDFShader
     }
 
     /// <summary>
-    /// Sets the output uniform set used for dispatching.
-    /// </summary>
-    /// <param name="outputUniform"></param>
-    public void SetOutputUniformSet(RDUniform outputUniform)
-    {
-        if (OutputUniformSet.IsValid)
-        {
-            Rd.FreeRid(OutputUniformSet);
-        }
-        OutputUniformSet = Rd.UniformSetCreate([outputUniform], Shader, OUTPUT_SHADER_SET);
-    }
-
-    public void SetSDFParametersUniformSet(RDUniform sdfUniform)
-    {
-        if (SDFParamtersUniformSet.IsValid)
-        {
-            Rd.FreeRid(SDFParamtersUniformSet);
-        }
-        SDFParamtersUniformSet = Rd.UniformSetCreate([sdfUniform], Shader, SDF_PARAMETERS_SHADER_SET);
-    }
-
-    /// <summary>
     /// Dispatches shader on the given compute list.
     /// </summary>
     /// <param name="computeList"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void Dispatch(uint chunkSize, uint lod)
+    public void Dispatch(uint chunkSize, uint lod, RDUniform sdfParametersUniform, RDUniform outputUniform)
     {
         if (Parameters == null)
         {
@@ -125,24 +98,20 @@ public class SimplexNoiseShader : ISDFShader
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
-        if (!OutputUniformSet.IsValid && !Rd.UniformSetIsValid(OutputUniformSet))
-        {
-            throw new ArgumentNullException($"{nameof(OutputUniformSet)} is not valid. You need to call {nameof(SetOutputUniformSet)} first");
-        }
-
-        if (!SDFParamtersUniformSet.IsValid && !Rd.UniformSetIsValid(SDFParamtersUniformSet))
-        {
-            throw new ArgumentNullException($"{nameof(SDFParamtersUniformSet)} is not valid. You need to call {nameof(SetSDFParametersUniformSet)} first");
-        }
+        Rid outputUniformSet = Rd.UniformSetCreate([outputUniform], Shader, OUTPUT_SHADER_SET);
+        Rid sdfParametersUniformSet = Rd.UniformSetCreate([sdfParametersUniform], Shader, SDF_PARAMETERS_SHADER_SET);
 
         long computeList = Rd.ComputeListBegin();
 
         Rd.ComputeListBindComputePipeline(computeList, Pipeline);
         Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, PARAMETERS_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, SDFParamtersUniformSet, SDF_PARAMETERS_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, OutputUniformSet, OUTPUT_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, sdfParametersUniformSet, SDF_PARAMETERS_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, outputUniformSet, OUTPUT_SHADER_SET);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 2, yGroups: chunkSize / (8 * lod) + 2, zGroups: chunkSize / (8 * lod) + 2);
         Rd.ComputeListEnd();
+
+        Rd.FreeRid(outputUniformSet);
+        Rd.FreeRid(sdfParametersUniformSet);
     }
 
     /// <summary>
@@ -154,13 +123,6 @@ public class SimplexNoiseShader : ISDFShader
         Rd.FreeRid(Pipeline);
         Rd.FreeRid(ParametersUniformSet);
         Rd.FreeRid(ParametersBuffer);
-        Rd.FreeRid(OutputUniformSet);
-        Rd.FreeRid(SDFParamtersUniformSet);
         Rd.FreeRid(Shader);
-    }
-
-    public SimplexNoiseShaderParameters? GetSimplexShaderParameters()
-    {
-        return Parameters;
     }
 }

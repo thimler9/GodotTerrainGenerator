@@ -47,9 +47,7 @@ public class TransvoxelShader
         Pipeline = rd.ComputePipelineCreate(Shader);
 
         // Setup Params Buffer
-        Parameters = descriptor.Parameters;
-        byte[] parameterBytes = StructHelpers.ToByteArray(descriptor.Parameters);
-        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TransvoxelShaderParameters>(), parameterBytes);
+        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TransvoxelShaderParameters>());
         RDUniform parametersUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,

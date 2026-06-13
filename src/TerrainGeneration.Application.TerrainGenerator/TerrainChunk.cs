@@ -1,5 +1,7 @@
 ﻿using Godot;
+using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
 namespace TerrainGeneration.Application.TerrainGenerator
 {
@@ -19,10 +21,10 @@ namespace TerrainGeneration.Application.TerrainGenerator
         public TerrainChunk(TransvoxelTerrainGenerator transvoxelTerrainGenerator, TerrainChunkDescriptor descriptor)
         {
             // Setup transvoxel terrain generator for this chunk
-            transvoxelTerrainGenerator.SetSDFShaderParameters(new SDFGenerator.SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod));
-            transvoxelTerrainGenerator.SetNormalsShaderParameters(new Transvoxel.NormalsShader.NormalsShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod));
-            transvoxelTerrainGenerator.SetTransvoxelShaderParameters(new TransvoxelShaderParameters(descriptor.ChunkSize, descriptor.Lod));
-            TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh();
+            SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
+            NormalsShaderParameters normalsShaderParameters = new Transvoxel.NormalsShader.NormalsShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
+            TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters(descriptor.ChunkSize, descriptor.Lod);
+            TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh(sdfShaderParameters, normalsShaderParameters, transvoxelShaderParameters);
 
             // Set the terrian mesh params
             TerrainMeshParameters = new TerrainMeshShaderParameters()

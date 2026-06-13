@@ -9,6 +9,7 @@ using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 public class NormalsShaderDescriptor
 {
-    public NormalsShaderParameters Parameters;
     public string? ShaderPath;
+    public uint ChunkSize;
+    public uint Lod;
 }
