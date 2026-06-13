@@ -35,11 +35,11 @@ public class SimplexNoiseShader : ISDFShader
     /// <param name="shaderPath"></param>
     /// <param name="parameters"></param>
     /// <param name="outputUniformSet"></param>
-    public SimplexNoiseShader(RenderingDevice rd, SimplexNoiseShaderDescriptor descriptor)
+    public SimplexNoiseShader(RenderingDevice rd, string ShaderPath)
     {
-        if (string.IsNullOrWhiteSpace(descriptor.ShaderPath))
+        if (string.IsNullOrWhiteSpace(ShaderPath))
         {
-            throw new ArgumentNullException(nameof(descriptor.ShaderPath), "Cannot be null or whitespace");
+            throw new ArgumentNullException(nameof(ShaderPath), "Cannot be null or whitespace");
         }
 
         if (rd == null)
@@ -49,16 +49,14 @@ public class SimplexNoiseShader : ISDFShader
 
         Rd = rd;
 
-        ShaderPath = descriptor.ShaderPath;
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
+        ShaderPath = ShaderPath;
+        RDShaderFile shaderFile = GD.Load<RDShaderFile>(ShaderPath);
         RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
         Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
         Pipeline = rd.ComputePipelineCreate(Shader);
 
         // Set Paramters
-        Parameters = descriptor.Parameters;
-        byte[] parameterBytes = StructHelpers.ToByteArray(descriptor.Parameters);
-        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), parameterBytes);
+        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>());
         ParametersUniform = new RDUniform()
         {
             UniformType = RenderingDevice.UniformType.UniformBuffer,

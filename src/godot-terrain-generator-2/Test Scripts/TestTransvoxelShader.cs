@@ -1,120 +1,120 @@
-﻿using Godot;
-using System;
-using System.Runtime.InteropServices;
-using TerrainGeneration.Application.SDFGenerator;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+﻿//using Godot;
+//using System;
+//using System.Runtime.InteropServices;
+//using TerrainGeneration.Application.SDFGenerator;
+//using TerrainGeneration.Application.SDFGenerator.Abstractions;
+//using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
-using TerrainGeneration.Application.TerrainGenerator;
-using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
-using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
+//using TerrainGeneration.Application.TerrainGenerator;
+//using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+//using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 
-public partial class TestTransvoxelShader : Node3D
-{
-    public uint ChunkSize = 8;
-    public uint Lod = 1;
+//public partial class TestTransvoxelShader : Node3D
+//{
+//    public uint ChunkSize = 8;
+//    public uint Lod = 1;
 
-    // Map Params
-    public Vector3 ChunkOffset = new Vector3(128, 128, 128);
-    public uint Seed = 1;
-    public float Scale = 1.0f;
-    public float Strength = 1.0f;
-    public uint NumOctaves = 1;
-    public float Frequency = 1.0f;
-    public float Amplitude = 1.0f;
-    public float Lacunarity = 1.0f;
-    public float Gain = 1.0f;
+//    // Map Params
+//    public Vector3 ChunkOffset = new Vector3(128, 128, 128);
+//    public uint Seed = 1;
+//    public float Scale = 1.0f;
+//    public float Strength = 1.0f;
+//    public uint NumOctaves = 1;
+//    public float Frequency = 1.0f;
+//    public float Amplitude = 1.0f;
+//    public float Lacunarity = 1.0f;
+//    public float Gain = 1.0f;
 
-    // Transvoxel Shader Params
-    public uint MaxNumOfVertices = 20000;
-    public float TransitionWidth = 1.0f;
+//    // Transvoxel Shader Params
+//    public uint MaxNumOfVertices = 20000;
+//    public float TransitionWidth = 1.0f;
 
-    // Transvoxel Params
-    public uint MaxNumTerrainMeshesInQueue = 10;
+//    // Transvoxel Params
+//    public uint MaxNumTerrainMeshesInQueue = 10;
 
-    public override void _Ready()
-    {
-        RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
+//    public override void _Ready()
+//    {
+//        RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
 
-        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
-        SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
-            Seed,
-            Scale,
-            Strength,
-            NumOctaves,
-            Frequency,
-            Amplitude,
-            Lacunarity,
-            Gain
-        );
-        SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
-        {
-            ShaderPath = "res://Shaders/Compute/simplex_noise.glsl",
-            Parameters = simplexNoiseShaderParameters,
-        };
+//        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
+//        SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
+//            Seed,
+//            Scale,
+//            Strength,
+//            NumOctaves,
+//            Frequency,
+//            Amplitude,
+//            Lacunarity,
+//            Gain
+//        );
+//        SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
+//        {
+//            ShaderPath = "res://Shaders/Compute/simplex_noise.glsl",
+//            Parameters = simplexNoiseShaderParameters,
+//        };
         
-        ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
+//        ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
 
-        SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
-        {
-            SDFShaderParameters = sdfShaderParameters,
-            SDFShader = simplexNoiseShader,
-        };
-        SDFGenerator sdfGenerator = new SDFGenerator(rd, sdfGeneratorSettings);
+//        SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
+//        {
+//            SDFShaderParameters = sdfShaderParameters,
+//            SDFShader = simplexNoiseShader,
+//        };
+//        SDFGenerator sdfGenerator = new SDFGenerator(rd, sdfGeneratorSettings);
 
-        sdfGenerator.DispatchShaders(sdfShaderParameters);
+//        sdfGenerator.DispatchShaders(sdfShaderParameters);
 
-        // ---- Get normals
-        RDUniform sdfBufferUniform = sdfGenerator.OutputBufferUniform;
+//        // ---- Get normals
+//        RDUniform sdfBufferUniform = sdfGenerator.OutputBufferUniform;
 
-        NormalsShaderParameters normalsParaters = new NormalsShaderParameters()
-        {
-            ChunkSize = ChunkSize,
-            Lod = Lod,
-        };
-        NormalsShaderDescriptor normalsDescriptor = new NormalsShaderDescriptor()
-        {
-            Parameters = normalsParaters,
-            ShaderPath = "res://Shaders/Compute/normal_generator.glsl"
-        };
+//        NormalsShaderParameters normalsParaters = new NormalsShaderParameters()
+//        {
+//            ChunkSize = ChunkSize,
+//            Lod = Lod,
+//        };
+//        NormalsShaderDescriptor normalsDescriptor = new NormalsShaderDescriptor()
+//        {
+//            Parameters = normalsParaters,
+//            ShaderPath = "res://Shaders/Compute/normal_generator.glsl"
+//        };
 
-        NormalsShader normalsShader = new NormalsShader(rd, normalsDescriptor);
-        normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
-        //normalsShader.PrintOutBuffer();
+//        NormalsShader normalsShader = new NormalsShader(rd, normalsDescriptor);
+//        normalsShader.Dispatch(normalsParaters, sdfBufferUniform);
+//        //normalsShader.PrintOutBuffer();
 
-        // --------------------------------------------------------------------------------------------------------------------
-        RDUniform normalsBufferUniform = normalsShader.OutputNormalsUniform;
+//        // --------------------------------------------------------------------------------------------------------------------
+//        RDUniform normalsBufferUniform = normalsShader.OutputNormalsUniform;
 
-        TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters()
-        {
-            Lod = Lod,
-            ChunkSize = ChunkSize,
-            MaxNumVertices = MaxNumOfVertices,
-            BorderWidth = TransitionWidth,
-        };
+//        TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters()
+//        {
+//            Lod = Lod,
+//            ChunkSize = ChunkSize,
+//            MaxNumVertices = MaxNumOfVertices,
+//            BorderWidth = TransitionWidth,
+//        };
 
-        TransvoxelShaderDescriptor transvoxelShaderDescriptor = new TransvoxelShaderDescriptor()
-        {
-            Parameters = transvoxelShaderParameters,
-            ShaderPath = "res://Shaders/Compute/mesh_generator.glsl"
-        };
+//        TransvoxelShaderDescriptor transvoxelShaderDescriptor = new TransvoxelShaderDescriptor()
+//        {
+//            Parameters = transvoxelShaderParameters,
+//            ShaderPath = "res://Shaders/Compute/mesh_generator.glsl"
+//        };
 
-        IndirectArgsShaderDescriptor indirectArgsShaderDescriptor = new IndirectArgsShaderDescriptor()
-        {
-            ShaderPath = "res://Shaders/Compute/indirect_args.glsl"
-        };
+//        IndirectArgsShaderDescriptor indirectArgsShaderDescriptor = new IndirectArgsShaderDescriptor()
+//        {
+//            ShaderPath = "res://Shaders/Compute/indirect_args.glsl"
+//        };
 
-        TransvoxelDescriptor transvoxelDescriptor = new TransvoxelDescriptor()
-        {
-            TransvoxelShaderDescriptor = transvoxelShaderDescriptor,
-            IndirectArgsShaderDescriptor = indirectArgsShaderDescriptor,
-            MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
-        };
+//        TransvoxelDescriptor transvoxelDescriptor = new TransvoxelDescriptor()
+//        {
+//            TransvoxelShaderDescriptor = transvoxelShaderDescriptor,
+//            IndirectArgsShaderDescriptor = indirectArgsShaderDescriptor,
+//            MaxNumTerrainMeshesInQueue = MaxNumTerrainMeshesInQueue,
+//        };
 
-        Transvoxel transvoxel = new Transvoxel(rd, transvoxelDescriptor);
+//        Transvoxel transvoxel = new Transvoxel(rd, transvoxelDescriptor);
 
-        TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
-        terrainMesh.PrintVertices();
-        terrainMesh.PrintIndirectArgs();
-    }
-}
+//        TerrainMesh terrainMesh = transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
+//        terrainMesh.PrintVertices();
+//        terrainMesh.PrintIndirectArgs();
+//    }
+//}

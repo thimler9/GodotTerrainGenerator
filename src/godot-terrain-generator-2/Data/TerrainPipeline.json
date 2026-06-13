@@ -1,0 +1,18 @@
+{
+    "shaders": {
+        "SimplexNoise": "res://Shaders/Compute/simplex_noise.glsl"
+    },
+    "pipeline": [
+        {
+            "function": "SimplexNoise",
+            "seed": 1234,
+            "scale": 500.0,
+            "strength": 1.0,
+            "numOctaves": 8,
+            "frequency": 1.0,
+            "amplitude": 1.0,
+            "lacunarity": 2.0,
+            "gain": 0.4
+        }
+    ]
+}

@@ -21,9 +21,9 @@ public class NormalsShader
     private Rid ParametersBuffer;
     private Rid ParametersUniformSet;
 
-    private SimplexNoiseShaderParameters? SimplexNoiseParameters = null;
-    private Rid SimplexNoiseParametersBuffer;
-    private Rid SimplexNoiseParametersUniformSet;
+    //private SimplexNoiseShaderParameters? SimplexNoiseParameters = null;
+    //private Rid SimplexNoiseParametersBuffer;
+    //private Rid SimplexNoiseParametersUniformSet;
 
     // We keep the buffer in the shader since the same buffer is used everytime
     private Rid OutputNormalsBuffer;
@@ -67,15 +67,15 @@ public class NormalsShader
         };
         parametersUniform.AddId(ParametersBuffer);
 
-        SimplexNoiseParameters = descriptor.SimplexNoiseParameters;
-        byte[] sdfParameterBytes = StructHelpers.ToByteArray(descriptor.SimplexNoiseParameters);
-        SimplexNoiseParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), sdfParameterBytes);
-        RDUniform sdfParametersUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.UniformBuffer,
-            Binding = 0
-        };
-        sdfParametersUniform.AddId(SimplexNoiseParametersBuffer);
+        //SimplexNoiseParameters = descriptor.SimplexNoiseParameters;
+        //byte[] sdfParameterBytes = StructHelpers.ToByteArray(descriptor.SimplexNoiseParameters);
+        //SimplexNoiseParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), sdfParameterBytes);
+        //RDUniform sdfParametersUniform = new RDUniform()
+        //{
+        //    UniformType = RenderingDevice.UniformType.UniformBuffer,
+        //    Binding = 0
+        //};
+        //sdfParametersUniform.AddId(SimplexNoiseParametersBuffer);
 
         // Create the output buffer used throughout calculations
         uint chunkSizeToLodRatio = descriptor.Parameters.ChunkSize / descriptor.Parameters.Lod;
@@ -94,7 +94,7 @@ public class NormalsShader
 
         ParametersUniformSet = rd.UniformSetCreate([parametersUniform], Shader, 0);
         OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, 2);
-        SimplexNoiseParametersUniformSet = rd.UniformSetCreate([sdfParametersUniform], Shader, 3);
+        //SimplexNoiseParametersUniformSet = rd.UniformSetCreate([sdfParametersUniform], Shader, 3);
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public class NormalsShader
         Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
         Rd.ComputeListBindUniformSet(computeList, inputSDFUniformSet, 1);
         Rd.ComputeListBindUniformSet(computeList, OutputNormalsUniformSet, 2);
-        Rd.ComputeListBindUniformSet(computeList, SimplexNoiseParametersUniformSet, 3);
+        //Rd.ComputeListBindUniformSet(computeList, SimplexNoiseParametersUniformSet, 3);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 1, yGroups: chunkSize / (8 * lod) + 1, zGroups: chunkSize / (8 * lod) + 1);
         Rd.ComputeListEnd();
 

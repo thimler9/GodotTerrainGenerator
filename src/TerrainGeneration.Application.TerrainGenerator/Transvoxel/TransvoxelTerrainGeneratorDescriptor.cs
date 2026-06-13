@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelTerrainGeneratorDescriptor
 {
-    // SDF Generator
-    public required ISDFShader SDFShader;
+    // SDF Pipeline
+    public required SDFPipeline SDFPipeline;
 
     // Normals Shader
     public required string? NormalsShaderPath;

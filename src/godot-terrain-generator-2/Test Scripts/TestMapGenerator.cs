@@ -22,35 +22,35 @@ public partial class TestMapGenerator : Node3D
 
     public override void _Ready()
     {
-        RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
+        //RenderingDevice rd = RenderingServer.CreateLocalRenderingDevice();
 
-        SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
-        SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
-            Seed,
-            Scale,
-            Strength,
-            NumOctaves,
-            Frequency,
-            Amplitude,
-            Lacunarity,
-            Gain
-        );
-        SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
-        {
-            ShaderPath = "res://Shaders/Compute/simplex_noise.glsl",
-            Parameters = simplexNoiseShaderParameters,
-        };
+        //SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(ChunkOffset, ChunkSize, Lod);
+        //SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(
+        //    Seed,
+        //    Scale,
+        //    Strength,
+        //    NumOctaves,
+        //    Frequency,
+        //    Amplitude,
+        //    Lacunarity,
+        //    Gain
+        //);
+        //SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
+        //{
+        //    ShaderPath = "res://Shaders/Compute/simplex_noise.glsl",
+        //    Parameters = simplexNoiseShaderParameters,
+        //};
 
-        ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
+        //ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
 
-        SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
-        {
-            SDFShaderParameters = sdfShaderParameters,
-            SDFShader = simplexNoiseShader
-        };
-        SDFGenerator sdfGenerator = new SDFGenerator(rd, sdfGeneratorSettings);
+        //SDFGeneratorSettings sdfGeneratorSettings = new SDFGeneratorSettings()
+        //{
+        //    SDFShaderParameters = sdfShaderParameters,
+        //    SDFShader = simplexNoiseShader
+        //};
+        //SDFGenerator sdfGenerator = new SDFGenerator(rd, sdfGeneratorSettings);
 
-        sdfGenerator.DispatchShaders(sdfShaderParameters);
-        sdfGenerator.PrintOutBuffer();
+        //sdfGenerator.DispatchShaders(sdfShaderParameters);
+        //sdfGenerator.PrintOutBuffer();
     }
 }

@@ -1,6 +1,8 @@
 using Godot;
 using GodotTerrainGenerator2.Test_Scripts;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
@@ -39,22 +41,7 @@ public partial class TestVoxelOctree : Node
 
 	// Simplex Noise Params
 	public string SimplexNoiseShaderPath = "res://Shaders/Compute/simplex_noise.glsl";
-	[Export]
-	public uint Seed;
-	[Export]
-	public float Scale;
-	[Export]
-	public float Strength;
-	[Export]
-	public uint NumOctaves;
-	[Export]
-	public float Frequency;
-	[Export]
-	public float Amplitude;
-	[Export]
-	public float Lacunarity;
-	[Export]
-	public float Gain;
+	public string SDFPipelinePath = "res://Data/TerrainPipeline.json";
 
 	public VoxelOctree VoxelOctree;
 
@@ -98,19 +85,22 @@ public partial class TestVoxelOctree : Node
 			}
 		};
 
-		SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(Seed, Scale, Strength, NumOctaves, Frequency, Amplitude, Lacunarity, Gain);
-		SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
-		{
-			Parameters = simplexNoiseShaderParameters,
-			ShaderPath = SimplexNoiseShaderPath
-		};
+		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
+		SDFPipeline pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd);
 
-		ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
+		//SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(Seed, Scale, Strength, NumOctaves, Frequency, Amplitude, Lacunarity, Gain);
+		//SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
+		//{
+		//	Parameters = simplexNoiseShaderParameters,
+		//	ShaderPath = SimplexNoiseShaderPath
+		//};
+
+		//ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
 
 		TransvoxelTerrainGeneratorDescriptor transvoxelTerrainGeneratorDescriptor = new TransvoxelTerrainGeneratorDescriptor()
 		{
-			SDFShader = simplexNoiseShader,
-			ChunkOffset = Center,
+			SDFPipeline = pipeline,
+            ChunkOffset = Center,
 			Lod = TerrainLods[0].LodDivider,
 			ChunkSize = StartSize,
 			IndirectArgsShaderPath = IndirectArgsShaderPath,

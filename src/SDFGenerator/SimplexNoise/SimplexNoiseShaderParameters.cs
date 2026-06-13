@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Godot;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Utilities.Math.Extensions;
 
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
@@ -49,6 +50,18 @@ public struct SimplexNoiseShaderParameters
         Gain = gain;
     }
 
+    public SimplexNoiseShaderParameters(SimplexNoiseStage stage)
+    {
+        Seed = stage.Seed;
+        Scale = stage.Scale;
+        Strength = stage.Strength;
+        NumOctaves = stage.NumOctaves;
+        Frequency = stage.Frequency;
+        Amplitude = stage.Amplitude;
+        Lacunarity = stage.Lacunarity;
+        Gain = stage.Gain;
+    }
+
     public override bool Equals(object? obj)
     {
         if (obj == null || !(obj is SimplexNoiseShaderParameters))
@@ -58,7 +71,7 @@ public struct SimplexNoiseShaderParameters
 
         SimplexNoiseShaderParameters other = (SimplexNoiseShaderParameters)obj;
 
-        return 
+        return
             Seed == other.Seed &&
             Scale.FuzzyEquals(other.Scale) &&
             Strength.FuzzyEquals(other.Strength) &&

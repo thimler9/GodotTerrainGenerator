@@ -10,6 +10,5 @@ namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShade
 public class NormalsShaderDescriptor
 {
     public NormalsShaderParameters Parameters;
-    public SimplexNoiseShaderParameters SimplexNoiseParameters;
     public string? ShaderPath;
 }

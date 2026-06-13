@@ -35,15 +35,17 @@ public class TransvoxelTerrainGenerator
         Rd = rd;
 
         // Setup sdfGenerator
-        ISDFShader sdfShader = descriptor.SDFShader;
-        SDFShaderParameters = new SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
+        //ISDFShader sdfShader = descriptor.SDFShader;
+        //SDFShaderParameters = new SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
 
-        SDFGeneratorSettings sDFGeneratorSettings = new SDFGeneratorSettings()
-        {
-            SDFShader = sdfShader,
-            SDFShaderParameters = SDFShaderParameters,
-        };
-        SDFGenerator = new Application.SDFGenerator.SDFGenerator(rd, sDFGeneratorSettings);
+        //SDFGeneratorSettings sDFGeneratorSettings = new SDFGeneratorSettings()
+        //{
+        //    SDFShader = sdfShader,
+        //    SDFShaderParameters = SDFShaderParameters,
+        //};
+        //SDFGenerator = new Application.SDFGenerator.SDFGenerator(rd, sDFGeneratorSettings);
+        SDFGenerator = null;
+
 
         // Setup normals generator
         NormalsShaderParameters = new NormalsShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
@@ -51,7 +53,6 @@ public class TransvoxelTerrainGenerator
         {
             Parameters = NormalsShaderParameters,
             ShaderPath = descriptor.NormalsShaderPath,
-            SimplexNoiseParameters = (sdfShader as SimplexNoiseShader).GetSimplexShaderParameters().Value,
         };
         NormalsShader = new NormalsShader.NormalsShader(Rd, normalsDescriptor);
 

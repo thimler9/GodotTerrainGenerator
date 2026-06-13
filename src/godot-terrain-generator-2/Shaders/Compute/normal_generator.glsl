@@ -22,10 +22,6 @@ layout(set = 2, binding = 0, std430) restrict buffer OutputNormalBuffer {
 }
 output_normal_buffer;
 
-layout(set = 3, binding = 0) restrict readonly uniform NoiseParams {
-    SimplexNoiseParams simplex_noise_params;
-};
-
 
 void main() {
     uint adjusted_size = params.chunk_size / params.lod + 1u;
@@ -36,23 +32,23 @@ void main() {
     }
 
 
-    float value = simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz, params.lod);
-    float dx = value - simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz + vec3(1, 0, 0), params.lod);
-    float dy = value - simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz + vec3(0, 1, 0), params.lod);
-    float dz = value - simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz + vec3(0, 0, 1), params.lod);
-
-    vec3 normal = normalize(vec3(dx, dy, dz));
-    output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u] = normal.x;
-    output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u + 1u] = normal.y;
-    output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u + 2u] = normal.z;
-    
-    // float value = input_map_buffer.data[id.x + id.y * (adjusted_size + 1u) + id.z * (adjusted_size + 1u) * (adjusted_size + 1u)];
-    // float dx = value - input_map_buffer.data[(id.x + 1u) + id.y * (adjusted_size + 1u) + id.z * (adjusted_size + 1u) * (adjusted_size + 1u)];
-    // float dy = value - input_map_buffer.data[id.x + (id.y + 1u) * (adjusted_size + 1u) + id.z * (adjusted_size + 1u) * (adjusted_size + 1u)];
-    // float dz = value - input_map_buffer.data[id.x + id.y * (adjusted_size + 1u) + (id.z + 1u) * (adjusted_size + 1u) * (adjusted_size + 1u)];
+    // float value = simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz, params.lod);
+    // float dx = value - simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz + vec3(1, 0, 0), params.lod);
+    // float dy = value - simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz + vec3(0, 1, 0), params.lod);
+    // float dz = value - simplex_noise(simplex_noise_params, id, params.chunk_offset.xyz + vec3(0, 0, 1), params.lod);
 
     // vec3 normal = normalize(vec3(dx, dy, dz));
     // output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u] = normal.x;
     // output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u + 1u] = normal.y;
     // output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u + 2u] = normal.z;
+    
+    float value = input_map_buffer.data[id.x + id.y * (adjusted_size + 1u) + id.z * (adjusted_size + 1u) * (adjusted_size + 1u)];
+    float dx = value - input_map_buffer.data[(id.x + 1u) + id.y * (adjusted_size + 1u) + id.z * (adjusted_size + 1u) * (adjusted_size + 1u)];
+    float dy = value - input_map_buffer.data[id.x + (id.y + 1u) * (adjusted_size + 1u) + id.z * (adjusted_size + 1u) * (adjusted_size + 1u)];
+    float dz = value - input_map_buffer.data[id.x + id.y * (adjusted_size + 1u) + (id.z + 1u) * (adjusted_size + 1u) * (adjusted_size + 1u)];
+
+    vec3 normal = normalize(vec3(dx, dy, dz));
+    output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u] = normal.x;
+    output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u + 1u] = normal.y;
+    output_normal_buffer.data[(id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size) * 3u + 2u] = normal.z;
 }
