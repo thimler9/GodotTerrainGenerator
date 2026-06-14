@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://bu5h2bnh4gpar"]
+[gd_scene load_steps=5 format=3 uid="uid://caf06yovglm4k"]
 
 [ext_resource type="Script" uid="uid://l6n6oy63rv4n" path="res://FpsText.cs" id="1_nf8jx"]
-[ext_resource type="Script" uid="uid://ddotjmvc28e6m" path="res://PlayerLocationDebugText.cs" id="2_masxj"]
-[ext_resource type="Script" uid="uid://ib7gf7d03cpb" path="res://EventsInQueueDebugText.cs" id="3_6er7o"]
+[ext_resource type="Script" uid="uid://ddotjmvc28e6m" path="res://Scripts/UI/Debug/PlayerLocationDebugText.cs" id="2_wrwxb"]
+[ext_resource type="Script" uid="uid://ib7gf7d03cpb" path="res://Scripts/UI/Debug/EventsInQueueDebugText.cs" id="3_3qyho"]
+[ext_resource type="Script" uid="uid://bjtw8m1i21idj" path="res://Scripts/UI/Debug/PauseQueue.cs" id="4_p4e26"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -49,7 +50,7 @@ offset_left = 2.0
 offset_top = 1.0
 offset_right = 227.0
 offset_bottom = 34.0
-script = ExtResource("2_masxj")
+script = ExtResource("2_wrwxb")
 
 [node name="Events in Queue" type="Panel" parent="Game Info Container"]
 layout_mode = 2
@@ -60,4 +61,16 @@ offset_left = 2.0
 offset_top = 1.0
 offset_right = 227.0
 offset_bottom = 34.0
-script = ExtResource("3_6er7o")
+script = ExtResource("3_3qyho")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 992.0
+offset_top = 8.0
+offset_right = 1102.0
+offset_bottom = 39.0
+toggle_mode = true
+text = "Pause Queue"
+script = ExtResource("4_p4e26")
+
+[connection signal="toggled" from="Button" to="Button" method="OnToggle"]

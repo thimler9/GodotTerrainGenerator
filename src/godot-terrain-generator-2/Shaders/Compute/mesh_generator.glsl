@@ -477,7 +477,7 @@ void main() {
     }
 
     // Create the main voxel mesh using marching cubes
-    // MainVoxels(id);
+    MainVoxels(id);
 
     if (id.x * 2 < adjusted_size && id.y * 2 < adjusted_size) {
         NTransitionVoxels(uvec3(id.x, id.y, 1));

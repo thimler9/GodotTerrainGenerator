@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://bepinf15m7nmp"]
 
-[ext_resource type="PackedScene" uid="uid://bu5h2bnh4gpar" path="res://Debug UI.tscn" id="1_820bx"]
+[ext_resource type="PackedScene" path="res://Debug UI.tscn" id="1_820bx"]
 [ext_resource type="Script" uid="uid://bkirokmvgvtlk" path="res://Test Scripts/TestVoxelOctreeRenderer.cs" id="1_mxbe1"]
 [ext_resource type="Script" uid="uid://3rx3e6vwcmxk" path="res://Test Scripts/TestVoxelOctree.cs" id="1_won1t"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_jae4j"]

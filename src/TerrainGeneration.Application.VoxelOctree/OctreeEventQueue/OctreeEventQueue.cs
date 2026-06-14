@@ -15,6 +15,8 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         public IRenderOctree EventTargetTree;
         public uint WorkBudget;
 
+        private bool IsPaused = false;
+
         /// <summary>
         /// Creates an octree event queue. Processes the events sent from the abstract octree against the render octree.
         /// </summary>
@@ -53,6 +55,11 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
         /// </summary>
         public void Process()
         {
+            if (IsPaused)
+            {
+                return;
+            }
+
             uint numWork = Math.Min(WorkBudget, (uint)EventQueue.Count);
 
             IOctreeEvent[] eventsToProcess = new IOctreeEvent[numWork];
@@ -65,6 +72,11 @@ namespace TerrainGeneration.Application.VoxelOctree.OctreeEventQueue
             }
 
             EventTargetTree.ProcessEvents(eventsToProcess);
+        }
+
+        public void TogglePause(bool toggle)
+        {
+            IsPaused = toggle;
         }
     }
 }

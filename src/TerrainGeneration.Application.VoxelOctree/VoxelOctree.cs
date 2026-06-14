@@ -34,6 +34,11 @@ public class VoxelOctree
         OctreeEventQueue.Process();
     }
 
+    public void EventQueueTogglePause(bool toggle)
+    {
+        OctreeEventQueue.TogglePause(toggle);
+    }
+
     public int GetNumEventsInQueue()
     {
         return OctreeEventQueue.EventQueue.Count();
