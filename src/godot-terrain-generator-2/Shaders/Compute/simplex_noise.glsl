@@ -35,5 +35,6 @@ void main() {
     }
 
     float noise_height = simplex_noise(simplex_noise_params, id, sdfParams.chunk_offset.xyz, sdfParams.lod);
+
     output_buffer.data[array_index] = noise_height;
 }

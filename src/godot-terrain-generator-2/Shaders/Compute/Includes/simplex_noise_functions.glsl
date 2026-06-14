@@ -131,5 +131,5 @@ float simplex_noise(SimplexNoiseParams params, uvec3 id, vec3 chunk_offset, uint
         seed++;
     }
 
-    return noise_height;
+    return noise_height * params.strength;
 }

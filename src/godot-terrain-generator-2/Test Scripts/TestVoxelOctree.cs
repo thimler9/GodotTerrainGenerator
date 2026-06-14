@@ -55,47 +55,38 @@ public partial class TestVoxelOctree : Node
 		{
 			new TerrainLod()
 			{
+				LodDivider = 128,
+				LodDistanceCutoff = 30000.0f
+			},
+			new TerrainLod()
+			{
 				LodDivider = 64,
-				LodDistanceCutoff = 300000.0f
+				LodDistanceCutoff = 20000.0f
 			},
 			new TerrainLod()
 			{
 				LodDivider = 32,
-				LodDistanceCutoff = 200000.0f
+				LodDistanceCutoff = 5000.0f
 			},
 			new TerrainLod()
 			{
 				LodDivider = 16,
-				LodDistanceCutoff = 50000.0f
-			},
-			new TerrainLod()
-			{
-				LodDivider = 8,
 				LodDistanceCutoff = 1200.0f
 			},
 			new TerrainLod()
 			{
-				LodDivider = 4,
+				LodDivider = 8,
 				LodDistanceCutoff = 750.0f
 			},
 			new TerrainLod()
 			{
-				LodDivider = 2,
+				LodDivider = 4,
 				LodDistanceCutoff = 350.0f
 			}
 		};
 
 		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
 		SDFPipeline pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd);
-
-		//SimplexNoiseShaderParameters simplexNoiseShaderParameters = new SimplexNoiseShaderParameters(Seed, Scale, Strength, NumOctaves, Frequency, Amplitude, Lacunarity, Gain);
-		//SimplexNoiseShaderDescriptor simplexNoiseShaderDescriptor = new SimplexNoiseShaderDescriptor()
-		//{
-		//	Parameters = simplexNoiseShaderParameters,
-		//	ShaderPath = SimplexNoiseShaderPath
-		//};
-
-		//ISDFShader simplexNoiseShader = new SimplexNoiseShader(rd, simplexNoiseShaderDescriptor);
 
 		TransvoxelTerrainGeneratorDescriptor transvoxelTerrainGeneratorDescriptor = new TransvoxelTerrainGeneratorDescriptor()
 		{
