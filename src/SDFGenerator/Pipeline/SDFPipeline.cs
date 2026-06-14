@@ -29,6 +29,7 @@ public sealed class SDFPipeline
 
     public SDFPipeline(IReadOnlyList<ISDFPipelineStage> stages, IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
     {
+        Rd = rd;
         Stages = stages ?? throw new ArgumentNullException(nameof(stages));
         FunctionShaderMap = functionShaderMap ?? new Dictionary<string, string>();
         SetupSDFShaders(stages, functionShaderMap, rd);
@@ -62,9 +63,10 @@ public sealed class SDFPipeline
         SetSDFParameters(sdfShaderParameters);
         SetOutputBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
 
-        foreach (ISDFShader stage in Stages)
+        foreach (ISDFPipelineStage stage in Stages)
         {
-            stage.Dispatch(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod, SDFParametersUniform, OutputUniform);
+            ISDFShader sdfShader = SDFShaders[stage.ShaderIndex];
+            sdfShader.Dispatch(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod, SDFParametersUniform, OutputUniform);
         }
 
         return OutputUniform;

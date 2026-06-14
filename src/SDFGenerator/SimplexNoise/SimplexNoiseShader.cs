@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
@@ -86,7 +87,7 @@ public class SimplexNoiseShader : ISDFShader
     /// </summary>
     /// <param name="computeList"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void Dispatch(uint chunkSize, uint lod, RDUniform sdfParametersUniform, RDUniform outputUniform)
+    public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, RDUniform sdfParametersUniform, RDUniform outputUniform)
     {
         if (Parameters == null)
         {
@@ -100,6 +101,7 @@ public class SimplexNoiseShader : ISDFShader
 
         Rid outputUniformSet = Rd.UniformSetCreate([outputUniform], Shader, OUTPUT_SHADER_SET);
         Rid sdfParametersUniformSet = Rd.UniformSetCreate([sdfParametersUniform], Shader, SDF_PARAMETERS_SHADER_SET);
+        SetParameters((SimplexNoiseShaderParameters)parameters);
 
         long computeList = Rd.ComputeListBegin();
 

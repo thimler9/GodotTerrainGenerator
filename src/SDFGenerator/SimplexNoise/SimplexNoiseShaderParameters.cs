@@ -11,7 +11,7 @@ using TerrainGeneration.Utilities.Math.Extensions;
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct SimplexNoiseShaderParameters
+public struct SimplexNoiseShaderParameters : IShaderParameters
 {
     [FieldOffset(0)]
     public readonly uint Seed;

@@ -1,3 +1,5 @@
+using Godot;
+
 namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
 public sealed class SimplexNoiseStage : ISDFPipelineStage
