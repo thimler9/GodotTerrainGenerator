@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class IndirectArgsShader
 {
+    private const int COUNTER_SHADER_SET = 0;
+    private const int INDIRECT_ARGS_SHADER_SET = 1;
+
+
     public RenderingDevice Rd;
 
     private readonly string ShaderPath;
@@ -67,8 +71,8 @@ public class IndirectArgsShader
     /// <param name="indirectArgsUniform"></param>
     private void RunIndirectArgsShader(long computeList, RDUniform counterUniform, RDUniform indirectArgsUniform)
     {
-        Rid counterUniformSet = Rd.UniformSetCreate([counterUniform], Shader, 0);
-        Rid indirectArgsUniformSet = Rd.UniformSetCreate([indirectArgsUniform], Shader, 1);
+        Rid counterUniformSet = Rd.UniformSetCreate([counterUniform], Shader, COUNTER_SHADER_SET);
+        Rid indirectArgsUniformSet = Rd.UniformSetCreate([indirectArgsUniform], Shader, INDIRECT_ARGS_SHADER_SET);
 
         Rd.ComputeListBindComputePipeline(computeList, Pipeline);
         Rd.ComputeListBindUniformSet(computeList, counterUniformSet, 0);

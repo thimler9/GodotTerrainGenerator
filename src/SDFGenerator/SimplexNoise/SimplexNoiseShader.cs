@@ -68,7 +68,7 @@ public class SimplexNoiseShader : ISDFShader
     /// </summary>
     /// <param name="rd"></param>
     /// <param name="parameters"></param>
-    public void SetParameters(SimplexNoiseShaderParameters parameters)
+    private void SetParameters(SimplexNoiseShaderParameters parameters)
     {
         if (Parameters is not SimplexNoiseShaderParameters existing || !existing.Equals(parameters))
         {

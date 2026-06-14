@@ -12,6 +12,10 @@ using TerrainGeneration.Utilities.Struct;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 public class NormalsShader
 {
+    private const int PARAMETERS_SHADER_SET = 0;
+    private const int SDF_SHADER_SET = 1;
+    private const int OUTPUT_NORMALS_SHADER_SET = 2;
+
     private RenderingDevice Rd;
     private string ShaderPath;
     private Rid Shader;
@@ -20,10 +24,6 @@ public class NormalsShader
     private NormalsShaderParameters? Parameters = null;
     private Rid ParametersBuffer;
     private Rid ParametersUniformSet;
-
-    //private SimplexNoiseShaderParameters? SimplexNoiseParameters = null;
-    //private Rid SimplexNoiseParametersBuffer;
-    //private Rid SimplexNoiseParametersUniformSet;
 
     // We keep the buffer in the shader since the same buffer is used everytime
     private Rid OutputNormalsBuffer;
@@ -80,8 +80,8 @@ public class NormalsShader
         };
         OutputNormalsUniform.AddId(OutputNormalsBuffer);
 
-        ParametersUniformSet = rd.UniformSetCreate([parametersUniform], Shader, 0);
-        OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, 2);
+        ParametersUniformSet = rd.UniformSetCreate([parametersUniform], Shader, PARAMETERS_SHADER_SET);
+        OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, OUTPUT_NORMALS_SHADER_SET);
     }
 
     /// <summary>
@@ -139,9 +139,9 @@ public class NormalsShader
 
         long computeList = Rd.ComputeListBegin();
         Rd.ComputeListBindComputePipeline(computeList, Pipeline);
-        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
-        Rd.ComputeListBindUniformSet(computeList, inputSDFUniformSet, 1);
-        Rd.ComputeListBindUniformSet(computeList, OutputNormalsUniformSet, 2);
+        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, PARAMETERS_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, inputSDFUniformSet, SDF_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, OutputNormalsUniformSet, OUTPUT_NORMALS_SHADER_SET);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 1, yGroups: chunkSize / (8 * lod) + 1, zGroups: chunkSize / (8 * lod) + 1);
         Rd.ComputeListEnd();
 

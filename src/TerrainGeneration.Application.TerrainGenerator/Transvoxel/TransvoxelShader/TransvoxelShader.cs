@@ -5,6 +5,14 @@ using TerrainGeneration.Utilities.Struct;
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelShader
 {
+    private const int PARAMETERS_SHADER_SET = 0;
+    private const int LOOKUP_TABLES_SHADER_SET = 1;
+    private const int COUNTER_SHADER_SET = 2;
+    private const int SDF_SHADER_SET = 3;
+    private const int NORMALS_SHADER_SET = 4;
+    private const int VERTICES_SHADER_SET = 5;
+
+
     private RenderingDevice Rd;
     private Rid Shader;
     private Rid Pipeline;
@@ -78,9 +86,9 @@ public class TransvoxelShader
         counterBufferUniform.AddId(CounterBuffer);
         CounterBufferUniform = counterBufferUniform;
 
-        ParametersUniformSet = Rd.UniformSetCreate([parametersUniform], Shader, 0);
-        LookupTablesUniformSet = Rd.UniformSetCreate([lookupTablesBufferUniform], Shader, 1);
-        CounterUniformSet = Rd.UniformSetCreate([counterBufferUniform], Shader, 2);
+        ParametersUniformSet = Rd.UniformSetCreate([parametersUniform], Shader, PARAMETERS_SHADER_SET);
+        LookupTablesUniformSet = Rd.UniformSetCreate([lookupTablesBufferUniform], Shader, LOOKUP_TABLES_SHADER_SET);
+        CounterUniformSet = Rd.UniformSetCreate([counterBufferUniform], Shader, COUNTER_SHADER_SET);
     }
 
     /// <summary>
@@ -138,17 +146,17 @@ public class TransvoxelShader
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
-        Rid sdfUniformSet = Rd.UniformSetCreate([sdfUniform], Shader, 3);
-        Rid normalUniformSet = Rd.UniformSetCreate([normalsUniform], Shader, 4);
-        Rid verticesUniformSet = Rd.UniformSetCreate([verticesUniform], Shader, 5);
+        Rid sdfUniformSet = Rd.UniformSetCreate([sdfUniform], Shader, SDF_SHADER_SET);
+        Rid normalUniformSet = Rd.UniformSetCreate([normalsUniform], Shader, NORMALS_SHADER_SET);
+        Rid verticesUniformSet = Rd.UniformSetCreate([verticesUniform], Shader, VERTICES_SHADER_SET);
 
         Rd.ComputeListBindComputePipeline(computeList, Pipeline);
-        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, 0);
-        Rd.ComputeListBindUniformSet(computeList, LookupTablesUniformSet, 1);
-        Rd.ComputeListBindUniformSet(computeList, CounterUniformSet, 2);
-        Rd.ComputeListBindUniformSet(computeList, sdfUniformSet, 3);
-        Rd.ComputeListBindUniformSet(computeList, normalUniformSet, 4);
-        Rd.ComputeListBindUniformSet(computeList, verticesUniformSet, 5);
+        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, PARAMETERS_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, LookupTablesUniformSet, LOOKUP_TABLES_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, CounterUniformSet, COUNTER_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, sdfUniformSet, SDF_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, normalUniformSet, NORMALS_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, verticesUniformSet, VERTICES_SHADER_SET);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod), yGroups: chunkSize / (8 * lod), zGroups: chunkSize / (8 * lod));
 
         Rd.FreeRid(sdfUniformSet);

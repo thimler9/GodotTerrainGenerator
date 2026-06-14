@@ -16,22 +16,20 @@ public sealed class SDFPipeline
     /// <summary>
     /// Maps function name (e.g. "SimplexNoise") to a shader path.
     /// </summary>
-    private IReadOnlyDictionary<string, string> FunctionShaderMap { get; }
     private readonly Dictionary<string, ISDFShader> SDFShadersByFunction = new(StringComparer.OrdinalIgnoreCase);
 
     // Used in dispatching the shaders
     SDFShaderParameters SDFShaderParameters;
-    RDUniform SDFParametersUniform;
+    RDUniform? SDFParametersUniform;
     Rid SDFParametersBuffer;
 
-    RDUniform OutputUniform;
+    RDUniform? OutputUniform;
     Rid OutputBuffer;
 
     public SDFPipeline(IReadOnlyList<ISDFPipelineStage> stages, IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
     {
         Rd = rd;
         Stages = stages ?? throw new ArgumentNullException(nameof(stages));
-        FunctionShaderMap = functionShaderMap ?? new Dictionary<string, string>();
         SetupSDFShaders(stages, functionShaderMap, rd);
     }
 
@@ -56,6 +54,11 @@ public sealed class SDFPipeline
     {
         SetSDFParameters(sdfShaderParameters);
         SetOutputBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
+
+        if (OutputUniform == null || SDFParametersUniform == null)
+        {
+            throw new InvalidOperationException("Output uniform or SDF parameters uniform is not set.");
+        }
 
         foreach (ISDFPipelineStage stage in Stages)
         {
