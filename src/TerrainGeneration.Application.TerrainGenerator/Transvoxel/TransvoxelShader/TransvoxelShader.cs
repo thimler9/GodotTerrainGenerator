@@ -92,6 +92,7 @@ public class TransvoxelShader
         if (!Parameters.Equals(parameters))
         {
             Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<TransvoxelShaderParameters>(), StructHelpers.ToByteArray(parameters));
+            Parameters = parameters;
         }
     }
 

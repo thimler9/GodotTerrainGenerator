@@ -70,7 +70,7 @@ public class SimplexNoiseShader : ISDFShader
     /// <param name="parameters"></param>
     public void SetParameters(SimplexNoiseShaderParameters parameters)
     {
-        if (!this.Parameters.Equals(parameters))
+        if (Parameters is not SimplexNoiseShaderParameters existing || !existing.Equals(parameters))
         {
             Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(parameters));
             
@@ -79,6 +79,7 @@ public class SimplexNoiseShader : ISDFShader
                 Rd.FreeRid(ParametersUniformSet);
             }
             ParametersUniformSet = Rd.UniformSetCreate([ParametersUniform], Shader, PARAMETERS_SHADER_SET);
+            Parameters = parameters;
         }
     }
 
@@ -89,19 +90,19 @@ public class SimplexNoiseShader : ISDFShader
     /// <exception cref="ArgumentNullException"></exception>
     public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, RDUniform sdfParametersUniform, RDUniform outputUniform)
     {
-        if (Parameters == null)
+        if (parameters is not SimplexNoiseShaderParameters typedParameters)
         {
-            throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
+            throw new ArgumentException($"Expected {nameof(SimplexNoiseShaderParameters)} for {nameof(SimplexNoiseShader)}.", nameof(parameters));
         }
 
-        if (chunkSize / (8 * lod)  == 0)
+        if (chunkSize / (8 * lod) == 0)
         {
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
         Rid outputUniformSet = Rd.UniformSetCreate([outputUniform], Shader, OUTPUT_SHADER_SET);
         Rid sdfParametersUniformSet = Rd.UniformSetCreate([sdfParametersUniform], Shader, SDF_PARAMETERS_SHADER_SET);
-        SetParameters((SimplexNoiseShaderParameters)parameters);
+        SetParameters(typedParameters);
 
         long computeList = Rd.ComputeListBegin();
 

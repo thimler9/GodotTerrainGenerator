@@ -20,7 +20,6 @@ public class TransvoxelTerrainGenerator
     NormalsShader.NormalsShader NormalsShader;
 
     Transvoxel Transvoxel;
-    TransvoxelShaderParameters TransvoxelShaderParameters;
 
     float BorderWidth;
     uint MaxNumVertices;
@@ -87,12 +86,10 @@ public class TransvoxelTerrainGenerator
     /// Sets the TransvoxelShaderParamters
     /// </summary>
     /// <param name="transvoxelShaderParameters"></param>
-    private void SetTransvoxelShaderParameters(TransvoxelShaderParameters transvoxelShaderParameters)
+    private void SetTransvoxelShaderConstantParameters(ref TransvoxelShaderParameters transvoxelShaderParameters)
     {
-        transvoxelShaderParameters.BorderWidth = TransvoxelShaderParameters.BorderWidth; // These are constant
-        transvoxelShaderParameters.MaxNumVertices = TransvoxelShaderParameters.MaxNumVertices; // These are constant
-
-        TransvoxelShaderParameters = transvoxelShaderParameters;
+        transvoxelShaderParameters.BorderWidth = BorderWidth; // These are constant
+        transvoxelShaderParameters.MaxNumVertices = MaxNumVertices; // These are constant
     }
 
     /// <summary>
@@ -107,7 +104,7 @@ public class TransvoxelTerrainGenerator
         RDUniform sdfBufferUniform = SdfPipeline.GetSDF(sdfShaderParameters);
         RDUniform normalsBufferUniform = NormalsShader.Dispatch(normalsShaderParameters, sdfBufferUniform);
 
-        SetTransvoxelShaderParameters(transvoxelShaderParameters);
+        SetTransvoxelShaderConstantParameters(ref transvoxelShaderParameters);
 
         return Transvoxel.GetTerrainMesh(transvoxelShaderParameters, sdfBufferUniform, normalsBufferUniform);
     }

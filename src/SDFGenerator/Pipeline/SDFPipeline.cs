@@ -17,7 +17,7 @@ public sealed class SDFPipeline
     /// Maps function name (e.g. "SimplexNoise") to a shader path.
     /// </summary>
     private IReadOnlyDictionary<string, string> FunctionShaderMap { get; }
-    private List<ISDFShader> SDFShaders = new List<ISDFShader>();
+    private readonly Dictionary<string, ISDFShader> SDFShadersByFunction = new(StringComparer.OrdinalIgnoreCase);
 
     // Used in dispatching the shaders
     SDFShaderParameters SDFShaderParameters;
@@ -42,19 +42,13 @@ public sealed class SDFPipeline
             string functionName = kvp.Key;
             string shaderPath = kvp.Value;
 
-            switch (functionName)
+            ISDFShader shader = functionName switch
             {
-                case "SimplexNoise":
-                    SDFShaders.Add(new SimplexNoiseShader(rd, shaderPath));
-                    for (int i = 0; i < stages.Count; i++)
-                    {
-                        if (stages[i].Function == functionName)
-                        {
-                            stages[i].ShaderIndex = SDFShaders.Count - 1;
-                        }
-                    }
-                    break;
-            }
+                SimplexNoiseStage.FunctionName => new SimplexNoiseShader(rd, shaderPath),
+                _ => throw new NotSupportedException($"Unsupported shader function '{functionName}'.")
+            };
+
+            SDFShadersByFunction[functionName] = shader;
         }
     }
 
@@ -65,8 +59,17 @@ public sealed class SDFPipeline
 
         foreach (ISDFPipelineStage stage in Stages)
         {
-            ISDFShader sdfShader = SDFShaders[stage.ShaderIndex];
-            sdfShader.Dispatch(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod, SDFParametersUniform, OutputUniform);
+            if (!SDFShadersByFunction.TryGetValue(stage.Function, out ISDFShader sdfShader))
+            {
+                throw new InvalidOperationException($"No shader registered for pipeline function '{stage.Function}'.");
+            }
+
+            sdfShader.Dispatch(
+                sdfShaderParameters.ChunkSize,
+                sdfShaderParameters.Lod,
+                stage.CreateShaderParameters(),
+                SDFParametersUniform,
+                OutputUniform);
         }
 
         return OutputUniform;
@@ -116,9 +119,9 @@ public sealed class SDFPipeline
     {
         Rd.FreeRid(SDFParametersBuffer);
         Rd.FreeRid(OutputBuffer);
-        foreach (ISDFShader stage in Stages)
+        foreach (ISDFShader shader in SDFShadersByFunction.Values)
         {
-            stage.Dispose();
+            shader.Dispose();
         }
     }
 }
