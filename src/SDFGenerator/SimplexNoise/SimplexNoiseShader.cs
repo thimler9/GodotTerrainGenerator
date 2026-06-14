@@ -74,11 +74,10 @@ public class SimplexNoiseShader : ISDFShader
         {
             Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(parameters));
             
-            if (ParametersUniformSet.IsValid)
+            if (!ParametersUniformSet.IsValid)
             {
-                Rd.FreeRid(ParametersUniformSet);
+                ParametersUniformSet = Rd.UniformSetCreate([ParametersUniform], Shader, PARAMETERS_SHADER_SET);
             }
-            ParametersUniformSet = Rd.UniformSetCreate([ParametersUniform], Shader, PARAMETERS_SHADER_SET);
             Parameters = parameters;
         }
     }

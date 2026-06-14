@@ -92,6 +92,7 @@ public sealed class SDFPipeline
                     UniformType = RenderingDevice.UniformType.UniformBuffer,
                     Binding = 0
                 };
+                SDFParametersUniform.AddId(SDFParametersBuffer);
             }
 
             Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
