@@ -39,6 +39,16 @@ public class VoxelOctree
         OctreeEventQueue.TogglePause(toggle);
     }
 
+    public void RemakeOctree(VoxelOctreeDescriptor descriptor)
+    {
+        RenderOctree.Dispose(); // Dispose of GPU resources
+
+        TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(RenderingServer.GetRenderingDevice(), descriptor.TransvoxelTerrainGeneratorDescriptor);
+        RenderOctree = new RenderOctree.RenderOctree(descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods.Length, descriptor.BorderWidth, transvoxelTerrainGenerator);
+        OctreeEventQueue = new OctreeEventQueue.OctreeEventQueue(RenderOctree, descriptor.EventQueueWorkBudget);
+        AbstractOctree = new AbstractOctree.AbstractOctree(OctreeEventQueue, descriptor.Center, descriptor.PlayerPosition, descriptor.Size, descriptor.MinChunkSize, descriptor.TerrainLods, descriptor.PlayerPositionChangeThreshold);
+    }
+
     public int GetNumEventsInQueue()
     {
         return OctreeEventQueue.EventQueue.Count();

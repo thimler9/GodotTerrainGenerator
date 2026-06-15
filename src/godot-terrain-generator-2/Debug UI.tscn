@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://caf06yovglm4k"]
+[gd_scene load_steps=6 format=3 uid="uid://caf06yovglm4k"]
 
 [ext_resource type="Script" uid="uid://l6n6oy63rv4n" path="res://FpsText.cs" id="1_nf8jx"]
-[ext_resource type="Script" uid="uid://ddotjmvc28e6m" path="res://Scripts/UI/Debug/PlayerLocationDebugText.cs" id="2_wrwxb"]
-[ext_resource type="Script" uid="uid://ib7gf7d03cpb" path="res://Scripts/UI/Debug/EventsInQueueDebugText.cs" id="3_3qyho"]
-[ext_resource type="Script" uid="uid://bjtw8m1i21idj" path="res://Scripts/UI/Debug/PauseQueue.cs" id="4_p4e26"]
+[ext_resource type="Script" uid="uid://ib7gf7d03cpb" path="res://Scripts/UI/DebugScripts/EventsInQueueDebugText.cs" id="2_masxj"]
+[ext_resource type="Script" uid="uid://ddotjmvc28e6m" path="res://Scripts/UI/DebugScripts/PlayerLocationDebugText.cs" id="2_wrwxb"]
+[ext_resource type="Script" uid="uid://cw1ss35h5o7in" path="res://Scripts/UI/DebugScripts/RemakeOctree.cs" id="4_3qyho"]
+[ext_resource type="Script" uid="uid://bjtw8m1i21idj" path="res://Scripts/UI/DebugScripts/PauseQueue.cs" id="4_p4e26"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -61,9 +62,9 @@ offset_left = 2.0
 offset_top = 1.0
 offset_right = 227.0
 offset_bottom = 34.0
-script = ExtResource("3_3qyho")
+script = ExtResource("2_masxj")
 
-[node name="Button" type="Button" parent="."]
+[node name="Toggle Queue Processing Button" type="Button" parent="."]
 layout_mode = 0
 offset_left = 992.0
 offset_top = 8.0
@@ -73,4 +74,14 @@ toggle_mode = true
 text = "Pause Queue"
 script = ExtResource("4_p4e26")
 
-[connection signal="toggled" from="Button" to="Button" method="OnToggle"]
+[node name="Remake Octree" type="Button" parent="."]
+layout_mode = 0
+offset_left = 838.0
+offset_top = 8.0
+offset_right = 965.0
+offset_bottom = 39.0
+text = "Remake Octree"
+script = ExtResource("4_3qyho")
+
+[connection signal="toggled" from="Toggle Queue Processing Button" to="Toggle Queue Processing Button" method="OnToggle"]
+[connection signal="pressed" from="Remake Octree" to="Game Info Container/FPS/FPS Text" method="RemakeOctreeAction"]
