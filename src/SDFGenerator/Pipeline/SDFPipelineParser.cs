@@ -30,37 +30,11 @@ public sealed class SDFPipelineParser
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
 
-            if (!root.TryGetProperty("pipeline", out JsonElement pipelineElement))
-            {
-                throw new SDFPipelineParseException("JSON must contain a top-level 'pipeline' array.");
-            }
+            TemperatureDescriptor temperature = ParseTemperature(root);
+            IReadOnlyList<BiomeDescriptor> biomes = ParseBiomes(root);
+            IReadOnlyDictionary<string, string> shaderMap = ParseShaders(root);
 
-            if (pipelineElement.ValueKind != JsonValueKind.Array)
-            {
-                throw new SDFPipelineParseException("The 'pipeline' field must be an array.");
-            }
-
-            var stages = new List<ISDFPipelineStage>();
-            foreach (JsonElement stageElement in pipelineElement.EnumerateArray())
-            {
-                stages.Add(ParseStage(stageElement));
-            }
-
-            // Parse optional top-level shaders map: { "FunctionName": "shader/path.glsl" }
-            Dictionary<string, string> shaderMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            if (root.TryGetProperty("shaders", out JsonElement shadersElement) && shadersElement.ValueKind == JsonValueKind.Object)
-            {
-                foreach (var prop in shadersElement.EnumerateObject())
-                {
-                    string? path = prop.Value.GetString();
-                    if (!string.IsNullOrWhiteSpace(path))
-                    {
-                        shaderMap[prop.Name] = path!;
-                    }
-                }
-            }
-
-            return new SDFPipeline(stages, shaderMap, rd);
+            return new SDFPipeline(temperature, biomes, shaderMap, rd);
         }
         catch (JsonException ex)
         {
@@ -90,6 +64,137 @@ public sealed class SDFPipelineParser
         return System.IO.File.ReadAllText(filePath);
     }
 
+    private static TemperatureDescriptor ParseTemperature(JsonElement root)
+    {
+        if (!root.TryGetProperty("temperature", out JsonElement temperatureElement))
+        {
+            return new TemperatureDescriptor();
+        }
+
+        if (temperatureElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new SDFPipelineParseException("The 'temperature' section must be an object.");
+        }
+
+        if (!temperatureElement.TryGetProperty("sdf", out JsonElement sdfElement) || sdfElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new SDFPipelineParseException("The 'temperature' section must contain an 'sdf' array.");
+        }
+
+        return new TemperatureDescriptor
+        {
+            Sdfs = ParseSdfStages(sdfElement)
+        };
+    }
+
+    private static IReadOnlyList<BiomeDescriptor> ParseBiomes(JsonElement root)
+    {
+        if (!root.TryGetProperty("biomes", out JsonElement biomesElement))
+        {
+            return Array.Empty<BiomeDescriptor>();
+        }
+
+        if (biomesElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new SDFPipelineParseException("The 'biomes' field must be an array.");
+        }
+
+        var biomes = new List<BiomeDescriptor>();
+        foreach (JsonElement biomeElement in biomesElement.EnumerateArray())
+        {
+            biomes.Add(ParseBiome(biomeElement));
+        }
+
+        return biomes;
+    }
+
+    private static IReadOnlyDictionary<string, string> ParseShaders(JsonElement root)
+    {
+        var shaderMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (root.TryGetProperty("shaders", out JsonElement shadersElement) && shadersElement.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in shadersElement.EnumerateObject())
+            {
+                string? path = prop.Value.GetString();
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    shaderMap[prop.Name] = path!;
+                }
+            }
+        }
+
+        return shaderMap;
+    }
+
+    private static BiomeDescriptor ParseBiome(JsonElement biomeElement)
+    {
+        if (biomeElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new SDFPipelineParseException("Each biome must be a JSON object.");
+        }
+
+        if (!biomeElement.TryGetProperty("temperature", out JsonElement temperatureElement)
+            || temperatureElement.ValueKind != JsonValueKind.Number)
+        {
+            throw new SDFPipelineParseException("Biome must contain a numeric 'temperature' field.");
+        }
+
+        if (!biomeElement.TryGetProperty("temperatureSpread", out JsonElement temperatureSpreadElement)
+            || temperatureSpreadElement.ValueKind != JsonValueKind.Number)
+        {
+            throw new SDFPipelineParseException("Biome must contain a numeric 'temperatureSpread' field.");
+        }
+
+        if (!biomeElement.TryGetProperty("depth", out JsonElement depthElement)
+            || depthElement.ValueKind != JsonValueKind.Number)
+        {
+            throw new SDFPipelineParseException("Biome must contain a numeric 'depth' field.");
+        }
+
+        if (!biomeElement.TryGetProperty("depthSpread", out JsonElement depthSpreadElement)
+            || depthSpreadElement.ValueKind != JsonValueKind.Number)
+        {
+            throw new SDFPipelineParseException("Biome must contain a numeric 'depthSpread' field.");
+        }
+
+        bool ignoreBiome = false;
+        if (biomeElement.TryGetProperty("ignoreBiome", out JsonElement ignoreBiomeElement))
+        {
+            if (ignoreBiomeElement.ValueKind != JsonValueKind.True && ignoreBiomeElement.ValueKind != JsonValueKind.False)
+            {
+                throw new SDFPipelineParseException("Biome 'ignoreBiome' field must be a boolean.");
+            }
+
+            ignoreBiome = ignoreBiomeElement.GetBoolean();
+        }
+
+        if (!biomeElement.TryGetProperty("sdf", out JsonElement sdfElement) || sdfElement.ValueKind != JsonValueKind.Array)
+        {
+            throw new SDFPipelineParseException("Biome must contain an 'sdf' array with sdf function inputs.");
+        }
+
+        return new BiomeDescriptor
+        {
+            Temperature = temperatureElement.GetSingle(),
+            TemperatureSpread = temperatureSpreadElement.GetSingle(),
+            Depth = depthElement.GetSingle(),
+            DepthSpread = depthSpreadElement.GetSingle(),
+            IgnoreBiome = ignoreBiome,
+            Sdfs = ParseSdfStages(sdfElement)
+        };
+    }
+
+    private static IReadOnlyList<ISDFPipelineStage> ParseSdfStages(JsonElement sdfElement)
+    {
+        var stages = new List<ISDFPipelineStage>();
+        foreach (JsonElement stageElement in sdfElement.EnumerateArray())
+        {
+            stages.Add(ParseStage(stageElement));
+        }
+
+        return stages;
+    }
+
     private static ISDFPipelineStage ParseStage(JsonElement stageElement)
     {
         if (stageElement.ValueKind != JsonValueKind.Object)
@@ -117,11 +222,7 @@ public sealed class SDFPipelineParser
 
     private static ISDFPipelineStage ParseSimplexNoiseStage(JsonElement stageElement)
     {
-        var descriptor = new SimplexNoiseStage();
-
-        descriptor = JsonSerializer.Deserialize<SimplexNoiseStage>(stageElement.GetRawText(), SerializerOptions)
+        return JsonSerializer.Deserialize<SimplexNoiseStage>(stageElement.GetRawText(), SerializerOptions)
             ?? throw new SDFPipelineParseException("Unable to deserialize SimplexNoise stage.");
-
-        return descriptor;
     }
 }

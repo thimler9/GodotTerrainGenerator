@@ -14,7 +14,9 @@ public class SimplexNoiseShader : ISDFShader
 {
     private const int PARAMETERS_SHADER_SET = 0;
     private const int SDF_PARAMETERS_SHADER_SET = 1;
-    private const int OUTPUT_SHADER_SET = 2;
+    private const int BIOME_PARAMETERS_SHADER_SET = 2;
+    private const int TEMPERATURE_VALUES_SHADER_SET = 3;
+    private const int OUTPUT_SHADER_SET = 4;
 
     private RenderingDevice Rd;
     private Rid Shader;
@@ -87,7 +89,7 @@ public class SimplexNoiseShader : ISDFShader
     /// </summary>
     /// <param name="computeList"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, RDUniform sdfParametersUniform, RDUniform outputUniform)
+    public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, RDUniform sdfParametersUniform, RDUniform biomeParamsUniform, RDUniform temperatureValuesUniform, RDUniform outputUniform)
     {
         if (parameters is not SimplexNoiseShaderParameters typedParameters)
         {
@@ -99,8 +101,10 @@ public class SimplexNoiseShader : ISDFShader
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
-        Rid outputUniformSet = Rd.UniformSetCreate([outputUniform], Shader, OUTPUT_SHADER_SET);
         Rid sdfParametersUniformSet = Rd.UniformSetCreate([sdfParametersUniform], Shader, SDF_PARAMETERS_SHADER_SET);
+        Rid biomeParamsUniformSet = Rd.UniformSetCreate([biomeParamsUniform], Shader, BIOME_PARAMETERS_SHADER_SET);
+        Rid temperatureValuesUniformSet = Rd.UniformSetCreate([temperatureValuesUniform], Shader, TEMPERATURE_VALUES_SHADER_SET);
+        Rid outputUniformSet = Rd.UniformSetCreate([outputUniform], Shader, OUTPUT_SHADER_SET);
         SetParameters(typedParameters);
 
         long computeList = Rd.ComputeListBegin();
@@ -108,12 +112,16 @@ public class SimplexNoiseShader : ISDFShader
         Rd.ComputeListBindComputePipeline(computeList, Pipeline);
         Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, PARAMETERS_SHADER_SET);
         Rd.ComputeListBindUniformSet(computeList, sdfParametersUniformSet, SDF_PARAMETERS_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, biomeParamsUniformSet, BIOME_PARAMETERS_SHADER_SET);
+        Rd.ComputeListBindUniformSet(computeList, temperatureValuesUniformSet, TEMPERATURE_VALUES_SHADER_SET);
         Rd.ComputeListBindUniformSet(computeList, outputUniformSet, OUTPUT_SHADER_SET);
         Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 2, yGroups: chunkSize / (8 * lod) + 2, zGroups: chunkSize / (8 * lod) + 2);
         Rd.ComputeListEnd();
 
         Rd.FreeRid(outputUniformSet);
         Rd.FreeRid(sdfParametersUniformSet);
+        Rd.FreeRid(temperatureValuesUniformSet);
+        Rd.FreeRid(biomeParamsUniformSet);
     }
 
     /// <summary>

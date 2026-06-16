@@ -1,18 +1,42 @@
 {
 	"shaders": {
-		"SimplexNoise": "res://Shaders/Compute/simplex_noise.glsl"
+		"SimplexNoise": "res://Shaders/Compute/map_generator.glsl"
 	},
-	"pipeline": [
+	"temperature": {
+		"sdf": [
+			{
+				"function": "SimplexNoise",
+				"seed": 4,
+				"scale": 100.0,
+				"strength": 100,
+				"numOctaves": 4,
+				"frequency": 1.1,
+				"amplitude": 0.8,
+				"lacunarity": 2.0,
+				"gain": 0.45
+			}
+		]
+	},
+	"biomes": [
 		{
-			"function": "SimplexNoise",
-			"seed": 3,
-			"scale": 1200.0,
-			"strength": 1.0,
-			"numOctaves": 32,
-			"frequency": 0.9,
-			"amplitude": 1.0,
-			"lacunarity": 2.5,
-			"gain": 0.35
+			"temperature": 30,
+			"temperatureSpread": 1000000,
+			"depth": 12.0,
+			"depthSpread": 10000000,
+			"ignoreBiome": false,
+			"sdf": [
+				{
+					"function": "SimplexNoise",
+					"seed": 3,
+					"scale": 1200.0,
+					"strength": 1.0,
+					"numOctaves": 32,
+					"frequency": 0.9,
+					"amplitude": 1.0,
+					"lacunarity": 2.5,
+					"gain": 0.35
+				}
+			]
 		}
 	]
 }

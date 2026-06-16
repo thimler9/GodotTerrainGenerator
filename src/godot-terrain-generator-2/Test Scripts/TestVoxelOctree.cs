@@ -40,7 +40,7 @@ public partial class TestVoxelOctree : Node
 	public uint MaxNumTerrainMeshesInQueue;
 
 	// Simplex Noise Params
-	public string SimplexNoiseShaderPath = "res://Shaders/Compute/simplex_noise.glsl";
+	public string SimplexNoiseShaderPath = "res://Shaders/Compute/map_generator.glsl";
 	public string SDFPipelinePath = "res://Data/TerrainPipeline.json";
 
 	public VoxelOctree VoxelOctree;
