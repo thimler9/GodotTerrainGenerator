@@ -7,7 +7,7 @@
 			{
 				"function": "SimplexNoise",
 				"seed": 4,
-				"scale": 100.0,
+				"scale": 10000.0,
 				"strength": 100,
 				"numOctaves": 4,
 				"frequency": 1.1,
@@ -20,21 +20,21 @@
 	"biomes": [
 		{
 			"temperature": 30,
-			"temperatureSpread": 1000000,
-			"depth": 12.0,
-			"depthSpread": 10000000,
+			"temperatureSpread": 30,
+			"depth": -500.0,
+			"depthSpread": 100,
 			"ignoreBiome": false,
 			"sdf": [
 				{
 					"function": "SimplexNoise",
 					"seed": 3,
-					"scale": 1200.0,
+					"scale": 200.0,
 					"strength": 1.0,
 					"numOctaves": 32,
 					"frequency": 0.9,
 					"amplitude": 1.0,
 					"lacunarity": 2.5,
-					"gain": 0.35
+					"gain": 0.5
 				}
 			]
 		}

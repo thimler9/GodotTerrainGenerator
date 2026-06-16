@@ -186,7 +186,7 @@ public sealed class SDFPipeline
             {
                 BiomeParameters biomeParams = new BiomeParameters(biome.Temperature, biome.TemperatureSpread, biome.Depth, biome.DepthSpread, biome.IgnoreBiome);
 
-                biome.BiomeParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>());
+                biome.BiomeParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(biomeParams));
                 biome.BiomeParametersUniform = new RDUniform()
                 {
                     UniformType = RenderingDevice.UniformType.UniformBuffer,

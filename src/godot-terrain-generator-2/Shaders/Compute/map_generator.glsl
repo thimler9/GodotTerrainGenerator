@@ -42,7 +42,7 @@ float terrain_probability(uvec3 id, uint array_index, float temperature, float t
 
     float temperature_factor = 1.0 / (1.0 + ((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
     float depth_factor = 1.0 / (1.0 + ((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
-    return temperature_factor * depth_factor;
+    return depth_factor * temperature_factor;
 }
 
 
@@ -58,5 +58,20 @@ void main() {
     float probability = biome_params.params.ignore_biome == -1 ? 1.0 : terrain_probability(id, array_index, biome_params.params.temperature, biome_params.params.temperature_spread, biome_params.params.depth, biome_params.params.depth_spread);
     float noise_value = simplex_noise(simplex_noise_params, id, sdf_params.chunk_offset.xyz, sdf_params.lod);
 
-    output_buffer.data[array_index] = noise_value * probability;
+    // We are going to test against another noise value to see if the biomes are working.
+    SimplexNoiseParams newParams;
+    newParams.seed = 1;
+    newParams.scale = simplex_noise_params.scale * 3;
+    newParams.strength = 1;
+    newParams.num_octaves = 4;
+    newParams.frequency = 0.9;
+    newParams.amplitude = 1.0;
+    newParams.lacunarity = 2.5;
+    newParams.gain = 0.35;
+    float noise_value2 = simplex_noise(newParams, id, sdf_params.chunk_offset.xyz, sdf_params.lod);
+    float probability2 = biome_params.params.ignore_biome == -1 ? 1.0 : terrain_probability(id, array_index, 60, 10.0, 1000, 250.0);
+
+
+    output_buffer.data[array_index] = noise_value * probability + noise_value2 * probability2;
+    // output_buffer.data[array_index] = noise_value * probability;
 }
