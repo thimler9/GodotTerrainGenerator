@@ -40,8 +40,11 @@ float terrain_probability(uvec3 id, uint array_index, float temperature, float t
     float temperature_value = temperature_values.data[array_index];
     float depth_value = id.y * sdf_params.lod + sdf_params.chunk_offset.y;
 
-    float temperature_factor = 1.0 / (1.0 + ((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
-    float depth_factor = 1.0 / (1.0 + ((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
+    // float temperature_factor = 1.0 / (1.0 + ((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
+    // float depth_factor = 1.0 / (1.0 + ((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
+
+    float temperature_factor = exp(-((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
+    float depth_factor = exp(-((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
     return depth_factor * temperature_factor;
 }
 
@@ -61,7 +64,7 @@ void main() {
     // We are going to test against another noise value to see if the biomes are working.
     SimplexNoiseParams newParams;
     newParams.seed = 1;
-    newParams.scale = simplex_noise_params.scale * 3;
+    newParams.scale = simplex_noise_params.scale * 4;
     newParams.strength = 1;
     newParams.num_octaves = 4;
     newParams.frequency = 0.9;
