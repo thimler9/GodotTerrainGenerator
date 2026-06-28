@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
@@ -26,6 +27,8 @@ public class SimplexNoiseShader : ISDFShader
     private Rid ParametersBuffer;
     private RDUniform ParametersUniform;
     private Rid ParametersUniformSet;
+
+    private ComputeBuffer ParametersComputeBuffer;
 
     /// <summary>
     /// Creates a SimplexNoiseShader. Used to take in the map buffer, and apply the inputted simplex noise to the map. 
