@@ -114,23 +114,14 @@ public class TransvoxelShader
         ParametersBuffer.Dispose();
         LookupTablesBuffer.Dispose();
         CounterBuffer.Dispose();
-
-        Rd.FreeRid(Pipeline);
-        Rd.FreeRid(ParametersUniformSet);
-        Rd.FreeRid(ParametersBuffer);
-        Rd.FreeRid(LookupTablesUniformSet);
-        Rd.FreeRid(LookupTablesBuffer);
-        Rd.FreeRid(CounterUniformSet);
-        Rd.FreeRid(CounterBuffer);
-        Rd.FreeRid(Shader);
     }
 
     /// <summary>
     /// Gets the uniform for the counter buffer. Used for generating indirect args.
     /// </summary>
     /// <returns></returns>
-    public RDUniform GetCurrentVertexCountUniform()
+    public ComputeBuffer GetCurrentVertexCountShader()
     {
-        return CounterBufferUniform;
+        return CounterBuffer;
     }
 }
