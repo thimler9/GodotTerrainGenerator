@@ -15,9 +15,6 @@ public class ComputeBuffer
     private Rid Buffer;
     private RDUniform Uniform;
 
-    // Gets the uniform set for the compute buffer based on the shader
-    private Dictionary<Guid, Rid> ShaderToUniformSet;
-
     public ComputeBuffer(RenderingDevice rd, uint size, RenderingDevice.UniformType uniformType, int binding = 0, byte[]? data = null)
     {
         if (rd == null)
@@ -78,18 +75,13 @@ public class ComputeBuffer
         Rd.BufferUpdate(Buffer, offset, size, data);
     }
 
-    public Rid CreateUniformSet(Rid shader, uint shaderSet)
+    public Rid CreateUniformSet(ComputeShader shader, uint shaderSet)
     {
-        if (!shader.IsValid)
-        {
-            throw new ArgumentException($"{nameof(shader)} must be valid.");
-        }
-
         if (shaderSet < 0)
         {
             throw new ArgumentException($"{nameof(shader)} is not valid.");
         }
 
-        return Rd.UniformSetCreate([Uniform], shader, shaderSet);
+        return Rd.UniformSetCreate([Uniform], shader.Shader, shaderSet);
     }
 }

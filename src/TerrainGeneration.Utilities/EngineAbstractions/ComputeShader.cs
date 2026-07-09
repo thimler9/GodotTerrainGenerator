@@ -10,7 +10,7 @@ namespace TerrainGeneration.Utilities.EngineAbstractions;
 public class ComputeShader
 {
     private RenderingDevice Rd;
-    private Rid Shader;
+    public Rid Shader;
     private Rid Pipeline;
 
     public ComputeShader(RenderingDevice rd, string shaderPath)
@@ -34,7 +34,6 @@ public class ComputeShader
 
     public ComputePass GetComputePass()
     {
-        long computeList = Rd.ComputeListBegin();
-        return new ComputePass(Rd, computeList, Pipeline);
+        return new ComputePass(Rd, this, Pipeline);
     }
 }
