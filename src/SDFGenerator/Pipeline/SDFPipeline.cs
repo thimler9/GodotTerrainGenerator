@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
@@ -22,20 +23,11 @@ public sealed class SDFPipeline
 
     // Used in dispatching the shaders
     SDFShaderParameters SDFShaderParameters;
-    RDUniform? SDFParametersUniform;
-    Rid SDFParametersBuffer;
-
-    RDUniform? OutputUniform;
-    Rid OutputBuffer;
-
-    RDUniform? DummyBiomeParametersUniform;
-    Rid DummyBiomeParametersBuffer;
-
-    RDUniform? DummyTemperatureValuesUniform;
-    Rid DummyTemperatureValuesBuffer;
-
-    RDUniform? TemperatureValueUniform;
-    Rid TemperatureValueBuffer;
+    private ComputeBuffer SDFParametersBuffer;
+    private ComputeBuffer OutputBuffer;
+    private ComputeBuffer DummyBiomeParametersBuffer;
+    private ComputeBuffer DummyTemperatureValuesBuffer;
+    private ComputeBuffer TemperatureValueBuffer;
 
     public SDFPipeline(TemperatureDescriptor temperature, IReadOnlyList<BiomeDescriptor> biomes, IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
     {
@@ -64,15 +56,15 @@ public sealed class SDFPipeline
         }
     }
 
-    public RDUniform GetSDF(SDFShaderParameters sdfShaderParameters)
+    public ComputeBuffer GetSDF(SDFShaderParameters sdfShaderParameters)
     {
         SetSDFParameters(sdfShaderParameters);
         SetOutputBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
         SetTemperatureValueBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
 
-        if (OutputUniform == null || SDFParametersUniform == null)
+        if (OutputBuffer == null || SDFParametersBuffer == null)
         {
-            throw new InvalidOperationException("Output uniform or SDF parameters uniform is not set.");
+            throw new InvalidOperationException("Output buffer or SDF parameters buffer is not set.");
         }
 
         if (Temperature == null)
@@ -91,10 +83,10 @@ public sealed class SDFPipeline
                 sdfShaderParameters.ChunkSize,
                 sdfShaderParameters.Lod,
                 stage.CreateShaderParameters(),
-                SDFParametersUniform,
-                DummyBiomeParametersUniform,
-                DummyTemperatureValuesUniform,
-                TemperatureValueUniform);
+                SDFParametersBuffer,
+                DummyBiomeParametersBuffer,
+                DummyTemperatureValuesBuffer,
+                TemperatureValueBuffer);
         }
 
         foreach (BiomeDescriptor biome in Biomes)
@@ -112,14 +104,14 @@ public sealed class SDFPipeline
                     sdfShaderParameters.ChunkSize,
                     sdfShaderParameters.Lod,
                     stage.CreateShaderParameters(),
-                    SDFParametersUniform,
-                    biome.BiomeParametersUniform,
-                    TemperatureValueUniform,
-                    OutputUniform);
+                    SDFParametersBuffer,
+                    biome.BiomeParametersBuffer,
+                    TemperatureValueBuffer,
+                    OutputBuffer);
             }
         }
 
-        return OutputUniform;
+        return OutputBuffer;
     }
 
     /// <summary>
@@ -131,49 +123,31 @@ public sealed class SDFPipeline
         if (!this.SDFShaderParameters.Equals(parameters))
         {
             // If the buffer isn't valid, we need to create one
-            if (!SDFParametersBuffer.IsValid)
+            if (SDFParametersBuffer == null)
             {
-                SDFParametersBuffer = Rd.UniformBufferCreate((uint)Marshal.SizeOf<SDFShaderParameters>());
-                SDFParametersUniform = new RDUniform()
-                {
-                    UniformType = RenderingDevice.UniformType.UniformBuffer,
-                    Binding = 0
-                };
-                SDFParametersUniform.AddId(SDFParametersBuffer);
+                SDFParametersBuffer = new ComputeBuffer(Rd, (uint)Marshal.SizeOf<SDFShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
             }
 
-            Rd.BufferUpdate(SDFParametersBuffer, 0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
+            SDFParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
             SDFShaderParameters = parameters;
         }
     }
 
     private void SetOutputBuffer(uint chunkSize, uint lod)
     {
-        if (!OutputBuffer.IsValid)
+        if (OutputBuffer == null)
         {
             uint chunkSizeToLodRatio = chunkSize / lod;
-            OutputBuffer = Rd.StorageBufferCreate((chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float));
-            OutputUniform = new RDUniform()
-            {
-                UniformType = RenderingDevice.UniformType.StorageBuffer,
-                Binding = 0
-            };
-            OutputUniform.AddId(OutputBuffer);
+            OutputBuffer = new ComputeBuffer(Rd, (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
         }
     }
 
     private void SetTemperatureValueBuffer(uint chunkSize, uint lod)
     {
-        if (!TemperatureValueBuffer.IsValid)
+        if (TemperatureValueBuffer == null)
         {
             uint chunkSizeToLodRatio = chunkSize / lod;
-            TemperatureValueBuffer = Rd.StorageBufferCreate((chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float));
-            TemperatureValueUniform = new RDUniform()
-            {
-                UniformType = RenderingDevice.UniformType.StorageBuffer,
-                Binding = 0
-            };
-            TemperatureValueUniform.AddId(TemperatureValueBuffer);
+            TemperatureValueBuffer = new ComputeBuffer(Rd, (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
         }
     }
 
@@ -182,17 +156,10 @@ public sealed class SDFPipeline
         // Biome parameters are set in the shader dispatch loop, so we don't need to do anything here for now.
         foreach (BiomeDescriptor biome in biomes)
         {
-            if (!biome.BiomeParametersBuffer.IsValid)
+            if (biome.BiomeParametersBuffer == null)
             {
                 BiomeParameters biomeParams = new BiomeParameters(biome.Temperature, biome.TemperatureSpread, biome.Depth, biome.DepthSpread, biome.IgnoreBiome);
-
-                biome.BiomeParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(biomeParams));
-                biome.BiomeParametersUniform = new RDUniform()
-                {
-                    UniformType = RenderingDevice.UniformType.UniformBuffer,
-                    Binding = 0
-                };
-                biome.BiomeParametersUniform.AddId(biome.BiomeParametersBuffer);
+                biome.BiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
             }
         }
     }
@@ -200,36 +167,22 @@ public sealed class SDFPipeline
     private void SetupDummyUniforms(RenderingDevice rd)
     {
         BiomeParameters biomeParameters = new BiomeParameters(0f, 0f, 0f, 0f, true);
-        DummyBiomeParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<BiomeParameters>(), StructHelpers.ToByteArray(biomeParameters));
-        DummyBiomeParametersUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.UniformBuffer,
-            Binding = 0
-        };
-        DummyBiomeParametersUniform.AddId(DummyBiomeParametersBuffer);
-
-        DummyTemperatureValuesBuffer = rd.StorageBufferCreate(sizeof(float));
-        DummyTemperatureValuesUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        DummyTemperatureValuesUniform.AddId(DummyTemperatureValuesBuffer);
+        DummyBiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
+        DummyTemperatureValuesBuffer = new ComputeBuffer(rd, sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
     }
 
     public void Dispose()
     {
-        Rd.FreeRid(SDFParametersBuffer);
-        Rd.FreeRid(TemperatureValueBuffer);
-        Rd.FreeRid(OutputBuffer);
-        Rd.FreeRid(DummyBiomeParametersBuffer);
-        Rd.FreeRid(DummyTemperatureValuesBuffer);
+        SDFParametersBuffer.Dispose();
+        TemperatureValueBuffer.Dispose();
+        OutputBuffer.Dispose();
+        DummyTemperatureValuesBuffer.Dispose();
+        DummyBiomeParametersBuffer.Dispose();
         foreach (ISDFShader shader in SDFShadersByFunction.Values)
         {
             shader.Dispose();
         }
     }
-
 
     /// <summary>
     /// Prints out all of the normals in the normals buffer. Use for debugging only. VERY slow.
@@ -237,7 +190,7 @@ public sealed class SDFPipeline
     /// <exception cref="ArgumentNullException"></exception>
     public void PrintOutBuffer(uint chunkSize, uint lod)
     {
-        var outputBytes = Rd.BufferGetData(TemperatureValueBuffer);
+        var outputBytes = TemperatureValueBuffer.GetData();
         float[] output = new float[(chunkSize / lod + 1) * (chunkSize / lod + 1) * (chunkSize / lod + 1)];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
     }

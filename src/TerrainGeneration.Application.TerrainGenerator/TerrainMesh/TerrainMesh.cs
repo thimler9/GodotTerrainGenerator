@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Math.Extensions;
 using TerrainGeneration.Utilities.Struct;
 
@@ -14,17 +15,10 @@ public class TerrainMesh
 
     private RenderingDevice Rd;
 
-    public Rid VertexBuffer;
-    public RDUniform VertexBufferUniform;
-    public Rid VertexBufferUniformSet;
-
-    public Rid IndirectArgsBuffer;
-    public RDUniform IndirectArgsBufferUniform;
-
     public TerrainMeshShaderParameters? TerrainMeshShaderParameters;
-    private Rid TerrainMeshShaderParametersBuffer;
-    private RDUniform TerrainMeshShaderParametersUniform;
-    private Rid TerrainMeshShaderParametersUniformSet;
+    public ComputeBuffer VertexBuffer;
+    public ComputeBuffer IndirectArgsBuffer;
+    public ComputeBuffer TerrainMeshShaderParametersBuffer;
 
     private TerrainMeshDescriptor Descriptor;
 
@@ -59,32 +53,9 @@ public class TerrainMesh
 
         uint maxNumVerts = GetMaxNumVerts();
 
-        // Each vert has a position and normal, both Vector3
-        VertexBuffer = rd.StorageBufferCreate(maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>());
-        VertexBufferUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        VertexBufferUniform.AddId(VertexBuffer);
-
-        // Max indirect args buffer
-        IndirectArgsBuffer = rd.StorageBufferCreate(sizeof(uint) * 4, usage: RenderingDevice.StorageBufferUsage.Indirect);
-        rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
-        IndirectArgsBufferUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        IndirectArgsBufferUniform.AddId(IndirectArgsBuffer);
-
-        TerrainMeshShaderParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TerrainMeshShaderParameters>());
-        TerrainMeshShaderParametersUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.UniformBuffer,
-            Binding = 0
-        };
-        TerrainMeshShaderParametersUniform.AddId(TerrainMeshShaderParametersBuffer);
+        VertexBuffer = new ComputeBuffer(rd, maxNumVerts * (uint)Marshal.SizeOf<TerrainMeshVertex>(), RenderingDevice.UniformType.StorageBuffer, 0);
+        IndirectArgsBuffer = new ComputeBuffer(rd, sizeof(uint) * 4, RenderingDevice.UniformType.StorageBuffer, 0, storageBufferUsage: RenderingDevice.StorageBufferUsage.Indirect);
+        TerrainMeshShaderParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<TerrainMeshShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
     }
 
     /// <summary>
@@ -119,7 +90,7 @@ public class TerrainMesh
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
         }
 
-        var outputBytes = Rd.BufferGetData(VertexBuffer);
+        var outputBytes = VertexBuffer.GetData();
  
         float[] output = new float[GetMaxNumVerts() * (uint)Marshal.SizeOf<TerrainMeshVertex>() / sizeof(float)];
 
@@ -169,7 +140,7 @@ public class TerrainMesh
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
         }
 
-        var outputBytes = Rd.BufferGetData(IndirectArgsBuffer);
+        var outputBytes = IndirectArgsBuffer.GetData();
 
         uint[] output = new uint[4];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(uint));
@@ -181,20 +152,9 @@ public class TerrainMesh
     /// </summary>
     public void Dispose()
     {
-        Rd.FreeRid(IndirectArgsBuffer);
-        Rd.FreeRid(VertexBuffer);
-        Rd.FreeRid(TerrainMeshShaderParametersBuffer);
-
-        // At the moment we're making these every frame
-        // There's a chance during update that we dispose of this without ever rendering it
-        //if (VertexBufferUniformSet.IsValid)
-        //{
-        //    Rd.FreeRid(VertexBufferUniformSet);
-        //}
-        //if (TerrainMeshShaderParametersUniformSet.IsValid)
-        //{
-        //    Rd.FreeRid(TerrainMeshShaderParametersUniformSet);
-        //}
+        IndirectArgsBuffer.Dispose();
+        VertexBuffer.Dispose();
+        TerrainMeshShaderParametersBuffer.Dispose();
     }
 
     /// <summary>
@@ -202,7 +162,7 @@ public class TerrainMesh
     /// </summary>
     public void ResetBuffers()
     {
-        Rd.BufferClear(IndirectArgsBuffer, 0, sizeof(uint) * 4);
+        IndirectArgsBuffer.ClearData(0, sizeof(uint) * 4);
     }
 
     /// <summary>
@@ -212,20 +172,12 @@ public class TerrainMesh
     /// <exception cref="ArgumentException"></exception>
     public void SetShaderParameters(TerrainMeshShaderParameters parameters)
     {
-        if (!TerrainMeshShaderParametersBuffer.IsValid)
+        if (TerrainMeshShaderParameters != parameters)
         {
-            throw new ArgumentException($"{nameof(TerrainMeshShaderParametersBuffer)} is not valid.");
+            byte[] parameterBytes = StructHelpers.ToByteArray(parameters);
+            TerrainMeshShaderParametersBuffer.SetData(0, (uint)parameterBytes.Length, parameterBytes);
+            TerrainMeshShaderParameters = parameters;
         }
-
-        // The two are the same, don't replace
-        if (TerrainMeshShaderParameters == parameters)
-        {
-            return;
-        }
-
-        byte[] parameterBytes = StructHelpers.ToByteArray(parameters);
-        Rd.BufferUpdate(TerrainMeshShaderParametersBuffer, 0, (uint)parameterBytes.Length, parameterBytes);
-        TerrainMeshShaderParameters = parameters;
     }
 
     /// <summary>

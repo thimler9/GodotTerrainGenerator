@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
+using TerrainGeneration.Utilities.EngineAbstractions;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class Transvoxel
@@ -62,11 +63,11 @@ public class Transvoxel
     /// but does not create the uniform set that is needed for the shader.
     /// </summary>
     /// <param name="parameters"></param>
-    /// <param name="sdfUniform"></param>
-    /// <param name="normalsUniform"></param>
+    /// <param name="sdfBuffer"></param>
+    /// <param name="normalsBuffer"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public TerrainMesh GetTerrainMesh(TransvoxelShaderParameters parameters, RDUniform sdfUniform, RDUniform normalsUniform)
+    public TerrainMesh GetTerrainMesh(TransvoxelShaderParameters parameters, ComputeBuffer sdfBuffer, ComputeBuffer normalsBuffer)
     {
         // Get the terrain mesh
         TerrainMesh? terrainMesh;
@@ -93,18 +94,18 @@ public class Transvoxel
             throw new ArgumentNullException(nameof(terrainMesh), "This should not be null");
         }
 
-        if (sdfUniform == null)
+        if (sdfBuffer == null)
         {
-            throw new ArgumentNullException($"{nameof(sdfUniform)} cannot be null.");
+            throw new ArgumentNullException($"{nameof(sdfBuffer)} cannot be null.");
         }
 
-        if (normalsUniform == null)
+        if (normalsBuffer == null)
         {
-            throw new ArgumentNullException($"{nameof(normalsUniform)} must be null.");
+            throw new ArgumentNullException($"{nameof(normalsBuffer)} must be null.");
         }
 
         // Set vertices
-        TransvoxelShader.Dispatch(parameters, sdfUniform, normalsUniform, terrainMesh.VertexBufferUniform);
+        TransvoxelShader.Dispatch(parameters, sdfBuffer, normalsBuffer, terrainMesh.VertexBufferUniform);
 
         // Set indirect args
         IndirectArgsShader.Dispatch(TransvoxelShader.GetCurrentVertexCountUniform(), terrainMesh.IndirectArgsBufferUniform);

@@ -15,7 +15,7 @@ public class ComputeBuffer
     private Rid Buffer;
     private RDUniform Uniform;
 
-    public ComputeBuffer(RenderingDevice rd, uint size, RenderingDevice.UniformType uniformType, int binding = 0, byte[]? data = null)
+    public ComputeBuffer(RenderingDevice rd, uint size, RenderingDevice.UniformType uniformType, int binding = 0, byte[]? data = null, RenderingDevice.StorageBufferUsage? storageBufferUsage = null)
     {
         if (rd == null)
         {
@@ -38,13 +38,25 @@ public class ComputeBuffer
         }
 
         Rd = rd;
-        if (data == null)
+        if (uniformType == RenderingDevice.UniformType.StorageBuffer)
         {
-            Buffer = Rd.UniformBufferCreate(size, data);
+            if (storageBufferUsage != null)
+            {
+                Buffer = Rd.StorageBufferCreate(size, usage: storageBufferUsage.Value);
+            }
+            else
+            {
+                Buffer = Rd.StorageBufferCreate(size);
+            }
         }
         else
         {
             Buffer = Rd.UniformBufferCreate(size);
+        }
+
+        if (data != null)
+        {
+            Rd.BufferUpdate(Buffer, 0, (uint)data.Length, data);
         }
 
         Uniform = new RDUniform()
@@ -73,6 +85,20 @@ public class ComputeBuffer
         }
 
         Rd.BufferUpdate(Buffer, offset, size, data);
+    }
+
+    public void ClearData(uint offset, uint size)
+    {
+        if (offset < 0)
+        {
+            throw new ArgumentException($"{nameof(offset)} cannot be negative.");
+        }
+        if (size <= 0)
+        {
+            throw new ArgumentException($"{nameof(size)} must be positive.");
+        }
+
+        Rd.BufferClear(Buffer, offset, size);
     }
 
     public byte[]? GetData()

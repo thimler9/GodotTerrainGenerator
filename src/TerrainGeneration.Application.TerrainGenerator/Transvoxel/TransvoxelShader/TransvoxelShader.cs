@@ -1,5 +1,6 @@
 ﻿using Godot;
 using System.Runtime.InteropServices;
+using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
@@ -12,21 +13,14 @@ public class TransvoxelShader
     private const int NORMALS_SHADER_SET = 4;
     private const int VERTICES_SHADER_SET = 5;
 
-
     private RenderingDevice Rd;
-    private Rid Shader;
-    private Rid Pipeline;
+    private ComputeShader Shader;
 
     private TransvoxelShaderParameters? Parameters = null;
-    private Rid ParametersBuffer;
-    private Rid ParametersUniformSet;
+    private ComputeBuffer ParametersBuffer;
+    private ComputeBuffer LookupTablesBuffer;
+    private ComputeBuffer CounterBuffer;
 
-    private Rid LookupTablesBuffer;
-    private Rid LookupTablesUniformSet;
-
-    private Rid CounterBuffer;
-    private RDUniform CounterBufferUniform;
-    private Rid CounterUniformSet;
 
     /// <summary>
     /// Creates an instance of the transvoxel shader. This algorithm creates triangles from an sdf using the 
@@ -49,46 +43,17 @@ public class TransvoxelShader
         }
 
         Rd = rd;
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
-        RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
-        Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
-        Pipeline = rd.ComputePipelineCreate(Shader);
+        Shader = new ComputeShader(rd, descriptor.ShaderPath);
 
-        // Setup Params Buffer
-        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<TransvoxelShaderParameters>());
-        RDUniform parametersUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.UniformBuffer,
-            Binding = 0
-        };
-        parametersUniform.AddId(ParametersBuffer);
+        ParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<TransvoxelShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
 
         // Setup Lookup Tables Buffer
         int[] lookupTablesData = LookupTables.LookupTablesData;
         byte[] lookupTablesDataBytes = new byte[lookupTablesData.Length * sizeof(int)];
         Buffer.BlockCopy(lookupTablesData, 0, lookupTablesDataBytes, 0, lookupTablesDataBytes.Length);
 
-        LookupTablesBuffer = rd.StorageBufferCreate((uint)lookupTablesDataBytes.Length, lookupTablesDataBytes);
-        RDUniform lookupTablesBufferUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        lookupTablesBufferUniform.AddId(LookupTablesBuffer);
-
-        // Setup Counter Buffer
-        CounterBuffer = rd.StorageBufferCreate(sizeof(uint));
-        RDUniform counterBufferUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        counterBufferUniform.AddId(CounterBuffer);
-        CounterBufferUniform = counterBufferUniform;
-
-        ParametersUniformSet = Rd.UniformSetCreate([parametersUniform], Shader, PARAMETERS_SHADER_SET);
-        LookupTablesUniformSet = Rd.UniformSetCreate([lookupTablesBufferUniform], Shader, LOOKUP_TABLES_SHADER_SET);
-        CounterUniformSet = Rd.UniformSetCreate([counterBufferUniform], Shader, COUNTER_SHADER_SET);
+        LookupTablesBuffer = new ComputeBuffer(rd, (uint)(LookupTables.LookupTablesData.Length * sizeof(int)), RenderingDevice.UniformType.StorageBuffer, 0, lookupTablesDataBytes);
+        CounterBuffer = new ComputeBuffer(rd, sizeof(int), RenderingDevice.UniformType.StorageBuffer, 0);
     }
 
     /// <summary>
@@ -99,7 +64,7 @@ public class TransvoxelShader
     {
         if (!Parameters.Equals(parameters))
         {
-            Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<TransvoxelShaderParameters>(), StructHelpers.ToByteArray(parameters));
+            ParametersBuffer.SetData(0, (uint)Marshal.SizeOf<TransvoxelShaderParameters>(), StructHelpers.ToByteArray(parameters));
             Parameters = parameters;
         }
     }
@@ -111,28 +76,10 @@ public class TransvoxelShader
     /// <param name="sdfUniform">Rid buffer of the sdf</param>
     /// <param name="normalsUniform">Rid buffer of the normals for the sdf</param>
     /// <param name="verticesUniform">Rid buffer of the place to output the triangles</param>
-    public void Dispatch(TransvoxelShaderParameters parameters, RDUniform sdfUniform, RDUniform normalsUniform, RDUniform verticesUniform)
+    public void Dispatch(TransvoxelShaderParameters parameters, ComputeBuffer sdfUniform, ComputeBuffer normalsUniform, ComputeBuffer verticesUniform)
     {
         SetParameters(parameters);
-        Rd.BufferClear(CounterBuffer, 0, sizeof(uint));
 
-        long computeList = Rd.ComputeListBegin();
-        RunTransvoxelShader(computeList, sdfUniform, normalsUniform, verticesUniform);
-
-        Rd.ComputeListEnd();
-    }
-
-    /// <summary>
-    /// Runs the transvoxel algorithm.
-    /// </summary>
-    /// <param name="computeList"></param>
-    /// <param name="sdfUniform"></param>
-    /// <param name="normalsUniform"></param>
-    /// <param name="verticesUniform"></param>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="ArgumentException"></exception>
-    private void RunTransvoxelShader(long computeList, RDUniform sdfUniform, RDUniform normalsUniform, RDUniform verticesUniform)
-    {
         if (Parameters == null)
         {
             throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
@@ -146,22 +93,16 @@ public class TransvoxelShader
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
-        Rid sdfUniformSet = Rd.UniformSetCreate([sdfUniform], Shader, SDF_SHADER_SET);
-        Rid normalUniformSet = Rd.UniformSetCreate([normalsUniform], Shader, NORMALS_SHADER_SET);
-        Rid verticesUniformSet = Rd.UniformSetCreate([verticesUniform], Shader, VERTICES_SHADER_SET);
+        CounterBuffer.ClearData(0, sizeof(uint));
 
-        Rd.ComputeListBindComputePipeline(computeList, Pipeline);
-        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, PARAMETERS_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, LookupTablesUniformSet, LOOKUP_TABLES_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, CounterUniformSet, COUNTER_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, sdfUniformSet, SDF_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, normalUniformSet, NORMALS_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, verticesUniformSet, VERTICES_SHADER_SET);
-        Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod), yGroups: chunkSize / (8 * lod), zGroups: chunkSize / (8 * lod));
-
-        Rd.FreeRid(sdfUniformSet);
-        Rd.FreeRid(normalUniformSet);
-        Rd.FreeRid(verticesUniformSet);
+        using ComputePass pass = Shader.GetComputePass();
+        pass.BindComputeBuffer(ParametersBuffer, PARAMETERS_SHADER_SET);
+        pass.BindComputeBuffer(LookupTablesBuffer, LOOKUP_TABLES_SHADER_SET);
+        pass.BindComputeBuffer(CounterBuffer, COUNTER_SHADER_SET);
+        pass.BindComputeBuffer(sdfUniform, SDF_SHADER_SET);
+        pass.BindComputeBuffer(normalsUniform, NORMALS_SHADER_SET);
+        pass.BindComputeBuffer(verticesUniform, VERTICES_SHADER_SET);
+        pass.Dispatch(chunkSize / (8 * lod), chunkSize / (8 * lod), chunkSize / (8 * lod));
     }
 
     /// <summary>
@@ -169,6 +110,11 @@ public class TransvoxelShader
     /// </summary>
     public void Dispose()
     {
+        Shader.Dispose();
+        ParametersBuffer.Dispose();
+        LookupTablesBuffer.Dispose();
+        CounterBuffer.Dispose();
+
         Rd.FreeRid(Pipeline);
         Rd.FreeRid(ParametersUniformSet);
         Rd.FreeRid(ParametersBuffer);
