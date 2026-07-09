@@ -75,6 +75,11 @@ public class ComputeBuffer
         Rd.BufferUpdate(Buffer, offset, size, data);
     }
 
+    public byte[]? GetData()
+    {
+        return Rd.BufferGetData(Buffer);
+    }
+
     public Rid CreateUniformSet(ComputeShader shader, uint shaderSet)
     {
         if (shaderSet < 0)
@@ -83,5 +88,10 @@ public class ComputeBuffer
         }
 
         return Rd.UniformSetCreate([Uniform], shader.Shader, shaderSet);
+    }
+
+    public void Dispose()
+    {
+        Rd.FreeRid(Buffer);
     }
 }

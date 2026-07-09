@@ -36,4 +36,10 @@ public class ComputeShader
     {
         return new ComputePass(Rd, this, Pipeline);
     }
+
+    public void Dispose()
+    {
+        Rd.FreeRid(Shader);
+        Rd.FreeRid(Pipeline);
+    }
 }

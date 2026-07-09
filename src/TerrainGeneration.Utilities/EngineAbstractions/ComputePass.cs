@@ -51,6 +51,7 @@ public class ComputePass : IDisposable
     public void Dispatch(uint x, uint y, uint z)
     {
         Rd.ComputeListDispatch(ComputeList, xGroups: x, yGroups: y, zGroups: z);
+        Rd.ComputeListEnd();
     }
 
     public void Dispose()

@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
@@ -17,18 +18,12 @@ public class NormalsShader
     private const int OUTPUT_NORMALS_SHADER_SET = 2;
 
     private RenderingDevice Rd;
-    private string ShaderPath;
-    private Rid Shader;
-    private Rid Pipeline;
     
     private NormalsShaderParameters? Parameters = null;
-    private Rid ParametersBuffer;
-    private Rid ParametersUniformSet;
 
-    // We keep the buffer in the shader since the same buffer is used everytime
-    private Rid OutputNormalsBuffer;
-    private RDUniform OutputNormalsUniform;
-    private Rid OutputNormalsUniformSet;
+    private ComputeShader Shader;
+    private ComputeBuffer ParametersBuffer;
+    private ComputeBuffer OutputBuffer;
 
     /// <summary>
     /// Creates a Normals Shader instance. Used for calcing normals for the Terrain Meshes
@@ -50,20 +45,8 @@ public class NormalsShader
         }
 
         Rd = rd;
-        ShaderPath = descriptor.ShaderPath;
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
-        RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
-        Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
-        Pipeline = rd.ComputePipelineCreate(Shader);
-
-        // Set Paramters
-        ParametersBuffer = rd.UniformBufferCreate((uint)Marshal.SizeOf<NormalsShaderParameters>());
-        RDUniform parametersUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.UniformBuffer,
-            Binding = 0
-        };
-        parametersUniform.AddId(ParametersBuffer);
+        Shader = new ComputeShader(rd, descriptor.ShaderPath);
+        ParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<NormalsShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
 
         // Create the output buffer used throughout calculations
         uint chunkSizeToLodRatio = descriptor.ChunkSize / descriptor.Lod;
@@ -72,16 +55,7 @@ public class NormalsShader
             throw new ArgumentException($"{nameof(descriptor.ChunkSize)} / {nameof(descriptor.Lod)} must be greater than 0");
         }
 
-        OutputNormalsBuffer = rd.StorageBufferCreate((chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * sizeof(float) * 3);
-        OutputNormalsUniform = new RDUniform()
-        {
-            UniformType = RenderingDevice.UniformType.StorageBuffer,
-            Binding = 0
-        };
-        OutputNormalsUniform.AddId(OutputNormalsBuffer);
-
-        ParametersUniformSet = rd.UniformSetCreate([parametersUniform], Shader, PARAMETERS_SHADER_SET);
-        OutputNormalsUniformSet = rd.UniformSetCreate([OutputNormalsUniform], Shader, OUTPUT_NORMALS_SHADER_SET);
+        OutputBuffer = new ComputeBuffer(rd, (chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * (chunkSizeToLodRatio + 1) * sizeof(float) * 3, RenderingDevice.UniformType.StorageBuffer, 0);
     }
 
     /// <summary>
@@ -92,7 +66,7 @@ public class NormalsShader
     {
         if (!Parameters.Equals(parameters))
         {
-            Rd.BufferUpdate(ParametersBuffer, 0, (uint)Marshal.SizeOf<NormalsShaderParameters>(), StructHelpers.ToByteArray(parameters));
+            ParametersBuffer.SetData(0, (uint)Marshal.SizeOf<NormalsShaderParameters>(), StructHelpers.ToByteArray(parameters));
             Parameters = parameters;
         }
     }
@@ -102,26 +76,10 @@ public class NormalsShader
     /// </summary>
     /// <param name="parameters"></param>
     /// <param name="inputSDFUniform"></param>
-    public RDUniform Dispatch(NormalsShaderParameters parameters, RDUniform inputSDFUniform)
+    public ComputeBuffer Dispatch(NormalsShaderParameters parameters, ComputeBuffer inputSDFBuffer)
     {
         SetParameters(parameters);
 
-        // No reason to run if parameters haven't been changed
-        // Run the shaders
-        RunNormalsShader(inputSDFUniform);
-
-        return OutputNormalsUniform;
-    }
-
-    /// <summary>
-    /// Runs the normals shader
-    /// </summary>
-    /// <param name="computeList"></param>
-    /// <param name="inputSDFUniform"></param>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="ArgumentException"></exception>
-    private void RunNormalsShader(RDUniform inputSDFUniform)
-    {
         if (Parameters == null)
         {
             throw new ArgumentNullException(nameof(Parameters), "Cannot be null");
@@ -135,17 +93,13 @@ public class NormalsShader
             throw new ArgumentException($"{nameof(chunkSize)} / (8 * {nameof(lod)} must be positive. {nameof(chunkSize)} = {chunkSize}, {nameof(lod)} = {lod}");
         }
 
-        Rid inputSDFUniformSet = Rd.UniformSetCreate([inputSDFUniform], Shader, 1);
+        using ComputePass normalsPass = Shader.GetComputePass();
+        normalsPass.BindComputeBuffer(ParametersBuffer, PARAMETERS_SHADER_SET);
+        normalsPass.BindComputeBuffer(inputSDFBuffer, SDF_SHADER_SET);
+        normalsPass.BindComputeBuffer(OutputBuffer, OUTPUT_NORMALS_SHADER_SET);
+        normalsPass.Dispatch(chunkSize / (8 * lod) + 1, chunkSize / (8 * lod) + 1, chunkSize / (8 * lod) + 1);
 
-        long computeList = Rd.ComputeListBegin();
-        Rd.ComputeListBindComputePipeline(computeList, Pipeline);
-        Rd.ComputeListBindUniformSet(computeList, ParametersUniformSet, PARAMETERS_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, inputSDFUniformSet, SDF_SHADER_SET);
-        Rd.ComputeListBindUniformSet(computeList, OutputNormalsUniformSet, OUTPUT_NORMALS_SHADER_SET);
-        Rd.ComputeListDispatch(computeList, xGroups: chunkSize / (8 * lod) + 1, yGroups: chunkSize / (8 * lod) + 1, zGroups: chunkSize / (8 * lod) + 1);
-        Rd.ComputeListEnd();
-
-        Rd.FreeRid(inputSDFUniformSet);
+        return OutputBuffer;
     }
 
     /// <summary>
@@ -153,13 +107,9 @@ public class NormalsShader
     /// </summary>
     public void Dispose()
     {
-        // Free the shaders
-        Rd.FreeRid(Pipeline);
-        Rd.FreeRid(ParametersUniformSet);
-        Rd.FreeRid(ParametersBuffer);
-        Rd.FreeRid(OutputNormalsUniformSet);
-        Rd.FreeRid(Shader);
-        Rd.FreeRid(OutputNormalsBuffer);
+        ParametersBuffer.Dispose();
+        OutputBuffer.Dispose();
+        Shader.Dispose();
     }
 
     /// <summary>
@@ -178,7 +128,7 @@ public class NormalsShader
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
         }
 
-        var outputBytes = Rd.BufferGetData(OutputNormalsBuffer);
+        var outputBytes = OutputBuffer.GetData();
         float[] output = new float[(Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * 3];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
         

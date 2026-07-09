@@ -9,6 +9,7 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
+using TerrainGeneration.Utilities.EngineAbstractions;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelTerrainGenerator
@@ -102,7 +103,8 @@ public class TransvoxelTerrainGenerator
     public TerrainMesh GetTerrainMesh(SDFShaderParameters sdfShaderParameters, NormalsShaderParameters normalsShaderParameters, TransvoxelShaderParameters transvoxelShaderParameters)
     {
         RDUniform sdfBufferUniform = SdfPipeline.GetSDF(sdfShaderParameters);
-        RDUniform normalsBufferUniform = NormalsShader.Dispatch(normalsShaderParameters, sdfBufferUniform);
+
+        ComputeBuffer normalsBuffer = NormalsShader.Dispatch(normalsShaderParameters, sdfBufferUniform);
 
         SetTransvoxelShaderConstantParameters(ref transvoxelShaderParameters);
 
