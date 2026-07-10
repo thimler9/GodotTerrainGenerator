@@ -12,7 +12,6 @@ public class ComputePass : IDisposable
     private RenderingDevice Rd;
     private ComputeShader ComputeShader;
     private long ComputeList;
-    private Rid Pipeline;
 
     private List<Rid> ComputeShaderUniformSets = new List<Rid>();
 
@@ -25,13 +24,13 @@ public class ComputePass : IDisposable
 
         if(!pipeline.IsValid)
         {
-            throw new ArgumentNullException($"{nameof(Pipeline)} is not valid");
+            throw new ArgumentNullException($"{nameof(pipeline)} is not valid");
         }
 
-        Pipeline = pipeline;
         Rd = rd;
         ComputeShader = computeShader;
         ComputeList = Rd.ComputeListBegin();
+        Rd.ComputeListBindComputePipeline(ComputeList, pipeline);
     }
 
     public void BindComputeBuffer(ComputeBuffer buffer, uint setIndex)

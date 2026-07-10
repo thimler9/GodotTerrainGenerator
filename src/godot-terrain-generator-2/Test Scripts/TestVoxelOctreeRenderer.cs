@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.VoxelOctree;
 using TerrainGeneration.Application.VoxelOctree.Abstractions.RenderOctree;
+using TerrainGeneration.Utilities.EngineAbstractions;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace GodotTerrainGenerator2.Test_Scripts;
@@ -19,7 +20,7 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
     public Camera3D Camera;
 
     RenderingDevice Rd;
-    public Rid TerrainShader;
+    public GraphicShader TerrainShader;
     public Rid RenderPipeline;
 
     // Per frame rendering data
@@ -104,11 +105,9 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
 
     private void SetRenderPipeline(RenderSceneBuffersRD renderSceneBuffers, Rid renderSceneDataBuffer)
     {
-        Rd = RenderingServer.GetRenderingDevice();
 
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>("res://Shaders/Graphic/terrain_shader.glsl");
-        RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
-        TerrainShader = Rd.ShaderCreateFromSpirV(shaderBytecode);
+        Rd = RenderingServer.GetRenderingDevice();
+        TerrainShader = new GraphicShader(Rd, "res://Shaders/Graphic/terrain_shader.glsl");
 
         // Position descriptor for vertices
         RDVertexAttribute vertexAttributePosition = new RDVertexAttribute()
@@ -189,7 +188,7 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
         long frameBufferFormat = Rd.FramebufferGetFormat(ScreenBuffer);
 
         RenderPipeline = Rd.RenderPipelineCreate(
-            TerrainShader,
+            TerrainShader.Shader,
             frameBufferFormat,
             vertexFormat,
             RenderingDevice.RenderPrimitive.Triangles,
@@ -211,7 +210,7 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
             Binding = 0,
         };
         RenderSceneDataUniform.AddId(renderSceneDataBuffer);
-        RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], TerrainShader, 0);
+        RenderSceneDataUniformSet = Rd.UniformSetCreate([RenderSceneDataUniform], TerrainShader.Shader, 0);
 
         // Set camera projection
         TerrainConstantsUniform = new RDUniform()
@@ -220,7 +219,7 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
             Binding = 0,
         };
         TerrainConstantsUniform.AddId(TerrainMeshConstantsBuffer);
-        TerrainConstantsUniformSet = Rd.UniformSetCreate([TerrainConstantsUniform], TerrainShader, 3);
+        TerrainConstantsUniformSet = Rd.UniformSetCreate([TerrainConstantsUniform], TerrainShader.Shader, 3);
     }
 
 }

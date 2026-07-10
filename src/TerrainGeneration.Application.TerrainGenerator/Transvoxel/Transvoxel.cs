@@ -105,10 +105,10 @@ public class Transvoxel
         }
 
         // Set vertices
-        TransvoxelShader.Dispatch(parameters, sdfBuffer, normalsBuffer, terrainMesh.VertexBufferUniform);
+        TransvoxelShader.Dispatch(parameters, sdfBuffer, normalsBuffer, terrainMesh.VertexBuffer);
 
         // Set indirect args
-        IndirectArgsShader.Dispatch(TransvoxelShader.GetCurrentVertexCountShader(), terrainMesh.IndirectArgsBufferUniform);
+        IndirectArgsShader.Dispatch(TransvoxelShader.GetCurrentVertexCountShader(), terrainMesh.IndirectArgsBuffer);
 
         // Get indirect args
         return terrainMesh;

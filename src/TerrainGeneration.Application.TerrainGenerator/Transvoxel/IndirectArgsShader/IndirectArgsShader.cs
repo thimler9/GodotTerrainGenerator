@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerrainGeneration.Utilities.EngineAbstractions;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class IndirectArgsShader
@@ -15,8 +16,7 @@ public class IndirectArgsShader
     public RenderingDevice Rd;
 
     private readonly string ShaderPath;
-    private Rid Shader;
-    private Rid Pipeline;
+    private ComputeShader Shader;
 
     /// <summary>
     /// Creates an instance of the indirect args shader. Sets the parameters needed to draw the triangles to the screen.
@@ -42,11 +42,7 @@ public class IndirectArgsShader
         }
 
         Rd = rd;
-        ShaderPath = descriptor.ShaderPath;
-        RDShaderFile shaderFile = GD.Load<RDShaderFile>(descriptor.ShaderPath);
-        RDShaderSpirV shaderBytecode = shaderFile.GetSpirV();
-        Shader = rd.ShaderCreateFromSpirV(shaderBytecode);
-        Pipeline = rd.ComputePipelineCreate(Shader);
+        Shader = new ComputeShader(rd, descriptor.ShaderPath);
     }
 
     /// <summary>
@@ -54,32 +50,11 @@ public class IndirectArgsShader
     /// </summary>
     /// <param name="counterUniform"></param>
     /// <param name="indirectArgsBufferUniform"></param>
-    public void Dispatch(RDUniform counterUniform, RDUniform indirectArgsBufferUniform)
+    public void Dispatch(ComputeBuffer counterBuffer, ComputeBuffer indirectArgsBuffer)
     {
-        long computeList = Rd.ComputeListBegin();
-
-        RunIndirectArgsShader(computeList, counterUniform, indirectArgsBufferUniform);
-
-        Rd.ComputeListEnd();
-    }
-
-    /// <summary>
-    /// Runs the indirect args shader. Sets the necessary parameters for drawing the triangles on the screen.
-    /// </summary>
-    /// <param name="computeList"></param>
-    /// <param name="counterUniform"></param>
-    /// <param name="indirectArgsUniform"></param>
-    private void RunIndirectArgsShader(long computeList, RDUniform counterUniform, RDUniform indirectArgsUniform)
-    {
-        Rid counterUniformSet = Rd.UniformSetCreate([counterUniform], Shader, COUNTER_SHADER_SET);
-        Rid indirectArgsUniformSet = Rd.UniformSetCreate([indirectArgsUniform], Shader, INDIRECT_ARGS_SHADER_SET);
-
-        Rd.ComputeListBindComputePipeline(computeList, Pipeline);
-        Rd.ComputeListBindUniformSet(computeList, counterUniformSet, 0);
-        Rd.ComputeListBindUniformSet(computeList, indirectArgsUniformSet, 1);
-        Rd.ComputeListDispatch(computeList, xGroups: 1, yGroups: 1, zGroups: 1);
-
-        Rd.FreeRid(counterUniformSet);
-        Rd.FreeRid(indirectArgsUniformSet);
+        using ComputePass pass = Shader.GetComputePass();
+        pass.BindComputeBuffer(counterBuffer, COUNTER_SHADER_SET);
+        pass.BindComputeBuffer(indirectArgsBuffer, INDIRECT_ARGS_SHADER_SET);
+        pass.Dispatch(1, 1, 1);
     }
 }

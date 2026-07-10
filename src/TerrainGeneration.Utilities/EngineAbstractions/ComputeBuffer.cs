@@ -116,8 +116,23 @@ public class ComputeBuffer
         return Rd.UniformSetCreate([Uniform], shader.Shader, shaderSet);
     }
 
+    public Rid CreateUniformSet(GraphicShader shader, uint shaderSet)
+    {
+        if (shaderSet < 0)
+        {
+            throw new ArgumentException($"{nameof(shader)} is not valid.");
+        }
+
+        return Rd.UniformSetCreate([Uniform], shader.Shader, shaderSet);
+    }
+
     public void Dispose()
     {
         Rd.FreeRid(Buffer);
+    }
+
+    public Rid GetBuffer()
+    {
+        return Buffer;
     }
 }
