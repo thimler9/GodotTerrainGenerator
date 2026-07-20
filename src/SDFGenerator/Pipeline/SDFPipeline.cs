@@ -159,7 +159,7 @@ public sealed class SDFPipeline
             if (biome.BiomeParametersBuffer == null)
             {
                 BiomeParameters biomeParams = new BiomeParameters(biome.Temperature, biome.TemperatureSpread, biome.Depth, biome.DepthSpread, biome.IgnoreBiome);
-                biome.BiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
+                biome.BiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParameters>(), RenderingDevice.UniformType.UniformBuffer, 0, data: StructHelpers.ToByteArray(biomeParams));
             }
         }
     }
@@ -190,7 +190,7 @@ public sealed class SDFPipeline
     /// <exception cref="ArgumentNullException"></exception>
     public void PrintOutBuffer(uint chunkSize, uint lod)
     {
-        var outputBytes = TemperatureValueBuffer.GetData();
+        var outputBytes = TemperatureValueBuffer.GetData<byte>();
         float[] output = new float[(chunkSize / lod + 1) * (chunkSize / lod + 1) * (chunkSize / lod + 1)];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
     }

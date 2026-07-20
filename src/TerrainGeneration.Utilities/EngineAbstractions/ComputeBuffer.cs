@@ -101,9 +101,13 @@ public class ComputeBuffer
         Rd.BufferClear(Buffer, offset, size);
     }
 
-    public byte[]? GetData()
+    public T[]? GetData<T>()
     {
-        return Rd.BufferGetData(Buffer);
+        byte[]? bufferData = Rd.BufferGetData(Buffer);
+        T[]? outputData = new T[bufferData.Length / Marshal.SizeOf<T>()];
+        System.Buffer.BlockCopy(bufferData, 0, outputData, 0, bufferData.Length);
+
+        return outputData;
     }
 
     public Rid CreateUniformSet(ComputeShader shader, uint shaderSet)

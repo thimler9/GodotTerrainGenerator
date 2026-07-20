@@ -128,7 +128,7 @@ public class NormalsShader
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
         }
 
-        var outputBytes = OutputBuffer.GetData();
+        var outputBytes = OutputBuffer.GetData<byte>();
         float[] output = new float[(Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * (Parameters.Value.ChunkSize / Parameters.Value.Lod + 1) * 3];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
         

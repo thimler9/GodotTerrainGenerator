@@ -90,7 +90,7 @@ public class TerrainMesh
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
         }
 
-        var outputBytes = VertexBuffer.GetData();
+        var outputBytes = VertexBuffer.GetData<byte>();
  
         float[] output = new float[GetMaxNumVerts() * (uint)Marshal.SizeOf<TerrainMeshVertex>() / sizeof(float)];
 
@@ -140,7 +140,7 @@ public class TerrainMesh
             throw new ArgumentNullException(nameof(Rd), "Cannot be null");
         }
 
-        var outputBytes = IndirectArgsBuffer.GetData();
+        var outputBytes = IndirectArgsBuffer.GetData<byte>();
 
         uint[] output = new uint[4];
         Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(uint));
