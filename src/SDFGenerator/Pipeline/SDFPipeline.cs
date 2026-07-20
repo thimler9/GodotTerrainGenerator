@@ -167,7 +167,12 @@ public sealed class SDFPipeline
     private void SetupDummyUniforms(RenderingDevice rd)
     {
         BiomeParameters biomeParameters = new BiomeParameters(0f, 0f, 0f, 0f, true);
-        DummyBiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
+        DummyBiomeParametersBuffer = new ComputeBuffer(
+            rd,
+            (uint)Marshal.SizeOf<BiomeParameters>(),
+            RenderingDevice.UniformType.UniformBuffer,
+            0,
+            StructHelpers.ToByteArray(biomeParameters));
         DummyTemperatureValuesBuffer = new ComputeBuffer(rd, sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
     }
 
