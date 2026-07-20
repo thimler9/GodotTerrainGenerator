@@ -9,7 +9,7 @@ using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Utilities.EngineAbstractions;
 
-public class ComputeBuffer
+public class ComputeBuffer : IDisposable
 {
     private RenderingDevice Rd;
     private Rid Buffer;

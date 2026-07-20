@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TerrainGeneration.Utilities.EngineAbstractions;
-public class GraphicShader
+public class GraphicShader : IDisposable
 {
     private RenderingDevice Rd;
     public Rid Shader;

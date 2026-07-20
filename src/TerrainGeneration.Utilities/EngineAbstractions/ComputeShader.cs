@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TerrainGeneration.Utilities.EngineAbstractions;
 
-public class ComputeShader
+public class ComputeShader : IDisposable
 {
     private RenderingDevice Rd;
     public Rid Shader;
