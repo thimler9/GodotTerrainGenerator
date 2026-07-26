@@ -7,14 +7,14 @@
 		"sdf": [
 			{
 				"function": "SimplexNoise",
-				"seed": 4,
-				"scale": 1000.0,
-				"strength": 100,
-				"numOctaves": 4,
-				"frequency": 1.1,
-				"amplitude": 0.8,
-				"lacunarity": 2.0,
-				"gain": 0.45
+				"seed": 3,
+				"scale": 750.0,
+				"strength": 1.0,
+				"numOctaves": 8,
+				"frequency": 0.9,
+				"amplitude": 1.0,
+				"lacunarity": 2.5,
+				"gain": 0.35
 			}
 		]
 	},
@@ -34,20 +34,6 @@
 			]
 		},
 		{
-			"temperature": 0,
-			"temperatureSpread": 0,
-			"depth": 0,
-			"depthSpread": 0,
-			"ignoreBiome": false,
-			"sdf": [
-				{
-					"function": "Constant",
-					"value": 0.25,
-					"operationType": "Add"
-				}
-			]
-		},
-		{
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": -500.0,
@@ -60,26 +46,6 @@
 					"scale": 750.0,
 					"strength": 1.0,
 					"numOctaves": 8,
-					"frequency": 0.9,
-					"amplitude": 1.0,
-					"lacunarity": 2.5,
-					"gain": 0.35
-				}
-			]
-		},
-		{
-			"temperature": 30,
-			"temperatureSpread": 30,
-			"depth": 1500.0,
-			"depthSpread": 1000,
-			"ignoreBiome": false,
-			"sdf": [
-				{
-					"function": "SimplexNoise",
-					"seed": 3,
-					"scale": 3000.0,
-					"strength":2.0,
-					"numOctaves": 4,
 					"frequency": 0.9,
 					"amplitude": 1.0,
 					"lacunarity": 2.5,

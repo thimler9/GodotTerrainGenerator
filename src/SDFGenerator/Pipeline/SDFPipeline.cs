@@ -89,6 +89,12 @@ public sealed class SDFPipeline
                 DummyBiomeParametersBuffer,
                 DummyTemperatureValuesBuffer,
                 TemperatureValueBuffer);
+
+            float[]? data = TemperatureValueBuffer.GetData<float>();
+            if (data != null)
+            {
+                var test = data;
+            }
         }
 
         foreach (BiomeDescriptor biome in Biomes)
@@ -110,12 +116,6 @@ public sealed class SDFPipeline
                     biome.BiomeParametersBuffer,
                     TemperatureValueBuffer,
                     OutputBuffer);
-
-                //float[]? data = OutputBuffer.GetData<float>();
-                //if (data != null)
-                //{
-                //    var test = data;
-                //}
             }
         }
 

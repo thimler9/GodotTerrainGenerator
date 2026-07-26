@@ -12,8 +12,8 @@ namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 public enum IgnoreBiomeEnum
 {
-    Ignore = -1,
-    Include = 0
+    Include = 0,
+    Ignore = -1
 }
 
 [StructLayout(LayoutKind.Explicit)]
