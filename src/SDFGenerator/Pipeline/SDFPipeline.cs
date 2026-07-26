@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Constant;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
@@ -49,6 +50,7 @@ public sealed class SDFPipeline
             ISDFShader shader = functionName switch
             {
                 SimplexNoiseStage.FunctionName => new SimplexNoiseShader(rd, shaderPath),
+                ConstantStage.FunctionName => new ConstantShader(rd, shaderPath),
                 _ => throw new NotSupportedException($"Unsupported shader function '{functionName}'.")
             };
 
@@ -108,6 +110,12 @@ public sealed class SDFPipeline
                     biome.BiomeParametersBuffer,
                     TemperatureValueBuffer,
                     OutputBuffer);
+
+                //float[]? data = OutputBuffer.GetData<float>();
+                //if (data != null)
+                //{
+                //    var test = data;
+                //}
             }
         }
 

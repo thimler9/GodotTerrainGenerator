@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+namespace TerrainGeneration.Application.SDFGenerator.Constant;
 public class ConstantDescriptor
 {
 }
