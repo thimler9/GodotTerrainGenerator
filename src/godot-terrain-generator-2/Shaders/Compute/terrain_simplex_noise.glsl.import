@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://ds42emhgrijwn"
+path="res://.godot/imported/terrain_simplex_noise.glsl-de87a9f798b30cf0dfcb1ad1f63bc54a.res"
+
+[deps]
+
+source_file="res://Shaders/Compute/terrain_simplex_noise.glsl"
+dest_files=["res://.godot/imported/terrain_simplex_noise.glsl-de87a9f798b30cf0dfcb1ad1f63bc54a.res"]
+
+[params]
+

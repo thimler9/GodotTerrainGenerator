@@ -37,15 +37,15 @@ layout(set = 4, binding = 0, std430) restrict buffer OutputBuffer {
 
 float terrain_probability(uvec3 id, uint array_index, float temperature, float temperature_spread, float depth, float depth_spread)
 {
-    float temperature_value = temperature_values.data[array_index];
-    // float depth_value = id.y * sdf_params.lod + sdf_params.chunk_offset.y;
+    // float temperature_value = temperature_values.data[array_index];
+    float depth_value = id.y * sdf_params.lod + sdf_params.chunk_offset.y;
 
     // float temperature_factor = 1.0 / (1.0 + ((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
     // float depth_factor = 1.0 / (1.0 + ((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
 
-    float temperature_factor = exp(-((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
-    // float depth_factor = exp(-((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
-    return temperature_value;
+    // float temperature_factor = exp(-((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
+    float depth_factor = exp(-((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
+    return depth_factor;
 }
 
 

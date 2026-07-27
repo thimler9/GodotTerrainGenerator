@@ -1,6 +1,6 @@
 {
 	"shaders": {
-		"SimplexNoise": "res://Shaders/Compute/map_generator.glsl",
+		"SimplexNoise": "res://Shaders/Compute/terrain_simplex_noise.glsl",
 		"Constant": "res://Shaders/Compute/constant.glsl"
 	},
 	"temperature": {
@@ -37,7 +37,7 @@
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": -500.0,
-			"depthSpread": 1000,
+			"depthSpread": 1500,
 			"ignoreBiome": false,
 			"sdf": [
 				{
@@ -50,6 +50,40 @@
 					"amplitude": 1.0,
 					"lacunarity": 2.5,
 					"gain": 0.35
+				}
+			]
+		},
+		{
+			"temperature": 30,
+			"temperatureSpread": 30,
+			"depth": 3000.0,
+			"depthSpread": 1500,
+			"ignoreBiome": false,
+			"sdf": [
+				{
+					"function": "SimplexNoise",
+					"seed": 3,
+					"scale": 2000.0,
+					"strength": 1.0,
+					"numOctaves": 2,
+					"frequency": 0.9,
+					"amplitude": 1.0,
+					"lacunarity": 2.5,
+					"gain": 0.35
+				}
+			]
+		},
+		{
+			"temperature": 30,
+			"temperatureSpread": 30,
+			"depth": 1000.0,
+			"depthSpread": 1000,
+			"ignoreBiome": false,
+			"sdf": [
+				{
+					"function": "Constant",
+					"value": 0.25,
+					"operationType": "Add"
 				}
 			]
 		}
