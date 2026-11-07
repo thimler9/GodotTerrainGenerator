@@ -1,11 +1,9 @@
 using Godot;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Constant;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.Sphere;
 using FileAccess = Godot.FileAccess;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
@@ -218,6 +216,7 @@ public sealed class SDFPipelineParser
         {
             SimplexNoiseStage.FunctionName => ParseSimplexNoiseStage(stageElement),
             ConstantStage.FunctionName => ParseConstantStage(stageElement),
+            SphereStage.FunctionName => ParseSphereStage(stageElement),
             _ => throw new SDFPipelineParseException($"Unsupported pipeline function '{function}'.")
         };
     }
@@ -232,5 +231,11 @@ public sealed class SDFPipelineParser
     {
         return JsonSerializer.Deserialize<ConstantStage>(stageElement.GetRawText(), SerializerOptions)
             ?? throw new SDFPipelineParseException("Unable to deserialize Constant stage.");
+    }
+
+    private static ISDFPipelineStage ParseSphereStage(JsonElement stageElement)
+    {
+        return JsonSerializer.Deserialize<SphereStage>(stageElement.GetRawText(), SerializerOptions)
+            ?? throw new SDFPipelineParseException("Unable to deserialize Sphere stage.");
     }
 }
