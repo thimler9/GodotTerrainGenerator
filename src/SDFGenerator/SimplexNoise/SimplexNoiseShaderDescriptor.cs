@@ -6,6 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
-public class SimplexNoiseShaderDescriptor
+public class ConstantDescriptor
 {
 }
