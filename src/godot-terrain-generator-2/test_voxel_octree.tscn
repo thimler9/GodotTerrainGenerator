@@ -20,12 +20,14 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_jae4
 
 [sub_resource type="Environment" id="Environment_jae4j"]
 ambient_light_source = 2
-ambient_light_color = Color(0.47040224, 0.36610085, 0.76393807, 1)
+ambient_light_color = Color(0.08462971, 0.59517473, 0.55580777, 1)
 ambient_light_sky_contribution = 0.0
 fog_enabled = true
 fog_mode = 1
+fog_light_color = Color(0.67768115, 0.9427306, 0.86923194, 1)
 fog_density = 1.0
-fog_depth_end = 1132.3
+fog_depth_begin = 0.0
+fog_depth_end = 648.4
 
 [node name="TestVoxelOctree" type="Node3D"]
 
@@ -44,6 +46,10 @@ Camera = NodePath("../Camera3D")
 StartSize = 2048
 MinChunkSize = 16
 BorderWidth = 1.5
+SunDirection = Vector3(-0.075, -1, -0.77)
+SunIntensity = 0.59
+SunColor = Color(0.8417422, 0.7923298, 0.48438662, 1)
+SpecularIntensity = 0.1
 PlayerPositionChangeThreshold = 25.0
 EventQueueWorkBudget = 30
 MaxNumVertices = 75000

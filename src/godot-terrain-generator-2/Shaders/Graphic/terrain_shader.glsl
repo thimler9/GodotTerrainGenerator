@@ -141,5 +141,21 @@ void main() {
     vec3 specularLighting = sun.color.rgb * sun.specular.x * specularFactor;
 
     vec3 finalColor = baseColor * (ambientColor + diffuseLighting) + specularLighting;
+
+    // Apply fog relative to the active camera/player position. SceneData uses
+    // the fog depth values as the start and end distances for the effect.
+    vec3 playerPositionWS = scene.data.inv_view_matrix[3].xyz;
+    float playerDistance = distance(fragPositionWS, playerPositionWS);
+    float fogFactor = 0.0;
+
+    if (scene.data.fog_depth_end > scene.data.fog_depth_begin)
+    {
+        fogFactor = smoothstep(
+            scene.data.fog_depth_begin,
+            scene.data.fog_depth_end,
+            playerDistance);
+    }
+
+    finalColor = mix(finalColor, scene.data.fog_light_color, fogFactor);
     outColor = vec4(finalColor, 1.0);
 }
