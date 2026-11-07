@@ -1,7 +1,8 @@
 using System.Text.Json.Serialization;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Constant;
 
-namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+namespace TerrainGeneration.Application.SDFGenerator.Constant;
 
 public sealed class ConstantStage : ISDFPipelineStage
 {
