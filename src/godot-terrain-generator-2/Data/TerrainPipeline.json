@@ -20,6 +20,7 @@
 	},
 	"biomes": [
 		{
+			"name":  "Base Layer",
 			"temperature": 0,
 			"temperatureSpread": 0,
 			"depth": 0,
@@ -34,6 +35,7 @@
 			]
 		},
 		{
+			"name":  "Biome 1",
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": -500.0,
@@ -54,6 +56,7 @@
 			]
 		},
 		{
+			"name":  "Biome 2",
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": 3000.0,
@@ -74,6 +77,7 @@
 			]
 		},
 		{
+			"name":  "Ceiling",
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": 1000.0,

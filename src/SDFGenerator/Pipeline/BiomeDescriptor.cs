@@ -5,6 +5,8 @@ namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
 public sealed class BiomeDescriptor
 {
+    public string? Name { get; set; }
+    public string? Description { get; set; }
     public float Temperature { get; init; }
     public float TemperatureSpread { get; init; }
     public float Depth { get; init; }
