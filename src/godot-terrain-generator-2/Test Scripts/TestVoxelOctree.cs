@@ -25,6 +25,14 @@ public partial class TestVoxelOctree : Node
 	public TerrainLod[] TerrainLods;
 	[Export]
 	public float BorderWidth;
+    [Export]
+	public Vector3 SunDirection = new(0.0f, -1.0f, 0.0f);
+	[Export]
+	public float SunIntensity = 1.0f;
+	[Export]
+	public Color SunColor = Colors.White;
+	[Export]
+	public float SpecularIntensity = 0.5f;
 	[Export]
 	public float PlayerPositionChangeThreshold;
 	[Export]
@@ -129,6 +137,7 @@ public partial class TestVoxelOctree : Node
 		compEffect.Camera = Camera;
 		compEffect.VoxelOctree = VoxelOctree;
 		compEffect.TerrainMeshConstantsBuffer = terrainMeshConstantsBuffer;
+       UpdateLighting(compEffect);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -137,5 +146,18 @@ public partial class TestVoxelOctree : Node
 		VoxelOctree.UpdateAbstractTree(Camera.Position);
 		VoxelOctree.ProcessEventQueue();
 
+       TestVoxelOctreeRenderer compEffect = Camera.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
+		if (compEffect != null)
+		{
+			UpdateLighting(compEffect);
+		}
+	}
+
+	private void UpdateLighting(TestVoxelOctreeRenderer compEffect)
+	{
+		compEffect.SunDirection = SunDirection;
+		compEffect.SunIntensity = SunIntensity;
+		compEffect.SunColor = SunColor;
+		compEffect.SpecularIntensity = SpecularIntensity;
 	}
 }

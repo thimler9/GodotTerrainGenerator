@@ -16,16 +16,12 @@ namespace GodotTerrainGenerator2.Test_Scripts;
 [GlobalClass]
 public partial class TestVoxelOctreeRenderer : CompositorEffect
 {
-    [Export]
     public Vector3 SunDirection { get; set; } = new(0.0f, -1.0f, 0.0f);
 
-    [Export]
     public float SunIntensity { get; set; } = 1.0f;
 
-    [Export]
     public Color SunColor { get; set; } = Colors.White;
 
-    [Export]
     public float SpecularIntensity { get; set; } = 0.5f;
 
     public VoxelOctree VoxelOctree;
