@@ -123,7 +123,8 @@ vec3 GetLodColor(uint value) {
 }
 
 void main() {
-    vec3 baseColor = GetLodColor(lod);
+    // vec3 baseColor = GetLodColor(lod);
+    vec3 baseColor = vec3(1.0);
     vec3 normal = normalize(fragNormal);
     vec3 viewDirection = normalize(scene.data.inv_view_matrix[3].xyz - fragPositionWS);
 

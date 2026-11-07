@@ -19,10 +19,13 @@ metadata/_custom_type_script = "uid://bkirokmvgvtlk"
 compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_jae4j")])
 
 [sub_resource type="Environment" id="Environment_jae4j"]
+ambient_light_source = 2
+ambient_light_color = Color(0.47040224, 0.36610085, 0.76393807, 1)
+ambient_light_sky_contribution = 0.0
 fog_enabled = true
 fog_mode = 1
 fog_density = 1.0
-fog_depth_end = 1809.7
+fog_depth_end = 1132.3
 
 [node name="TestVoxelOctree" type="Node3D"]
 

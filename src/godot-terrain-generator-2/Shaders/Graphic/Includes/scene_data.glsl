@@ -20,8 +20,8 @@ struct SceneData {
 
 	// only used for multiview
 	mat4 projection_matrix_view[2];
-	mat4 inv_projection_matrix_view[1];
-	vec4 eye_offset[1];
+	mat4 inv_projection_matrix_view[2];
+	vec4 eye_offset[2];
 
 	// Used for billboards to cast correct shadows.
 	mat4 main_cam_inv_view_matrix;
