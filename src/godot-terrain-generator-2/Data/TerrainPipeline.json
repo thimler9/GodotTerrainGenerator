@@ -1,7 +1,8 @@
 {
 	"shaders": {
 		"SimplexNoise": "res://Shaders/Compute/terrain_simplex_noise.glsl",
-		"Constant": "res://Shaders/Compute/constant.glsl"
+		"Constant": "res://Shaders/Compute/constant.glsl",
+		"Sphere": "res://Shaders/Compute/sphere.glsl"
 	},
 	"temperature": {
 		"sdf": [
