@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using GodotTerrainGenerator2.Test_Scripts;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
@@ -25,6 +26,14 @@ public partial class TestVoxelOctree : Node
 	public TerrainLod[] TerrainLods;
 	[Export]
 	public float BorderWidth;
+    [Export]
+	public Vector3 SunDirection = new(0.0f, -1.0f, 0.0f);
+	[Export]
+	public float SunIntensity = 1.0f;
+	[Export]
+	public Color SunColor = Colors.White;
+	[Export]
+	public float SpecularIntensity = 0.5f;
 	[Export]
 	public float PlayerPositionChangeThreshold;
 	[Export]
@@ -44,12 +53,20 @@ public partial class TestVoxelOctree : Node
 	public string SDFPipelinePath = "res://Data/TerrainPipeline.json";
 
 	public VoxelOctree VoxelOctree;
+	private RenderingDevice Rd;
+	private Rid DirectionalLightBuffer;
+	private Vector3 UploadedSunDirection;
+	private float UploadedSunIntensity;
+	private Color UploadedSunColor;
+	private float UploadedSpecularIntensity;
+	private bool DirectionalLightValuesUploaded;
 
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		RenderingDevice rd = RenderingServer.GetRenderingDevice();
+		Rd = RenderingServer.GetRenderingDevice();
+		DirectionalLightBuffer = Rd.UniformBufferCreate(48, CreateDirectionalLightData());
 
 		TerrainLods = new TerrainLod[6]
 		{
@@ -85,8 +102,8 @@ public partial class TestVoxelOctree : Node
 			}
 		};
 
-		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-		SDFPipeline pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd);
+      SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
+		SDFPipeline pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, Rd);
 
 		TransvoxelTerrainGeneratorDescriptor transvoxelTerrainGeneratorDescriptor = new TransvoxelTerrainGeneratorDescriptor()
 		{
@@ -101,7 +118,7 @@ public partial class TestVoxelOctree : Node
 			BorderWidth = BorderWidth,
 			TransvoxelShaderPath = TransvoxelShaderPath,
 		};
-		TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(rd, transvoxelTerrainGeneratorDescriptor);
+       TransvoxelTerrainGenerator transvoxelTerrainGenerator = new TransvoxelTerrainGenerator(Rd, transvoxelTerrainGeneratorDescriptor);
 
 		VoxelOctreeDescriptor voxelOctreeDescriptor = new VoxelOctreeDescriptor()
 		{
@@ -124,12 +141,13 @@ public partial class TestVoxelOctree : Node
 			BorderWidth = BorderWidth
 		};
 		byte[] terrainMeshConstantsBytes = StructHelpers.ToByteArray(terrainMeshConstants);
-		Rid terrainMeshConstantsBuffer = rd.UniformBufferCreate((uint)terrainMeshConstantsBytes.Length, terrainMeshConstantsBytes);
+		Rid terrainMeshConstantsBuffer = Rd.UniformBufferCreate((uint)terrainMeshConstantsBytes.Length, terrainMeshConstantsBytes);
 
 		TestVoxelOctreeRenderer compEffect = Camera.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
 		compEffect.Camera = Camera;
 		compEffect.VoxelOctree = VoxelOctree;
 		compEffect.TerrainMeshConstantsBuffer = terrainMeshConstantsBuffer;
+		compEffect.DirectionalLightBuffer = DirectionalLightBuffer;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -137,5 +155,43 @@ public partial class TestVoxelOctree : Node
 	{
 		VoxelOctree.UpdateAbstractTree(Camera.Position);
 		VoxelOctree.ProcessEventQueue();
+
+		UpdateDirectionalLightBuffer();
+	}
+
+	private void UpdateDirectionalLightBuffer()
+	{
+		if (DirectionalLightValuesUploaded &&
+			UploadedSunDirection == SunDirection &&
+			UploadedSunIntensity == SunIntensity &&
+			UploadedSunColor == SunColor &&
+			UploadedSpecularIntensity == SpecularIntensity)
+		{
+			return;
+		}
+
+		Rd.BufferUpdate(DirectionalLightBuffer, 0, 48, CreateDirectionalLightData());
+		UploadedSunDirection = SunDirection;
+		UploadedSunIntensity = SunIntensity;
+		UploadedSunColor = SunColor;
+		UploadedSpecularIntensity = SpecularIntensity;
+		DirectionalLightValuesUploaded = true;
+	}
+
+	private byte[] CreateDirectionalLightData()
+	{
+		Vector3 direction = SunDirection.LengthSquared() > 0.0f
+			? SunDirection
+			: new Vector3(0.0f, -1.0f, 0.0f);
+
+		float[] directionalLightData = [
+			direction.X, direction.Y, direction.Z, SunIntensity,
+			SunColor.R, SunColor.G, SunColor.B, 0.0f,
+			SpecularIntensity, 0.0f, 0.0f, 0.0f
+		];
+
+		byte[] directionalLightBytes = new byte[directionalLightData.Length * sizeof(float)];
+		Buffer.BlockCopy(directionalLightData, 0, directionalLightBytes, 0, directionalLightBytes.Length);
+		return directionalLightBytes;
 	}
 }
