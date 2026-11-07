@@ -13,6 +13,7 @@
 	  <Folder Include="Shaders\Graphic\Includes\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CONTRIBUTING.md" />
     <None Include="Shaders\Graphic\compute_example.glsl" />
   </ItemGroup>
   <ItemGroup>
