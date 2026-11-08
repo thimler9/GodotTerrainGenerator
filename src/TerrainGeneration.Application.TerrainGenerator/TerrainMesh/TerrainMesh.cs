@@ -212,6 +212,11 @@ public class TerrainMesh
             throw new ArgumentException($"{nameof(renderDescriptor.RenderSceneDataUniformSet)} must be valid");
         }
 
+        if (!renderDescriptor.DirectionalLightUniformSet.IsValid)
+        {
+            throw new ArgumentException($"{nameof(renderDescriptor.DirectionalLightUniformSet)} must be valid");
+        }
+
         if (!renderDescriptor.Shader.IsValid())
         {
             throw new ArgumentException($"{nameof(renderDescriptor.Shader)} must be valid");
@@ -231,6 +236,7 @@ public class TerrainMesh
         Rd.DrawListBindUniformSet(drawList, vertexBufferUniformSet, 1);
         Rd.DrawListBindUniformSet(drawList, terrainMeshShaderParametersUniformSet, 2);
         Rd.DrawListBindUniformSet(drawList, renderDescriptor.TerrainConstantsUniformSet, 3);
+        Rd.DrawListBindUniformSet(drawList, renderDescriptor.DirectionalLightUniformSet, 4);
 
         // Draw call
         Rd.DrawListDrawIndirect(drawList, false, IndirectArgsBuffer.GetBuffer());

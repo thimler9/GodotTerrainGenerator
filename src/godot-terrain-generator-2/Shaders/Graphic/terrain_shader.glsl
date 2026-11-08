@@ -1,5 +1,4 @@
 #[vertex]
-
 #version 450
 
 #include "Includes/scene_data.glsl"
@@ -36,7 +35,8 @@ layout(set = 3, binding = 0) uniform TerrainConstantsBuffer {
 };
 
 layout(location = 0) out vec3 fragNormal;
-layout(location = 1) out uint lod;
+layout(location = 1) out vec3 fragPositionWS;
+layout(location = 2) out uint lod;
 
 void main() {
     VertexInput vertex = vertices[gl_VertexIndex];
@@ -55,6 +55,7 @@ void main() {
 
     gl_Position = positionCS;
     fragNormal = vertex.normal.xyz;
+    fragPositionWS = positionWS.xyz;
     lod = terrain_params.lod;
 }
 
@@ -62,47 +63,99 @@ void main() {
 
 #version 450
 
+#include "Includes/scene_data.glsl"
+#include "Includes/scene_data_helpers.glsl"
+
+struct DirectionalLightParams {
+    // Direction from the sun toward the surface.
+    vec4 direction_intensity;
+
+    // RGB sun color.
+    vec4 color;
+
+    // x = specular intensity.
+    vec4 specular;
+};
+
+layout(set = 4, binding = 0) uniform DirectionalLightParamsBuffer {
+    DirectionalLightParams sun;
+};
+
 layout(location = 0) in vec3 fragNormal;
-layout(location = 1) in flat uint lod;
+layout(location = 1) in vec3 fragPositionWS;
+layout(location = 2) in flat uint lod;
 
 layout(location = 0) out vec4 outColor;
 
+const float SPECULAR_POWER = 32.0;
+
+vec3 GetLodColor(uint value) {
+    if (value == 64u)
+    {
+        return vec3(1.0, 0.0, 0.0); // Red for LOD 64
+    }
+    else if (value == 32u)
+    {
+        return vec3(0.0, 1.0, 0.0); // Green for LOD 32
+    }
+    else if (value == 16u)
+    {
+        return vec3(0.0, 0.0, 1.0); // Blue for LOD 16
+    }
+    else if (value == 8u)
+    {
+        return vec3(1.0, 1.0, 0.0); // Yellow for LOD 8
+    }
+    else if (value == 4u)
+    {
+        return vec3(1.0, 0.0, 1.0); // Magenta for LOD 4
+    }
+    else if (value == 2u)
+    {
+        return vec3(0.0, 1.0, 1.0); // Cyan for LOD 2
+    }
+    else if (value == 1u)
+    {
+        return vec3(1.0); // White for LOD 1
+    }
+
+    return vec3(0.0);
+}
+
 void main() {
-    // outColor = vec4(gl_FragCoord.z, gl_FragCoord.z, gl_FragCoord.z, 1.0);
-    vec3 colorValue = vec3(0.0);
+    // vec3 baseColor = GetLodColor(lod);
+    vec3 baseColor = vec3(1.0);
+    vec3 normal = normalize(fragNormal);
+    vec3 viewDirection = normalize(scene.data.inv_view_matrix[3].xyz - fragPositionWS);
 
-    if (lod == 64)
+    // The incoming direction points from the sun toward the surface.
+    vec3 lightDirection = normalize(-sun.direction_intensity.xyz);
+    float diffuseFactor = max(dot(normal, lightDirection), 0.0);
+
+    vec3 ambientColor = scene.data.ambient_light_color_energy.rgb *
+        scene.data.ambient_light_color_energy.a;
+    vec3 diffuseLighting = sun.color.rgb * sun.direction_intensity.w * diffuseFactor;
+
+    vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+    float specularFactor = pow(max(dot(normal, halfwayDirection), 0.0), SPECULAR_POWER);
+    vec3 specularLighting = sun.color.rgb * sun.specular.x * specularFactor;
+
+    vec3 finalColor = baseColor * (ambientColor + diffuseLighting) + specularLighting;
+
+    // Apply fog relative to the active camera/player position. SceneData uses
+    // the fog depth values as the start and end distances for the effect.
+    vec3 playerPositionWS = scene.data.inv_view_matrix[3].xyz;
+    float playerDistance = distance(fragPositionWS, playerPositionWS);
+    float fogFactor = 0.0;
+
+    if ((scene.data.flags & SCENE_DATA_FLAGS_USE_FOG) != 0 && scene.data.fog_depth_end > scene.data.fog_depth_begin)
     {
-        colorValue = vec3(1.0, 0.0, 0.0); // Red for LOD 64
-    }
-    else if (lod == 32)
-    {
-        colorValue = vec3(0.0, 1.0, 0.0); // Green for LOD 32
-    }
-    else if (lod == 16)
-    {
-        colorValue = vec3(0.0, 0.0, 1.0); // Blue for LOD 16
-    }
-    else if (lod == 8)
-    {
-        colorValue = vec3(1.0, 1.0, 0.0); // Yellow for LOD 8
-    }
-    else if (lod == 4)
-    {
-        colorValue = vec3(1.0, 0.0, 1.0); // Magenta for LOD 4
-    }
-    else if (lod == 2)
-    {
-        colorValue = vec3(0.0, 1.0, 1.0); // Cyan for LOD 2
-    }
-    else if (lod == 1)
-    {
-        colorValue = vec3(1.0, 1.0, 1.0); // White for LOD 1
+        fogFactor = smoothstep(
+            scene.data.fog_depth_begin,
+            scene.data.fog_depth_end,
+            playerDistance);
     }
 
-    vec3 normalColor = (fragNormal + 1.0) * 0.5; // Map normal from [-1, 1] to [0, 1]
-    vec3 finalColor = normalColor * colorValue; // Modulate normal color with LOD color
-
-
+    finalColor = mix(finalColor, scene.data.fog_light_color, fogFactor);
     outColor = vec4(finalColor, 1.0);
 }

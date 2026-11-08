@@ -1,10 +1,7 @@
 using Godot;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
+using System.Reflection;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using FileAccess = Godot.FileAccess;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
@@ -18,6 +15,13 @@ public sealed class SDFPipelineParser
         AllowTrailingCommas = true
     };
 
+    // Stage types are discovered from the assembly so adding a new stage does not
+    // require another deserialization method or switch case in this parser.
+    private static readonly IReadOnlyDictionary<string, Type> StageTypes = DiscoverStageTypes();
+
+    /// <summary>
+    /// Parses pipeline JSON and creates the pipeline, including its configured stages and shaders.
+    /// </summary>
     public SDFPipeline Parse(string json, RenderingDevice rd)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -213,23 +217,42 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("Pipeline stage 'function' field cannot be empty.");
         }
 
-        return function switch
+        if (!StageTypes.TryGetValue(function, out Type? stageType))
         {
-            SimplexNoiseStage.FunctionName => ParseSimplexNoiseStage(stageElement),
-            ConstantStage.FunctionName => ParseConstantStage(stageElement),
-            _ => throw new SDFPipelineParseException($"Unsupported pipeline function '{function}'.")
-        };
+            throw new SDFPipelineParseException($"Unsupported pipeline function '{function}'.");
+        }
+
+        // Deserialize using the discovered concrete type so each stage can define its own parameters.
+        return JsonSerializer.Deserialize(stageElement.GetRawText(), stageType, SerializerOptions) as ISDFPipelineStage
+            ?? throw new SDFPipelineParseException($"Unable to deserialize '{function}' stage.");
     }
 
-    private static ISDFPipelineStage ParseSimplexNoiseStage(JsonElement stageElement)
+    private static IReadOnlyDictionary<string, Type> DiscoverStageTypes()
     {
-        return JsonSerializer.Deserialize<SimplexNoiseStage>(stageElement.GetRawText(), SerializerOptions)
-            ?? throw new SDFPipelineParseException("Unable to deserialize SimplexNoise stage.");
-    }
+        var stageTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        Assembly assembly = typeof(SDFPipelineParser).Assembly;
 
-    private static ISDFPipelineStage ParseConstantStage(JsonElement stageElement)
-    {
-        return JsonSerializer.Deserialize<ConstantStage>(stageElement.GetRawText(), SerializerOptions)
-            ?? throw new SDFPipelineParseException("Unable to deserialize Constant stage.");
+        // FunctionName is the registration contract shared by all pipeline stages.
+        foreach (Type type in assembly.GetTypes())
+        {
+            if (!typeof(ISDFPipelineStage).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
+            {
+                continue;
+            }
+
+            FieldInfo? functionNameField = type.GetField("FunctionName", BindingFlags.Public | BindingFlags.Static);
+            string? functionName = functionNameField?.GetValue(null) as string;
+            if (string.IsNullOrWhiteSpace(functionName))
+            {
+                continue;
+            }
+
+            if (!stageTypes.TryAdd(functionName, type))
+            {
+                throw new InvalidOperationException($"Duplicate SDF pipeline function name '{functionName}'.");
+            }
+        }
+
+        return stageTypes;
     }
 }

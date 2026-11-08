@@ -16,6 +16,14 @@ namespace GodotTerrainGenerator2.Test_Scripts;
 [GlobalClass]
 public partial class TestVoxelOctreeRenderer : CompositorEffect
 {
+    public Vector3 SunDirection { get; set; } = new(0.0f, -1.0f, 0.0f);
+
+    public float SunIntensity { get; set; } = 1.0f;
+
+    public Color SunColor { get; set; } = Colors.White;
+
+    public float SpecularIntensity { get; set; } = 0.5f;
+
     public VoxelOctree VoxelOctree;
     public Camera3D Camera;
 
@@ -35,6 +43,14 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
     public Rid TerrainMeshConstantsBuffer;
     public RDUniform TerrainConstantsUniform;
     public Rid TerrainConstantsUniformSet;
+    public Rid DirectionalLightBuffer;
+    public Rid DirectionalLightUniformSet;
+
+    private Vector3 UploadedSunDirection;
+    private float UploadedSunIntensity;
+    private Color UploadedSunColor;
+    private float UploadedSpecularIntensity;
+    private bool DirectionalLightValuesUploaded;
 
     public void Init(RenderSceneBuffersRD renderSceneBuffers, Rid renderSceneDataBuffer)
     {
@@ -69,6 +85,8 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
             // Update camera buffers
             else
             {
+                UpdateDirectionalLightBuffer();
+
                 var newColorTexture = renderSceneBuffers.GetColorTexture();
                 var newDepthTexture = renderSceneBuffers.GetDepthTexture();
 
@@ -97,6 +115,7 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
                     ScreenBuffer = ScreenBuffer,
                     Shader = TerrainShader,
                     TerrainConstantsUniformSet = TerrainConstantsUniformSet,
+                    DirectionalLightUniformSet = DirectionalLightUniformSet,
                 });
             }
 
@@ -220,6 +239,58 @@ public partial class TestVoxelOctreeRenderer : CompositorEffect
         };
         TerrainConstantsUniform.AddId(TerrainMeshConstantsBuffer);
         TerrainConstantsUniformSet = Rd.UniformSetCreate([TerrainConstantsUniform], TerrainShader.Shader, 3);
+
+        byte[] directionalLightBytes = CreateDirectionalLightData();
+        DirectionalLightBuffer = Rd.UniformBufferCreate((uint)directionalLightBytes.Length, directionalLightBytes);
+        RDUniform directionalLightUniform = new RDUniform()
+        {
+            UniformType = RenderingDevice.UniformType.UniformBuffer,
+            Binding = 0
+        };
+        directionalLightUniform.AddId(DirectionalLightBuffer);
+        DirectionalLightUniformSet = Rd.UniformSetCreate([directionalLightUniform], TerrainShader.Shader, 4);
+        DirectionalLightValuesUploaded = true;
+        UploadedSunDirection = SunDirection;
+        UploadedSunIntensity = SunIntensity;
+        UploadedSunColor = SunColor;
+        UploadedSpecularIntensity = SpecularIntensity;
     }
 
+    private void UpdateDirectionalLightBuffer()
+    {
+        if (!DirectionalLightBuffer.IsValid || DirectionalLightValuesUploaded &&
+            UploadedSunDirection == SunDirection &&
+            UploadedSunIntensity == SunIntensity &&
+            UploadedSunColor == SunColor &&
+            UploadedSpecularIntensity == SpecularIntensity)
+        {
+            return;
+        }
+
+        byte[] directionalLightBytes = CreateDirectionalLightData();
+        Rd.BufferUpdate(DirectionalLightBuffer, 0, (uint)directionalLightBytes.Length, directionalLightBytes);
+
+        UploadedSunDirection = SunDirection;
+        UploadedSunIntensity = SunIntensity;
+        UploadedSunColor = SunColor;
+        UploadedSpecularIntensity = SpecularIntensity;
+        DirectionalLightValuesUploaded = true;
+    }
+
+    private byte[] CreateDirectionalLightData()
+    {
+        Vector3 direction = SunDirection.LengthSquared() > 0.0f
+            ? SunDirection
+            : new Vector3(0.0f, -1.0f, 0.0f);
+
+        float[] directionalLightData = [
+            direction.X, direction.Y, direction.Z, SunIntensity,
+            SunColor.R, SunColor.G, SunColor.B, 0.0f,
+            SpecularIntensity, 0.0f, 0.0f, 0.0f
+        ];
+
+        byte[] directionalLightBytes = new byte[directionalLightData.Length * sizeof(float)];
+        Buffer.BlockCopy(directionalLightData, 0, directionalLightBytes, 0, directionalLightBytes.Length);
+        return directionalLightBytes;
+    }
 }

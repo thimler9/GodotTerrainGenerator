@@ -6,6 +6,7 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Constant;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.Sphere;
 using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
@@ -51,6 +52,7 @@ public sealed class SDFPipeline
             {
                 SimplexNoiseStage.FunctionName => new SimplexNoiseShader(rd, shaderPath),
                 ConstantStage.FunctionName => new ConstantShader(rd, shaderPath),
+                SphereStage.FunctionName => new SphereShader(rd, shaderPath),
                 _ => throw new NotSupportedException($"Unsupported shader function '{functionName}'.")
             };
 

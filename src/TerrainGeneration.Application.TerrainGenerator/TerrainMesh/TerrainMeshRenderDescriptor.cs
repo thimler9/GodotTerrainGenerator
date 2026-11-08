@@ -16,4 +16,5 @@ public class TerrainMeshRenderDescriptor
     public required GraphicShader Shader;
     public required Rid RenderSceneDataUniformSet;
     public required Rid TerrainConstantsUniformSet;
+    public required Rid DirectionalLightUniformSet;
 }
