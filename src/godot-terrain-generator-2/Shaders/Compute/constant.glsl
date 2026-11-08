@@ -54,9 +54,6 @@ void main() {
     float probability = biome_params.params.ignore_biome == -1
         ? 1.0
         : biome_depth_probability(depth_value, biome_params.params.depth, biome_params.params.depth_spread);
-    if (probability <= 0.0) {
-        return;
-    }
 
     float current_value = output_buffer.data[array_index];
     float operated_value = current_value;
