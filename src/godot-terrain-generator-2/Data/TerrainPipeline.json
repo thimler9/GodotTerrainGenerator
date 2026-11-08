@@ -40,19 +40,19 @@
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": -1500.0,
-			"depthSpread": 1000,
+			"depthSpread": 500,
 			"ignoreBiome": false,
 			"sdf": [
 				{
 					"function": "SimplexNoise",
 					"seed": 3,
-					"scale": 750.0,
+					"scale": 400.0,
 					"strength": 1.0,
-					"numOctaves": 8,
-					"frequency": 0.9,
-					"amplitude": 1.0,
-					"lacunarity": 2.5,
-					"gain": 0.35
+					"numOctaves": 6,
+					"frequency": 1.0,
+					"amplitude": 2.5,
+					"lacunarity": 1.5,
+					"gain": 0.75
 				}
 			]
 		},
@@ -61,7 +61,7 @@
 			"temperature": 30,
 			"temperatureSpread": 30,
 			"depth": 0.0,
-			"depthSpread": 1000,
+			"depthSpread": 500,
 			"ignoreBiome": false,
 			"sdf": [
 				{
