@@ -2,6 +2,7 @@
 #version 460
 
 #include "Includes/operation_types.glsl"
+#include "Includes/biome_probability.glsl"
 
 struct ConstantParams {
     float value;
@@ -49,15 +50,27 @@ void main() {
         return;
     }
 
-    if (constant_params.operation == Add) {
-        output_buffer.data[array_index] += constant_params.value;
-    } else if (constant_params.operation == Subtract) {
-        output_buffer.data[array_index] -= constant_params.value;
-    } else if (constant_params.operation == Multiply) {
-        output_buffer.data[array_index] *= constant_params.value;
-    } else if (constant_params.operation == Divide) {
-        output_buffer.data[array_index] /= constant_params.value;
-    } else if (constant_params.operation == Set) {
-        output_buffer.data[array_index] = constant_params.value;
+    float depth_value = float(id.y * sdf_params.lod) + sdf_params.chunk_offset.y;
+    float probability = biome_params.params.ignore_biome == -1
+        ? 1.0
+        : biome_depth_probability(depth_value, biome_params.params.depth, biome_params.params.depth_spread);
+    if (probability <= 0.0) {
+        return;
     }
+
+    float current_value = output_buffer.data[array_index];
+    float operated_value = current_value;
+    if (constant_params.operation == Add) {
+        operated_value += constant_params.value;
+    } else if (constant_params.operation == Subtract) {
+        operated_value -= constant_params.value;
+    } else if (constant_params.operation == Multiply) {
+        operated_value *= constant_params.value;
+    } else if (constant_params.operation == Divide) {
+        operated_value /= constant_params.value;
+    } else if (constant_params.operation == Set) {
+        operated_value = constant_params.value;
+    }
+
+    output_buffer.data[array_index] = mix(current_value, operated_value, probability);
 }

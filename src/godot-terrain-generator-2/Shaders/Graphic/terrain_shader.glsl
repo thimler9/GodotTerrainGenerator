@@ -148,7 +148,7 @@ void main() {
     float playerDistance = distance(fragPositionWS, playerPositionWS);
     float fogFactor = 0.0;
 
-    if (scene.data.fog_depth_end > scene.data.fog_depth_begin)
+    if ((scene.data.flags & SCENE_DATA_FLAGS_USE_FOG) != 0 && scene.data.fog_depth_end > scene.data.fog_depth_begin)
     {
         fogFactor = smoothstep(
             scene.data.fog_depth_begin,

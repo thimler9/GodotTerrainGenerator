@@ -2,6 +2,7 @@
 #version 460
 
 #include "Includes/operation_types.glsl"
+#include "Includes/biome_probability.glsl"
 
 struct SphereParams {
     float radius;
@@ -49,18 +50,30 @@ void main() {
     }
 
     uint array_index = id.x + id.y * adjusted_size + id.z * adjusted_size * adjusted_size;
+    float depth_value = float(id.y * sdf_params.lod) + sdf_params.chunk_offset.y;
+    float probability = biome_params.params.ignore_biome == -1
+        ? 1.0
+        : biome_depth_probability(depth_value, biome_params.params.depth, biome_params.params.depth_spread);
+    if (probability <= 0.0) {
+        return;
+    }
+
     vec3 world_position = sdf_params.chunk_offset.xyz + vec3(id) * float(sdf_params.lod);
     float sphere_distance = length(world_position - sphere_params.center) - sphere_params.radius;
+    float current_value = output_buffer.data[array_index];
+    float operated_value = current_value;
 
     if (sphere_params.operation == Add) {
-        output_buffer.data[array_index] += sphere_distance;
+        operated_value += sphere_distance;
     } else if (sphere_params.operation == Subtract) {
-        output_buffer.data[array_index] -= sphere_distance;
+        operated_value -= sphere_distance;
     } else if (sphere_params.operation == Multiply) {
-        output_buffer.data[array_index] *= sphere_distance;
+        operated_value *= sphere_distance;
     } else if (sphere_params.operation == Divide) {
-        output_buffer.data[array_index] /= sphere_distance;
+        operated_value /= sphere_distance;
     } else if (sphere_params.operation == Set) {
-        output_buffer.data[array_index] = sphere_distance;
+        operated_value = sphere_distance;
     }
+
+    output_buffer.data[array_index] = mix(current_value, operated_value, probability);
 }

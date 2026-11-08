@@ -39,8 +39,8 @@
 			"name":  "Biome 1",
 			"temperature": 30,
 			"temperatureSpread": 30,
-			"depth": -500.0,
-			"depthSpread": 1500,
+			"depth": -1500.0,
+			"depthSpread": 1000,
 			"ignoreBiome": false,
 			"sdf": [
 				{
@@ -60,8 +60,8 @@
 			"name":  "Biome 2",
 			"temperature": 30,
 			"temperatureSpread": 30,
-			"depth": 3000.0,
-			"depthSpread": 1500,
+			"depth": 0.0,
+			"depthSpread": 1000,
 			"ignoreBiome": false,
 			"sdf": [
 				{
@@ -78,11 +78,26 @@
 			]
 		},
 		{
-			"name":  "Ceiling",
-			"temperature": 30,
-			"temperatureSpread": 30,
-			"depth": 1000.0,
-			"depthSpread": 1000,
+			"name": "Surface",
+			"temperature": 0,
+			"temperatureSpread": 500000,
+			"depth": 1500.0,
+			"depthSpread": 500,
+			"ignoreBiome": false,
+			"sdf": [
+				{
+					"function": "Constant",
+					"value": 0.25,
+					"operationType": "Subtract"
+				}
+			]
+		},
+		{
+			"name": "Floor",
+			"temperature": 0,
+			"temperatureSpread": 500000,
+			"depth": -3000.0,
+			"depthSpread": 500,
 			"ignoreBiome": false,
 			"sdf": [
 				{

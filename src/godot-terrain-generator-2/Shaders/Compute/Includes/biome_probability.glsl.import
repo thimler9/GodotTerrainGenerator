@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cx04juarb7kgd"
+path="res://.godot/imported/biome_probability.glsl-4e29f66c13bde9f45d07338c4f6b144c.res"
+
+[deps]
+
+source_file="res://Shaders/Compute/Includes/biome_probability.glsl"
+dest_files=["res://.godot/imported/biome_probability.glsl-4e29f66c13bde9f45d07338c4f6b144c.res"]
+
+[params]
+

@@ -2,6 +2,7 @@
 #version 460
 
 #include "Includes/simplex_noise_functions.glsl"
+#include "Includes/biome_probability.glsl"
 
 struct BiomeParams {
     float temperature;
@@ -35,20 +36,6 @@ layout(set = 4, binding = 0, std430) restrict buffer OutputBuffer {
     float data[];
 } output_buffer;
 
-float terrain_probability(uvec3 id, uint array_index, float temperature, float temperature_spread, float depth, float depth_spread)
-{
-    // float temperature_value = temperature_values.data[array_index];
-    float depth_value = id.y * sdf_params.lod + sdf_params.chunk_offset.y;
-
-    // float temperature_factor = 1.0 / (1.0 + ((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
-    // float depth_factor = 1.0 / (1.0 + ((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
-
-    // float temperature_factor = exp(-((temperature_value - temperature) * (temperature_value - temperature) / (temperature_spread * temperature_spread)));
-    float depth_factor = exp(-((depth_value - depth) * (depth_value - depth) / (depth_spread * depth_spread)));
-    return depth_factor;
-}
-
-
 void main() {
     uint adjustedSize = sdf_params.chunk_size / sdf_params.lod + 2;
 
@@ -58,7 +45,10 @@ void main() {
         return;
     }
 
-    float probability = biome_params.params.ignore_biome == -1 ? 1.0 : terrain_probability(id, array_index, biome_params.params.temperature, biome_params.params.temperature_spread, biome_params.params.depth, biome_params.params.depth_spread);
+    float depth_value = float(id.y * sdf_params.lod) + sdf_params.chunk_offset.y;
+    float probability = biome_params.params.ignore_biome == -1
+        ? 1.0
+        : biome_depth_probability(depth_value, biome_params.params.depth, biome_params.params.depth_spread);
     float noise_value = simplex_noise(simplex_noise_params, id, sdf_params.chunk_offset.xyz, sdf_params.lod);
 
     output_buffer.data[array_index] += noise_value * probability;
