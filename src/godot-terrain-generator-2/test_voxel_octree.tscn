@@ -22,6 +22,7 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_jae4
 ambient_light_source = 2
 ambient_light_color = Color(0.08462971, 0.59517473, 0.55580777, 1)
 ambient_light_sky_contribution = 0.0
+fog_enabled = true
 fog_mode = 1
 fog_light_color = Color(0.67768115, 0.9427306, 0.86923194, 1)
 fog_density = 1.0

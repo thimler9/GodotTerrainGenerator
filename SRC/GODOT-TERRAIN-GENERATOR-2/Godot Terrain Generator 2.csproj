@@ -15,6 +15,7 @@
     <None Include="CONTRIBUTING.md" />
     <None Include="Shaders\Compute\Includes\biome_probability.glsl" />
     <None Include="Shaders\Graphic\compute_example.glsl" />
+    <None Include="test_sdf_cpu_gpu_parity.tscn" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SDFGenerator\TerrainGeneration.Application.SDFGenerator.csproj" />
