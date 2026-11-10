@@ -16,7 +16,7 @@ public class TransvoxelTerrainGenerator
 {
     RenderingDevice Rd;
 
-    SDFPipeline SdfPipeline;
+    SDFPipelineGPU SdfPipeline;
 
     NormalsShader.NormalsShader NormalsShader;
 
@@ -100,7 +100,7 @@ public class TransvoxelTerrainGenerator
     /// object with a different SDFShader.
     /// </summary>
     /// <returns></returns>
-    public TerrainMesh GetTerrainMesh(SDFShaderParameters sdfShaderParameters, NormalsShaderParameters normalsShaderParameters, TransvoxelShaderParameters transvoxelShaderParameters)
+    public TerrainMesh GetTerrainMesh(SDFParameters sdfShaderParameters, NormalsShaderParameters normalsShaderParameters, TransvoxelShaderParameters transvoxelShaderParameters)
     {
         ComputeBuffer sdfBuffer = SdfPipeline.GetSDF(sdfShaderParameters);
 

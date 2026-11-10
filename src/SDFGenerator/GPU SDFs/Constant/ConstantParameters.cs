@@ -8,7 +8,7 @@ using Godot;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Utilities.Math.Extensions;
 
-namespace TerrainGeneration.Application.SDFGenerator.Constant;
+namespace TerrainGeneration.Application.SDFGenerator.GPU.Constant;
 
 public enum OperationType : uint
 {
@@ -52,7 +52,7 @@ public struct ConstantShaderParameters : IShaderParameters
 
         ConstantShaderParameters other = (ConstantShaderParameters)obj;
 
-        return other.Value == this.Value && OperationType == other.OperationType;
+        return other.Value == Value && OperationType == other.OperationType;
     }
     public static bool operator ==(ConstantShaderParameters left, ConstantShaderParameters right)
     {

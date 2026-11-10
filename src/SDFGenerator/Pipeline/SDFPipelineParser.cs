@@ -22,7 +22,7 @@ public sealed class SDFPipelineParser
     /// <summary>
     /// Parses pipeline JSON and creates the pipeline, including its configured stages and shaders.
     /// </summary>
-    public SDFPipeline Parse(string json, RenderingDevice rd)
+    public SDFPipelineGPU Parse(string json, RenderingDevice rd)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -38,7 +38,7 @@ public sealed class SDFPipelineParser
             IReadOnlyList<BiomeDescriptor> biomes = ParseBiomes(root);
             IReadOnlyDictionary<string, string> shaderMap = ParseShaders(root);
 
-            return new SDFPipeline(temperature, biomes, shaderMap, rd);
+            return new SDFPipelineGPU(temperature, biomes, shaderMap, rd);
         }
         catch (JsonException ex)
         {
@@ -46,7 +46,7 @@ public sealed class SDFPipelineParser
         }
     }
 
-    public SDFPipeline ParseFromFile(string filePath, RenderingDevice rd)
+    public SDFPipelineGPU ParseFromFile(string filePath, RenderingDevice rd)
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -57,7 +57,7 @@ public sealed class SDFPipelineParser
         return Parse(json, rd);
     }
 
-    private static string ReadJsonFromPath(string filePath)
+    private string ReadJsonFromPath(string filePath)
     {
         if (filePath.StartsWith("res://", StringComparison.OrdinalIgnoreCase))
         {
@@ -68,7 +68,7 @@ public sealed class SDFPipelineParser
         return System.IO.File.ReadAllText(filePath);
     }
 
-    private static TemperatureDescriptor ParseTemperature(JsonElement root)
+    private TemperatureDescriptor ParseTemperature(JsonElement root)
     {
         if (!root.TryGetProperty("temperature", out JsonElement temperatureElement))
         {
@@ -91,7 +91,7 @@ public sealed class SDFPipelineParser
         };
     }
 
-    private static IReadOnlyList<BiomeDescriptor> ParseBiomes(JsonElement root)
+    private IReadOnlyList<BiomeDescriptor> ParseBiomes(JsonElement root)
     {
         if (!root.TryGetProperty("biomes", out JsonElement biomesElement))
         {
@@ -112,7 +112,7 @@ public sealed class SDFPipelineParser
         return biomes;
     }
 
-    private static IReadOnlyDictionary<string, string> ParseShaders(JsonElement root)
+    private IReadOnlyDictionary<string, string> ParseShaders(JsonElement root)
     {
         var shaderMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (root.TryGetProperty("shaders", out JsonElement shadersElement) && shadersElement.ValueKind == JsonValueKind.Object)
@@ -130,7 +130,7 @@ public sealed class SDFPipelineParser
         return shaderMap;
     }
 
-    private static BiomeDescriptor ParseBiome(JsonElement biomeElement)
+    private BiomeDescriptor ParseBiome(JsonElement biomeElement)
     {
         if (biomeElement.ValueKind != JsonValueKind.Object)
         {
@@ -188,9 +188,9 @@ public sealed class SDFPipelineParser
         };
     }
 
-    private static IReadOnlyList<ISDFPipelineStage> ParseSdfStages(JsonElement sdfElement)
+    private IReadOnlyList<ISDFPipelineStageGPU> ParseSdfStages(JsonElement sdfElement)
     {
-        var stages = new List<ISDFPipelineStage>();
+        var stages = new List<ISDFPipelineStageGPU>();
         foreach (JsonElement stageElement in sdfElement.EnumerateArray())
         {
             stages.Add(ParseStage(stageElement));
@@ -199,7 +199,7 @@ public sealed class SDFPipelineParser
         return stages;
     }
 
-    private static ISDFPipelineStage ParseStage(JsonElement stageElement)
+    private ISDFPipelineStageGPU ParseStage(JsonElement stageElement)
     {
         if (stageElement.ValueKind != JsonValueKind.Object)
         {
@@ -223,7 +223,7 @@ public sealed class SDFPipelineParser
         }
 
         // Deserialize using the discovered concrete type so each stage can define its own parameters.
-        return JsonSerializer.Deserialize(stageElement.GetRawText(), stageType, SerializerOptions) as ISDFPipelineStage
+        return JsonSerializer.Deserialize(stageElement.GetRawText(), stageType, SerializerOptions) as ISDFPipelineStageGPU
             ?? throw new SDFPipelineParseException($"Unable to deserialize '{function}' stage.");
     }
 
@@ -235,7 +235,7 @@ public sealed class SDFPipelineParser
         // FunctionName is the registration contract shared by all pipeline stages.
         foreach (Type type in assembly.GetTypes())
         {
-            if (!typeof(ISDFPipelineStage).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
+            if (!typeof(ISDFPipelineStageGPU).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
             {
                 continue;
             }

@@ -1,9 +1,9 @@
 ﻿using Godot;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.Constant;
+using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
 
-namespace TerrainGeneration.Application.SDFGenerator.Sphere;
+namespace TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 
 [StructLayout(LayoutKind.Explicit, Size = 32)]
 public struct SphereShaderParameters : IShaderParameters

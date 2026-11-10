@@ -1,4 +1,5 @@
 using Godot;
+using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Utilities.EngineAbstractions;
 
 namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
@@ -13,6 +14,5 @@ public sealed class BiomeDescriptor
     public float DepthSpread { get; init; }
     public bool IgnoreBiome { get; init; }
     public ComputeBuffer? BiomeParametersBuffer { get; set; }
-
-    public IReadOnlyList<ISDFPipelineStage> Sdfs { get; init; } = Array.Empty<ISDFPipelineStage>();
+    public IReadOnlyList<ISDFPipelineStageGPU> Sdfs { get; init; } = Array.Empty<ISDFPipelineStageGPU>();
 }

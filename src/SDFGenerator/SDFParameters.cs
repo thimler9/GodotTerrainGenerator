@@ -10,7 +10,7 @@ using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 namespace TerrainGeneration.Application.SDFGenerator;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct SDFShaderParameters
+public struct SDFParameters
 {
     [FieldOffset(0)]
     public readonly Vector4 ChunkOffset;
@@ -24,7 +24,7 @@ public struct SDFShaderParameters
     [FieldOffset(24)]
     private readonly Vector2 Padding;
 
-    public SDFShaderParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
+    public SDFParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
         // TODO: Add validation
         this.ChunkOffset = new Vector4(chunkOffset.X, chunkOffset.Y, chunkOffset.Z, 1.0f);
@@ -34,7 +34,7 @@ public struct SDFShaderParameters
 
     public byte[] ToByteArray()
     {
-        int size = Marshal.SizeOf<SDFShaderParameters>();
+        int size = Marshal.SizeOf<SDFParameters>();
         byte[] arr = new byte[size];
 
         IntPtr ptr = IntPtr.Zero;
@@ -54,21 +54,21 @@ public struct SDFShaderParameters
 
     public override bool Equals(object? obj)
     {
-        if (obj == null || !(obj is SDFShaderParameters))
+        if (obj == null || !(obj is SDFParameters))
         {
             return false;
         }
 
-        SDFShaderParameters other = (SDFShaderParameters)obj;
+        SDFParameters other = (SDFParameters)obj;
 
         return ChunkSize == other.ChunkSize && Lod == other.Lod && ChunkOffset == other.ChunkOffset;
     }
-    public static bool operator ==(SDFShaderParameters left, SDFShaderParameters right)
+    public static bool operator ==(SDFParameters left, SDFParameters right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(SDFShaderParameters left, SDFShaderParameters right)
+    public static bool operator !=(SDFParameters left, SDFParameters right)
     {
         return !(left == right);
     }

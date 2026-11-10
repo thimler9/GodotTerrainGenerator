@@ -10,8 +10,8 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
-namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
-public class SimplexNoiseShader : ISDFShader
+namespace TerrainGeneration.Application.SDFGenerator.GPU.Constant;
+public class ConstantShader : ISDFShader
 {
     private const int PARAMETERS_SHADER_SET = 0;
     private const int SDF_PARAMETERS_SHADER_SET = 1;
@@ -23,7 +23,7 @@ public class SimplexNoiseShader : ISDFShader
     private ComputeShader Shader;
     private ComputeBuffer ParametersBuffer;
 
-    private SimplexNoiseShaderParameters? Parameters = null;
+    private ConstantShaderParameters? Parameters = null;
 
     /// <summary>
     /// Creates a SimplexNoiseShader. Used to take in the map buffer, and apply the inputted simplex noise to the map. 
@@ -32,7 +32,7 @@ public class SimplexNoiseShader : ISDFShader
     /// <param name="shaderPath"></param>
     /// <param name="parameters"></param>
     /// <param name="outputUniformSet"></param>
-    public SimplexNoiseShader(RenderingDevice rd, string shaderPath)
+    public ConstantShader(RenderingDevice rd, string shaderPath)
     {
         if (string.IsNullOrWhiteSpace(shaderPath))
         {
@@ -46,7 +46,7 @@ public class SimplexNoiseShader : ISDFShader
 
         Rd = rd;
         Shader = new ComputeShader(rd, shaderPath);
-        ParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
+        ParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<ConstantShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
     }
 
     /// <summary>
@@ -54,11 +54,11 @@ public class SimplexNoiseShader : ISDFShader
     /// </summary>
     /// <param name="rd"></param>
     /// <param name="parameters"></param>
-    private void SetParameters(SimplexNoiseShaderParameters parameters)
+    private void SetParameters(ConstantShaderParameters parameters)
     {
-        if (Parameters is not SimplexNoiseShaderParameters existing || !existing.Equals(parameters))
+        if (Parameters is not ConstantShaderParameters existing || !existing.Equals(parameters))
         {
-            ParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SimplexNoiseShaderParameters>(), StructHelpers.ToByteArray(parameters));
+            ParametersBuffer.SetData(0, (uint)Marshal.SizeOf<ConstantShaderParameters>(), StructHelpers.ToByteArray(parameters));
             Parameters = parameters;
         }
     }
@@ -70,12 +70,12 @@ public class SimplexNoiseShader : ISDFShader
     /// <exception cref="ArgumentNullException"></exception>
     public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, ComputeBuffer sdfParametersBuffer, ComputeBuffer biomeParamsBuffer, ComputeBuffer temperatureValuesBuffer, ComputeBuffer outputBuffer)
     {
-        if (parameters is not SimplexNoiseShaderParameters typedParameters)
+        if (parameters is not ConstantShaderParameters typedParameters)
         {
-            throw new ArgumentException($"Expected {nameof(SimplexNoiseShaderParameters)} for {nameof(SimplexNoiseShader)}.", nameof(parameters));
+            throw new ArgumentException($"Expected {nameof(ConstantShaderParameters)} for {nameof(ConstantShaderParameters)}.", nameof(parameters));
         }
 
-        SetParameters((SimplexNoiseShaderParameters)parameters);
+        SetParameters((ConstantShaderParameters)parameters);
 
         if (chunkSize / (8 * lod) == 0)
         {
@@ -97,7 +97,7 @@ public class SimplexNoiseShader : ISDFShader
     /// <param name="Rd"></param>
     public void Dispose()
     {
-        this.Shader.Dispose();
+        Shader.Dispose();
         ParametersBuffer.Dispose();
     }
 }

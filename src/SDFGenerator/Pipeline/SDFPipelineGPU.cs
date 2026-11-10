@@ -1,18 +1,17 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.Constant;
+using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
+using TerrainGeneration.Application.SDFGenerator.GPU.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
-using TerrainGeneration.Application.SDFGenerator.Sphere;
 using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
 
-public sealed class SDFPipeline
+public sealed class SDFPipelineGPU
 {
     private RenderingDevice Rd;
     public IReadOnlyList<BiomeDescriptor> Biomes { get; }
@@ -24,14 +23,14 @@ public sealed class SDFPipeline
     private readonly Dictionary<string, ISDFShader> SDFShadersByFunction = new(StringComparer.OrdinalIgnoreCase);
 
     // Used in dispatching the shaders
-    SDFShaderParameters SDFShaderParameters;
-    private ComputeBuffer SDFParametersBuffer;
-    private ComputeBuffer OutputBuffer;
-    private ComputeBuffer DummyBiomeParametersBuffer;
-    private ComputeBuffer DummyTemperatureValuesBuffer;
-    private ComputeBuffer TemperatureValueBuffer;
+    SDFParameters SDFShaderParameters;
+    private ComputeBuffer? SDFParametersBuffer;
+    private ComputeBuffer? OutputBuffer;
+    private ComputeBuffer? DummyBiomeParametersBuffer;
+    private ComputeBuffer? DummyTemperatureValuesBuffer;
+    private ComputeBuffer? TemperatureValueBuffer;
 
-    public SDFPipeline(TemperatureDescriptor temperature, IReadOnlyList<BiomeDescriptor> biomes, IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
+    public SDFPipelineGPU(TemperatureDescriptor temperature, IReadOnlyList<BiomeDescriptor> biomes, IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
     {
         Rd = rd;
         Biomes = biomes ?? throw new ArgumentNullException("Biomes cannot be null.");
@@ -60,7 +59,7 @@ public sealed class SDFPipeline
         }
     }
 
-    public ComputeBuffer GetSDF(SDFShaderParameters sdfShaderParameters)
+    public ComputeBuffer GetSDF(SDFParameters sdfShaderParameters)
     {
         SetSDFParameters(sdfShaderParameters);
         SetOutputBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
@@ -76,7 +75,7 @@ public sealed class SDFPipeline
             throw new InvalidOperationException("Temperature descriptor is not set.");
         }
 
-        foreach (ISDFPipelineStage stage in Temperature.Sdfs)
+        foreach (ISDFPipelineStageGPU stage in Temperature.Sdfs)
         {
             if (!SDFShadersByFunction.TryGetValue(stage.Function, out ISDFShader sdfShader))
             {
@@ -97,7 +96,7 @@ public sealed class SDFPipeline
         {
             // Get the temperature buffer
 
-            foreach (ISDFPipelineStage stage in biome.Sdfs)
+            foreach (ISDFPipelineStageGPU stage in biome.Sdfs)
             {
                 if (!SDFShadersByFunction.TryGetValue(stage.Function, out ISDFShader sdfShader))
                 {
@@ -122,17 +121,17 @@ public sealed class SDFPipeline
     /// Sets the parameters for the sdf shader params buffer
     /// </summary>
     /// <param name="parameters"></param>
-    private void SetSDFParameters(SDFShaderParameters parameters)
+    private void SetSDFParameters(SDFParameters parameters)
     {
         if (!this.SDFShaderParameters.Equals(parameters))
         {
             // If the buffer isn't valid, we need to create one
             if (SDFParametersBuffer == null)
             {
-                SDFParametersBuffer = new ComputeBuffer(Rd, (uint)Marshal.SizeOf<SDFShaderParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
+                SDFParametersBuffer = new ComputeBuffer(Rd, (uint)Marshal.SizeOf<SDFParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
             }
 
-            SDFParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SDFShaderParameters>(), parameters.ToByteArray());
+            SDFParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SDFParameters>(), parameters.ToByteArray());
             SDFShaderParameters = parameters;
         }
     }

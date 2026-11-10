@@ -1,11 +1,11 @@
 ﻿using Godot;
 using System.Text.Json.Serialization;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.Constant;
+using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
 
-namespace TerrainGeneration.Application.SDFGenerator.Sphere;
+namespace TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 
-public sealed class SphereStage : ISDFPipelineStage
+public sealed class SphereStage : ISDFPipelineStageGPU
 {
     public const string FunctionName = "Sphere";
 

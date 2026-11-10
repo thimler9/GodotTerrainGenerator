@@ -5,7 +5,7 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
-namespace TerrainGeneration.Application.SDFGenerator.Sphere;
+namespace TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 
 public sealed class SphereShader : ISDFShader
 {

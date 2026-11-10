@@ -21,7 +21,7 @@ namespace TerrainGeneration.Application.TerrainGenerator
         public TerrainChunk(TransvoxelTerrainGenerator transvoxelTerrainGenerator, TerrainChunkDescriptor descriptor)
         {
             // Setup transvoxel terrain generator for this chunk
-            SDFShaderParameters sdfShaderParameters = new SDFShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
+            SDFParameters sdfShaderParameters = new SDFParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
             NormalsShaderParameters normalsShaderParameters = new Transvoxel.NormalsShader.NormalsShaderParameters(descriptor.ChunkOffset, descriptor.ChunkSize, descriptor.Lod);
             TransvoxelShaderParameters transvoxelShaderParameters = new TransvoxelShaderParameters(descriptor.ChunkSize, descriptor.Lod);
             TerrainMesh = transvoxelTerrainGenerator.GetTerrainMesh(sdfShaderParameters, normalsShaderParameters, transvoxelShaderParameters);

@@ -15,4 +15,9 @@
     <ProjectReference Include="..\TerrainGenerator.Application.SDFGenerator.Abstractions\TerrainGeneration.Application.SDFGenerator.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CPUSDFs\Sphere\" />
+    <Folder Include="CPUSDFs\SimplexNoise\" />
+  </ItemGroup>
+
 </Project>

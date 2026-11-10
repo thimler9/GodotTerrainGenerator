@@ -12,7 +12,7 @@ namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelTerrainGeneratorDescriptor
 {
     // SDF Pipeline
-    public required SDFPipeline SDFPipeline;
+    public required SDFPipelineGPU SDFPipeline;
 
     // Normals Shader
     public required string? NormalsShaderPath;

@@ -1,7 +1,10 @@
-namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public interface ISDFPipelineStage
+namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+internal interface ISDFPipelineStage
 {
-    string Function { get; }
-    IShaderParameters CreateShaderParameters();
 }

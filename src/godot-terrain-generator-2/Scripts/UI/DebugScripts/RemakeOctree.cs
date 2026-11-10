@@ -52,7 +52,7 @@ public partial class RemakeOctree : Button
             };
 
             SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-            SDFPipeline pipeline = sdfPipelineParser.ParseFromFile(testVoxelOctreeNode.SDFPipelinePath, RenderingServer.GetRenderingDevice());
+            SDFPipelineGPU pipeline = sdfPipelineParser.ParseFromFile(testVoxelOctreeNode.SDFPipelinePath, RenderingServer.GetRenderingDevice());
 
             Vector3 newPlayerPosition = testVoxelOctreeNode.Camera.Position;
 

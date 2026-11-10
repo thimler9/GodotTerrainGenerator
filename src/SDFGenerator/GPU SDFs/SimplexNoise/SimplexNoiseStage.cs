@@ -1,8 +1,8 @@
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
-namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+namespace TerrainGeneration.Application.SDFGenerator.GPU.SimplexNoise;
 
-public sealed class SimplexNoiseStage : ISDFPipelineStage
+public sealed class SimplexNoiseStage : ISDFPipelineStageGPU
 {
     public const string FunctionName = "SimplexNoise";
 
