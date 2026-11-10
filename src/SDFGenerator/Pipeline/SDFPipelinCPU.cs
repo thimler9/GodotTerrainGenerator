@@ -18,6 +18,11 @@ public class SDFPipelinCPU
         Termperature = temperature ?? throw new ArgumentNullException("Temperature cannot be null");
     }
 
+    public void SetupSDFFunctions(IReadOnlyDictionary<string, Func<Vector3, float>> functionMap)
+    {
+        // Setup SDF functions based on the provided function map
+    }
+
     public float[,,] GetSDF(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
 

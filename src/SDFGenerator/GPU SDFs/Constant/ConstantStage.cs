@@ -14,7 +14,7 @@ public sealed class ConstantStage : ISDFPipelineStageGPU
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OperationType OperationType { get; set; }
 
-    public IShaderParameters CreateShaderParameters()
+    public ISDFShaderParameters CreateShaderParameters()
     {
         return new ConstantShaderParameters(this);
     }

@@ -17,7 +17,7 @@ public sealed class SphereStage : ISDFPipelineStageGPU
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OperationType OperationType { get; init; }
 
-    public IShaderParameters CreateShaderParameters()
+    public ISDFShaderParameters CreateShaderParameters()
     {
         return new SphereShaderParameters(this);
     }

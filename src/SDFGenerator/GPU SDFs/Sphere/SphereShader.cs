@@ -44,7 +44,7 @@ public sealed class SphereShader : ISDFShader
         }
     }
 
-    public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, ComputeBuffer sdfParametersBuffer, ComputeBuffer biomeParamsBuffer, ComputeBuffer temperatureValuesBuffer, ComputeBuffer outputBuffer)
+    public void Dispatch(uint chunkSize, uint lod, ISDFShaderParameters parameters, ComputeBuffer sdfParametersBuffer, ComputeBuffer biomeParamsBuffer, ComputeBuffer temperatureValuesBuffer, ComputeBuffer outputBuffer)
     {
         if (parameters is not SphereShaderParameters typedParameters)
         {

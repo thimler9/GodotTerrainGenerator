@@ -20,7 +20,7 @@ public enum OperationType : uint
 }
 
 [StructLayout(LayoutKind.Explicit)]
-public struct ConstantShaderParameters : IShaderParameters
+public struct ConstantShaderParameters : ISDFShaderParameters
 {
 
     [FieldOffset(0)]

@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-public interface IShaderParameters
+public interface ISDFFunctionParameters
 {
 }

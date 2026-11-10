@@ -17,7 +17,7 @@ public sealed class SimplexNoiseStage : ISDFPipelineStageGPU
     public float Lacunarity { get; init; }
     public float Gain { get; init; }
 
-    public IShaderParameters CreateShaderParameters()
+    public ISDFShaderParameters CreateShaderParameters()
     {
         return new SimplexNoiseShaderParameters(this);
     }

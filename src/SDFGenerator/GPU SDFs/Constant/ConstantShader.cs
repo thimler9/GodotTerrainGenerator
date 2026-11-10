@@ -68,7 +68,7 @@ public class ConstantShader : ISDFShader
     /// </summary>
     /// <param name="computeList"></param>
     /// <exception cref="ArgumentNullException"></exception>
-    public void Dispatch(uint chunkSize, uint lod, IShaderParameters parameters, ComputeBuffer sdfParametersBuffer, ComputeBuffer biomeParamsBuffer, ComputeBuffer temperatureValuesBuffer, ComputeBuffer outputBuffer)
+    public void Dispatch(uint chunkSize, uint lod, ISDFShaderParameters parameters, ComputeBuffer sdfParametersBuffer, ComputeBuffer biomeParamsBuffer, ComputeBuffer temperatureValuesBuffer, ComputeBuffer outputBuffer)
     {
         if (parameters is not ConstantShaderParameters typedParameters)
         {

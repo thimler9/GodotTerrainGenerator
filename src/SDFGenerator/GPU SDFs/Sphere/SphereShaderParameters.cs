@@ -6,7 +6,7 @@ using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
 namespace TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 
 [StructLayout(LayoutKind.Explicit, Size = 32)]
-public struct SphereShaderParameters : IShaderParameters
+public struct SphereShaderParameters : ISDFShaderParameters
 {
     [FieldOffset(0)]
     private float Radius;
