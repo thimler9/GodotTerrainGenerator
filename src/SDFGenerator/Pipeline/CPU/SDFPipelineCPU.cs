@@ -6,18 +6,18 @@ using Godot;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
 
-namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
+namespace TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 public sealed class SDFPipelineCPU
 {
     private readonly Dictionary<string, ICpuSdfFunction> sdfsByFunction = new(StringComparer.OrdinalIgnoreCase);
 
-    public IReadOnlyList<BiomeDescriptor> Biomes { get; }
-    public TemperatureDescriptor Temperature { get; }
+    public IReadOnlyList<BiomeDescriptorCPU> Biomes { get; }
+    public TemperatureDescriptorCPU Temperature { get; }
 
     public SDFPipelineCPU(
-        TemperatureDescriptor temperature,
-        IReadOnlyList<BiomeDescriptor> biomes,
+        TemperatureDescriptorCPU temperature,
+        IReadOnlyList<BiomeDescriptorCPU> biomes,
         IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap)
     {
         Temperature = temperature ?? throw new ArgumentNullException(nameof(temperature));
@@ -41,28 +41,28 @@ public sealed class SDFPipelineCPU
 
     public float[] GetSDF(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
-        var sdfParameters = new CPUSDFParameters(chunkOffset, chunkSize, lod);
+        var sdfParameters = new SDFParametersCPU(chunkOffset, chunkSize, lod);
 
         int length = (int)sdfParameters.ChunkSize * (int)sdfParameters.Lod;
         // TODO THIS SHOULD NOT BE MADE EVERY CALL
         float[] temperatureValues = new float[length];
 
-        foreach (ISDFPipelineStageCPU stage in Temperature.CpuSdfs)
+        foreach (ISDFPipelineStageCPU stage in Temperature.Sdfs)
         {
             temperatureValues = Dispatch(stage, sdfParameters, temperatureValues);
         }
 
         // TODO THIS SHOULD NOT BE MADE EVERY CALL
         float[] output = new float[length];
-        foreach (BiomeDescriptor biome in Biomes)
+        foreach (BiomeDescriptorCPU biome in Biomes)
         {
-            var biomeParameters = new CPUBiomeParameters(
+            var biomeParameters = new BiomeParametersCPU(
                 biome.Temperature,
                 biome.TemperatureSpread,
                 biome.Depth,
                 biome.DepthSpread,
                 biome.IgnoreBiome);
-            foreach (ISDFPipelineStageCPU stage in biome.CpuSdfs)
+            foreach (ISDFPipelineStageCPU stage in biome.Sdfs)
             {
                 output = Dispatch(stage, sdfParameters, biomeParameters, temperatureValues);
             }
@@ -71,12 +71,12 @@ public sealed class SDFPipelineCPU
         return output;
     }
 
-    private float[] Dispatch(ISDFPipelineStageCPU stage, CPUSDFParameters sdfParameters, float[] temperatureValues)
+    private float[] Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, float[] temperatureValues)
     {
         return Dispatch(stage, sdfParameters, default, temperatureValues);
     }
 
-    private float[] Dispatch(ISDFPipelineStageCPU stage, CPUSDFParameters sdfParameters, CPUBiomeParameters biomeParameters, float[] temperatureValues)
+    private float[] Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues)
     {
         if (!sdfsByFunction.TryGetValue(stage.Function, out ICpuSdfFunction? sdfFunction))
         {

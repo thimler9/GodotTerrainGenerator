@@ -8,7 +8,7 @@ using Godot;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Utilities.Math.Extensions;
 
-namespace TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+namespace TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 
 public enum IgnoreBiomeEnum
 {

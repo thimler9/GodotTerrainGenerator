@@ -1,13 +1,6 @@
 ﻿using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 using TerrainGeneration.Utilities.EngineAbstractions;
 

@@ -1,15 +1,15 @@
 using System;
 using Godot;
 
-namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
+namespace TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
-public readonly struct CPUSDFParameters
+public readonly struct SDFParametersCPU
 {
     public Vector3 ChunkOffset { get; }
     public uint ChunkSize { get; }
     public uint Lod { get; }
 
-    public CPUSDFParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
+    public SDFParametersCPU(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
         if (lod == 0)
         {

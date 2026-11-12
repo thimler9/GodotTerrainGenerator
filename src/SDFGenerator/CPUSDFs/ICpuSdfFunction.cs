@@ -1,6 +1,6 @@
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs;
 
@@ -10,8 +10,8 @@ public interface ICpuSdfFunction
 
     void Dispatch(
         ICpuSdfParameters parameters,
-        CPUSDFParameters sdfParameters,
-        CPUBiomeParameters biomeParameters,
+        SDFParametersCPU sdfParameters,
+        BiomeParametersCPU biomeParameters,
         float[] temperatureValues,
         out float[] output);
 }

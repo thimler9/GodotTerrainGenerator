@@ -1,9 +1,4 @@
 ﻿using Godot;
-using System;
-using System.Runtime.InteropServices;
-using TerrainGeneration.Application.SDFGenerator;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 
 public partial class TestMapGenerator : Node3D
 {

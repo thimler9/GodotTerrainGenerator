@@ -5,17 +5,16 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
 using TerrainGeneration.Application.SDFGenerator.GPU.SimplexNoise;
 using TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
 using TerrainGeneration.Utilities.EngineAbstractions;
 using TerrainGeneration.Utilities.Struct;
 
-namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
+namespace TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 
 public sealed class SDFPipelineGPU
 {
     private RenderingDevice Rd;
-    public IReadOnlyList<BiomeDescriptor> Biomes { get; }
-    public TemperatureDescriptor Temperature { get; }
+    public IReadOnlyList<BiomeDescriptorGPU> Biomes { get; }
+    public TemperatureDescriptorGPU Temperature { get; }
 
     /// <summary>
     /// Maps pipeline function names to their configured GPU shaders.
@@ -30,7 +29,7 @@ public sealed class SDFPipelineGPU
     private ComputeBuffer? DummyTemperatureValuesBuffer;
     private ComputeBuffer? TemperatureValueBuffer;
 
-    public SDFPipelineGPU(TemperatureDescriptor temperature, IReadOnlyList<BiomeDescriptor> biomes, IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap, RenderingDevice rd)
+    public SDFPipelineGPU(TemperatureDescriptorGPU temperature, IReadOnlyList<BiomeDescriptorGPU> biomes, IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap, RenderingDevice rd)
     {
         Rd = rd;
         Biomes = biomes ?? throw new ArgumentNullException("Biomes cannot be null.");
@@ -93,7 +92,7 @@ public sealed class SDFPipelineGPU
                 TemperatureValueBuffer);
         }
 
-        foreach (BiomeDescriptor biome in Biomes)
+        foreach (BiomeDescriptorGPU biome in Biomes)
         {
             // Get the temperature buffer
 
@@ -124,7 +123,7 @@ public sealed class SDFPipelineGPU
     /// <param name="parameters"></param>
     private void SetSDFParameters(SDFParameters parameters)
     {
-        if (!this.SDFShaderParameters.Equals(parameters))
+        if (!SDFShaderParameters.Equals(parameters))
         {
             // If the buffer isn't valid, we need to create one
             if (SDFParametersBuffer == null)
@@ -155,10 +154,10 @@ public sealed class SDFPipelineGPU
         }
     }
 
-    private void SetupBiomeUniforms(IReadOnlyList<BiomeDescriptor> biomes, RenderingDevice rd)
+    private void SetupBiomeUniforms(IReadOnlyList<BiomeDescriptorGPU> biomes, RenderingDevice rd)
     {
         // Biome parameters are set in the shader dispatch loop, so we don't need to do anything here for now.
-        foreach (BiomeDescriptor biome in biomes)
+        foreach (BiomeDescriptorGPU biome in biomes)
         {
             if (biome.BiomeParametersBuffer == null)
             {

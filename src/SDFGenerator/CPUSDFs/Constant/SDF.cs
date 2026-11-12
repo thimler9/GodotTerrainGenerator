@@ -1,8 +1,6 @@
-﻿using TerrainGeneration.Application.SDFGenerator.Pipeline;
-
-using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+﻿using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
-using TerrainGeneration.Application.SDFGenerator.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs.Constant;
 
@@ -10,7 +8,7 @@ public sealed class SDF : ICpuSdfFunction
 {
     public string FunctionName => "Constant";
 
-    public void Dispatch(ICpuSdfParameters parameters, CPUSDFParameters sdfParameters, CPUBiomeParameters biomeParameters, float[] temperatureValues, out float[] output)
+    public void Dispatch(ICpuSdfParameters parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, out float[] output)
     {
         if (parameters is not ConstantParameters)
         {

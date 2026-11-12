@@ -3,6 +3,8 @@ using System.Text.Json;
 using System.Reflection;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using FileAccess = Godot.FileAccess;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
 
@@ -35,12 +37,12 @@ public sealed class SDFPipelineParser
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
 
-            TemperatureDescriptor temperature = ParseTemperature(root);
-            IReadOnlyList<BiomeDescriptor> biomes = ParseBiomes(root);
+            (TemperatureDescriptorCPU, TemperatureDescriptorGPU) temperature = ParseTemperature(root);
+            (IReadOnlyList<BiomeDescriptorCPU>, IReadOnlyList<BiomeDescriptorGPU>) biomes = ParseBiomes(root);
             IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap = ParseSDFFunctions(root);
 
-            SDFPipelineGPU sDFPipelineGPU = new SDFPipelineGPU(temperature, biomes, functionMap, rd);
-            SDFPipelineCPU sDFPipelineCPU = new SDFPipelineCPU(temperature, biomes, functionMap);
+            SDFPipelineCPU sDFPipelineCPU = new SDFPipelineCPU(temperature.Item1, biomes.Item1, functionMap);
+            SDFPipelineGPU sDFPipelineGPU = new SDFPipelineGPU(temperature.Item2, biomes.Item2, functionMap, rd);
 
             return new SDFPipeline()
             {
@@ -76,11 +78,11 @@ public sealed class SDFPipelineParser
         return System.IO.File.ReadAllText(filePath);
     }
 
-    private TemperatureDescriptor ParseTemperature(JsonElement root)
+    private (TemperatureDescriptorCPU, TemperatureDescriptorGPU) ParseTemperature(JsonElement root)
     {
         if (!root.TryGetProperty("temperature", out JsonElement temperatureElement))
         {
-            return new TemperatureDescriptor();
+            return (new TemperatureDescriptorCPU(), new TemperatureDescriptorGPU());
         }
 
         if (temperatureElement.ValueKind != JsonValueKind.Object)
@@ -93,18 +95,24 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("The 'temperature' section must contain an 'sdf' array.");
         }
 
-        return new TemperatureDescriptor
+        TemperatureDescriptorGPU tempGPU = new TemperatureDescriptorGPU
         {
-            Sdfs = ParseGpuSdfStages(sdfElement),
-            CpuSdfs = ParseCpuSdfStages(sdfElement)
+            Sdfs = ParseGpuSdfStages(sdfElement)
         };
+
+        TemperatureDescriptorCPU tempCPU = new TemperatureDescriptorCPU
+        {
+            Sdfs = ParseCpuSdfStages(sdfElement)
+        };
+
+        return (tempCPU, tempGPU);
     }
 
-    private IReadOnlyList<BiomeDescriptor> ParseBiomes(JsonElement root)
+    private (IReadOnlyList<BiomeDescriptorCPU>, IReadOnlyList<BiomeDescriptorGPU>) ParseBiomes(JsonElement root)
     {
         if (!root.TryGetProperty("biomes", out JsonElement biomesElement))
         {
-            return Array.Empty<BiomeDescriptor>();
+            return (Array.Empty<BiomeDescriptorCPU>(), Array.Empty<BiomeDescriptorGPU>());
         }
 
         if (biomesElement.ValueKind != JsonValueKind.Array)
@@ -112,13 +120,16 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("The 'biomes' field must be an array.");
         }
 
-        var biomes = new List<BiomeDescriptor>();
+        var biomesGPU = new List<BiomeDescriptorGPU>();
+        var biomesCPU = new List<BiomeDescriptorCPU>();
         foreach (JsonElement biomeElement in biomesElement.EnumerateArray())
         {
-            biomes.Add(ParseBiome(biomeElement));
+            (BiomeDescriptorCPU, BiomeDescriptorGPU) biomes = ParseBiome(biomeElement);
+            biomesCPU.Add(biomes.Item1);
+            biomesGPU.Add(biomes.Item2);
         }
 
-        return biomes;
+        return (biomesCPU, biomesGPU);
     }
 
     private IReadOnlyDictionary<string, SDFFunctionConfiguration> ParseSDFFunctions(JsonElement root)
@@ -161,7 +172,7 @@ public sealed class SDFPipelineParser
         return functionMap;
     }
 
-    private BiomeDescriptor ParseBiome(JsonElement biomeElement)
+    private (BiomeDescriptorCPU, BiomeDescriptorGPU) ParseBiome(JsonElement biomeElement)
     {
         if (biomeElement.ValueKind != JsonValueKind.Object)
         {
@@ -208,16 +219,27 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("Biome must contain an 'sdf' array with sdf function inputs.");
         }
 
-        return new BiomeDescriptor
+        var biomeGPU = new BiomeDescriptorGPU
         {
             Temperature = temperatureElement.GetSingle(),
             TemperatureSpread = temperatureSpreadElement.GetSingle(),
             Depth = depthElement.GetSingle(),
             DepthSpread = depthSpreadElement.GetSingle(),
             IgnoreBiome = ignoreBiome,
-            Sdfs = ParseSdfStages<ISDFPipelineStageGPU>(sdfElement, GpuStageTypes),
-            CpuSdfs = ParseCpuSdfStages(sdfElement)
+            Sdfs = ParseGpuSdfStages(sdfElement),
         };
+
+        var biomeCPU = new BiomeDescriptorCPU
+        {
+            Temperature = temperatureElement.GetSingle(),
+            TemperatureSpread = temperatureSpreadElement.GetSingle(),
+            Depth = depthElement.GetSingle(),
+            DepthSpread = depthSpreadElement.GetSingle(),
+            IgnoreBiome = ignoreBiome,
+            Sdfs = ParseCpuSdfStages(sdfElement),
+        };
+
+        return (biomeCPU, biomeGPU);
     }
 
     private IReadOnlyList<ISDFPipelineStageGPU> ParseGpuSdfStages(JsonElement sdfElement)

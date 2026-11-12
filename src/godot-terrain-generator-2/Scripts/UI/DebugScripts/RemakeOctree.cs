@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using TerrainGeneration.Application.SDFGenerator.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree;
 using TerrainGeneration.Application.VoxelOctree.AbstractOctree;
