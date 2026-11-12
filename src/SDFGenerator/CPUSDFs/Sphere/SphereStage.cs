@@ -17,7 +17,7 @@ public sealed class SphereStage : ISDFPipelineStageCPU
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OperationType OperationType { get; set; }
 
-    public ICpuSdfParameters CreateParameters()
+    public ISDFParametersCPU CreateParameters()
     {
         return new SphereParameters(Radius, Center, OperationType);
     }

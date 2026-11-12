@@ -10,7 +10,7 @@ namespace TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 public sealed class SDFPipelineCPU
 {
-    private readonly Dictionary<string, ICpuSdfFunction> sdfsByFunction = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ISDFFunctionCPU> sdfsByFunction = new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyList<BiomeDescriptorCPU> Biomes { get; }
     public TemperatureDescriptorCPU Temperature { get; }
@@ -24,13 +24,13 @@ public sealed class SDFPipelineCPU
         Biomes = biomes ?? throw new ArgumentNullException(nameof(biomes));
         ArgumentNullException.ThrowIfNull(functionMap);
 
-        IReadOnlyDictionary<string, ICpuSdfFunction> registeredFunctions = DiscoverSdfs();
+        IReadOnlyDictionary<string, ISDFFunctionCPU> registeredFunctions = DiscoverSdfs();
         foreach (KeyValuePair<string, SDFFunctionConfiguration> function in functionMap)
         {
             string cpuFunctionName = function.Value.CPUFunction
                 ?? throw new ArgumentException($"No CPU function configured for '{function.Key}'.", nameof(functionMap));
 
-            if (!registeredFunctions.TryGetValue(cpuFunctionName, out ICpuSdfFunction? cpuFunction))
+            if (!registeredFunctions.TryGetValue(cpuFunctionName, out ISDFFunctionCPU? cpuFunction))
             {
                 throw new NotSupportedException($"CPU function '{cpuFunctionName}' configured for '{function.Key}' is not registered.");
             }
@@ -78,7 +78,7 @@ public sealed class SDFPipelineCPU
 
     private float[] Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues)
     {
-        if (!sdfsByFunction.TryGetValue(stage.Function, out ICpuSdfFunction? sdfFunction))
+        if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
         {
             throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
         }
@@ -87,19 +87,19 @@ public sealed class SDFPipelineCPU
         return output ?? throw new InvalidOperationException($"CPU SDF '{stage.Function}' did not provide an output buffer.");
     }
 
-    private static IReadOnlyDictionary<string, ICpuSdfFunction> DiscoverSdfs()
+    private static IReadOnlyDictionary<string, ISDFFunctionCPU> DiscoverSdfs()
     {
-        var sdfs = new Dictionary<string, ICpuSdfFunction>(StringComparer.OrdinalIgnoreCase);
+        var sdfs = new Dictionary<string, ISDFFunctionCPU>(StringComparer.OrdinalIgnoreCase);
         Assembly assembly = typeof(SDFPipelineCPU).Assembly;
 
         foreach (Type type in assembly.GetTypes())
         {
-            if (!typeof(ICpuSdfFunction).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
+            if (!typeof(ISDFFunctionCPU).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
             {
                 continue;
             }
 
-            if (Activator.CreateInstance(type) is not ICpuSdfFunction sdf)
+            if (Activator.CreateInstance(type) is not ISDFFunctionCPU sdf)
             {
                 throw new InvalidOperationException($"CPU SDF type '{type.FullName}' must have a public parameterless constructor.");
             }

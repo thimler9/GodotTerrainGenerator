@@ -17,7 +17,7 @@ public sealed class SimplexNoiseStage : ISDFPipelineStageCPU
     public float Lacunarity { get; set; }
     public float Gain { get; set; }
 
-    public ICpuSdfParameters CreateParameters()
+    public ISDFParametersCPU CreateParameters()
     {
         return new SimplexNoiseParameters(Seed, Scale, Strength, NumOctaves, Frequency, Amplitude, Lacunarity, Gain);
     }

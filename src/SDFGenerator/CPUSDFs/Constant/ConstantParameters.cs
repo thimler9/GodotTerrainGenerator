@@ -2,7 +2,7 @@
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.Constant;
 
-public sealed class ConstantParameters : ICpuSdfParameters
+public sealed class ConstantParameters : ISDFParametersCPU
 {
     public float Value { get; }
     public OperationType OperationType { get; }

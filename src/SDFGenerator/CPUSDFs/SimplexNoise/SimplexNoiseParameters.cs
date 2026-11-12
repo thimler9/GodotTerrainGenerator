@@ -2,7 +2,7 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.SimplexNoise;
 
-public sealed class SimplexNoiseParameters : ICpuSdfParameters
+public sealed class SimplexNoiseParameters : ISDFParametersCPU
 {
     public uint Seed { get; }
     public float Scale { get; }

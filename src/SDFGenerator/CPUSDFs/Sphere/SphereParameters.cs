@@ -4,7 +4,7 @@ using TerrainGeneration.Application.SDFGenerator.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.Sphere;
 
-public sealed class SphereParameters : ICpuSdfParameters
+public sealed class SphereParameters : ISDFParametersCPU
 {
     public float Radius { get; }
     public Vector3 Center { get; }

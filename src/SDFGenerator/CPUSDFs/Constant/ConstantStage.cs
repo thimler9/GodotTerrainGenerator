@@ -14,7 +14,7 @@ public sealed class ConstantStage : ISDFPipelineStageCPU
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OperationType OperationType { get; set; }
 
-    public ICpuSdfParameters CreateParameters()
+    public ISDFParametersCPU CreateParameters()
     {
         return new ConstantParameters(Value, OperationType);
     }

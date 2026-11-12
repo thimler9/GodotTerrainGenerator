@@ -1,15 +1,14 @@
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU;
 
-public interface ICpuSdfFunction
+public interface ISDFFunctionCPU
 {
     string FunctionName { get; }
 
     void Dispatch(
-        ICpuSdfParameters parameters,
+        ISDFParametersCPU parameters,
         SDFParametersCPU sdfParameters,
         BiomeParametersCPU biomeParameters,
         float[] temperatureValues,

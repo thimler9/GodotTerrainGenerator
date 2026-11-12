@@ -4,11 +4,11 @@ using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.Sphere;
 
-public sealed class SDF : ICpuSdfFunction
+public sealed class SDF : ISDFFunctionCPU
 {
     public string FunctionName => "Sphere";
 
-    public void Dispatch(ICpuSdfParameters parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, out float[] output)
+    public void Dispatch(ISDFParametersCPU parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, out float[] output)
     {
         if (parameters is not SphereParameters)
         {
