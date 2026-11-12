@@ -1,8 +1,8 @@
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
+using TerrainGeneration.Application.SDFGenerator.CPU;
 using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
-namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs.SimplexNoise;
+namespace TerrainGeneration.Application.SDFGenerator.CPU.SimplexNoise;
 
 public sealed class SDF : ICpuSdfFunction
 {

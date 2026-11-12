@@ -1,4 +1,4 @@
-namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs;
+namespace TerrainGeneration.Application.SDFGenerator.CPU;
 
 public enum OperationType : uint
 {

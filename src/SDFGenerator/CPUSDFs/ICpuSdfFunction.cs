@@ -2,7 +2,7 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
-namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs;
+namespace TerrainGeneration.Application.SDFGenerator.CPU;
 
 public interface ICpuSdfFunction
 {

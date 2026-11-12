@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Godot;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
+using TerrainGeneration.Application.SDFGenerator.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 

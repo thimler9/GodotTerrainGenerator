@@ -1,6 +1,6 @@
 ﻿using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
-namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs.Constant;
+namespace TerrainGeneration.Application.SDFGenerator.CPU.Constant;
 
 public sealed class ConstantParameters : ICpuSdfParameters
 {

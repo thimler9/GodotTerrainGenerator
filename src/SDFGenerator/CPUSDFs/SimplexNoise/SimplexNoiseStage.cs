@@ -1,6 +1,6 @@
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
-namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs.SimplexNoise;
+namespace TerrainGeneration.Application.SDFGenerator.CPU.SimplexNoise;
 
 public sealed class SimplexNoiseStage : ISDFPipelineStageCPU
 {

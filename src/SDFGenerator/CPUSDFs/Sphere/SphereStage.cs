@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 using Godot;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
+using TerrainGeneration.Application.SDFGenerator.CPU;
 
-namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs.Sphere;
+namespace TerrainGeneration.Application.SDFGenerator.CPU.Sphere;
 
 public sealed class SphereStage : ISDFPipelineStageCPU
 {
