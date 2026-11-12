@@ -1,8 +1,17 @@
 {
-	"shaders": {
-		"SimplexNoise": "res://Shaders/Compute/terrain_simplex_noise.glsl",
-		"Constant": "res://Shaders/Compute/constant.glsl",
-		"Sphere": "res://Shaders/Compute/sphere.glsl"
+	"sDFFunction": {
+		"SimplexNoise": {
+			"gpuShader": "res://Shaders/Compute/terrain_simplex_noise.glsl",
+			"cpuFunction": "SimplexNoise"
+		},
+		"Constant": {
+			"gpuShader": "res://Shaders/Compute/constant.glsl",
+			"cpuFunction": "Constant"
+		},
+		"Sphere": {
+			"gpuShader": "res://Shaders/Compute/sphere.glsl",
+			"cpuFunction": "Sphere"
+		}
 	},
 	"temperature": {
 		"sdf": [

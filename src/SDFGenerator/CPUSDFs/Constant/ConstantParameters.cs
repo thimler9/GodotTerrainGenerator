@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
+﻿using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPUSDFs.Constant;
-public class ConstantParameters
+
+public sealed class ConstantParameters : ICpuSdfParameters
 {
-    private float Value { get; set; }
-    private OperationType OperationType { get; set; }
+    public float Value { get; }
+    public OperationType OperationType { get; }
+
+    public ConstantParameters(float value, OperationType operationType)
+    {
+        Value = value;
+        OperationType = operationType;
+    }
 }

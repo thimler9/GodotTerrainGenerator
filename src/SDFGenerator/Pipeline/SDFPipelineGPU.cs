@@ -18,7 +18,7 @@ public sealed class SDFPipelineGPU
     public TemperatureDescriptor Temperature { get; }
 
     /// <summary>
-    /// Maps function name (e.g. "SimplexNoise") to a shader path.
+    /// Maps pipeline function names to their configured GPU shaders.
     /// </summary>
     private readonly Dictionary<string, ISDFShader> SDFShadersByFunction = new(StringComparer.OrdinalIgnoreCase);
 
@@ -30,22 +30,23 @@ public sealed class SDFPipelineGPU
     private ComputeBuffer? DummyTemperatureValuesBuffer;
     private ComputeBuffer? TemperatureValueBuffer;
 
-    public SDFPipelineGPU(TemperatureDescriptor temperature, IReadOnlyList<BiomeDescriptor> biomes, IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
+    public SDFPipelineGPU(TemperatureDescriptor temperature, IReadOnlyList<BiomeDescriptor> biomes, IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap, RenderingDevice rd)
     {
         Rd = rd;
         Biomes = biomes ?? throw new ArgumentNullException("Biomes cannot be null.");
         Temperature = temperature ?? throw new ArgumentNullException("Temperature cannot be null");
-        SetupSDFShaders(functionShaderMap, rd);
+        SetupSDFShaders(functionMap, rd);
         SetupBiomeUniforms(biomes, rd);
         SetupDummyUniforms(rd);
     }
 
-    private void SetupSDFShaders(IReadOnlyDictionary<string, string> functionShaderMap, RenderingDevice rd)
+    private void SetupSDFShaders(IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap, RenderingDevice rd)
     {
-        foreach (var kvp in functionShaderMap)
+        foreach (var kvp in functionMap)
         {
             string functionName = kvp.Key;
-            string shaderPath = kvp.Value;
+            string shaderPath = kvp.Value.GPUShader
+                ?? throw new InvalidOperationException($"No GPU shader configured for function '{functionName}'.");
 
             ISDFShader shader = functionName switch
             {

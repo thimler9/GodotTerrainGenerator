@@ -15,4 +15,5 @@ public sealed class BiomeDescriptor
     public bool IgnoreBiome { get; init; }
     public ComputeBuffer? BiomeParametersBuffer { get; set; }
     public IReadOnlyList<ISDFPipelineStageGPU> Sdfs { get; init; } = Array.Empty<ISDFPipelineStageGPU>();
+    public IReadOnlyList<ISDFPipelineStageCPU> CpuSdfs { get; init; } = Array.Empty<ISDFPipelineStageCPU>();
 }
