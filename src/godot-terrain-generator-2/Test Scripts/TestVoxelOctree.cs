@@ -93,7 +93,7 @@ public partial class TestVoxelOctree : Node
 		};
 
 		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-		SDFPipelineGPU pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd);
+		SDFPipelineGPU pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd).gPUSDFPipeline;
 
 		TransvoxelTerrainGeneratorDescriptor transvoxelTerrainGeneratorDescriptor = new TransvoxelTerrainGeneratorDescriptor()
 		{

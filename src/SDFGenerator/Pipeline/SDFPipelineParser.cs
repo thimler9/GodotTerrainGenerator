@@ -23,7 +23,7 @@ public sealed class SDFPipelineParser
     /// <summary>
     /// Parses pipeline JSON and creates the pipeline, including its configured stages and shaders.
     /// </summary>
-    public SDFPipelineGPU Parse(string json, RenderingDevice rd)
+    public SDFPipeline Parse(string json, RenderingDevice rd)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -39,7 +39,14 @@ public sealed class SDFPipelineParser
             IReadOnlyList<BiomeDescriptor> biomes = ParseBiomes(root);
             IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap = ParseSDFFunctions(root);
 
-            return new SDFPipelineGPU(temperature, biomes, functionMap, rd);
+            SDFPipelineGPU sDFPipelineGPU = new SDFPipelineGPU(temperature, biomes, functionMap, rd);
+            SDFPipelineCPU sDFPipelineCPU = new SDFPipelineCPU(temperature, biomes, functionMap);
+
+            return new SDFPipeline()
+            {
+                gPUSDFPipeline = sDFPipelineGPU,
+                cPUSDFPipeline = sDFPipelineCPU
+            };
         }
         catch (JsonException ex)
         {
@@ -47,7 +54,7 @@ public sealed class SDFPipelineParser
         }
     }
 
-    public SDFPipelineGPU ParseFromFile(string filePath, RenderingDevice rd)
+    public SDFPipeline ParseFromFile(string filePath, RenderingDevice rd)
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
