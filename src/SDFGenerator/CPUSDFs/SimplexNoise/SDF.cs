@@ -8,7 +8,7 @@ public sealed class SDF : ISDFFunctionCPU
 {
     public string FunctionName => "SimplexNoise";
 
-    public void Dispatch(ISDFParametersCPU parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, out float[] output)
+    public void Dispatch(ISDFParametersCPU parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
     {
         if (parameters is not SimplexNoiseParameters)
         {

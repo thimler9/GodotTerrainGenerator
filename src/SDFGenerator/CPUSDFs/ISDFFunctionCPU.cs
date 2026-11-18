@@ -12,5 +12,5 @@ public interface ISDFFunctionCPU
         SDFParametersCPU sdfParameters,
         BiomeParametersCPU biomeParameters,
         float[] temperatureValues,
-        out float[] output);
+        float[] output);
 }
