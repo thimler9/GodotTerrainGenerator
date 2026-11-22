@@ -6,7 +6,7 @@ using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.Sphere;
 
-public sealed class SDF : ISDFFunctionCPU
+public class SDF : ISDFFunctionCPU
 {
     public string FunctionName => "Sphere";
 

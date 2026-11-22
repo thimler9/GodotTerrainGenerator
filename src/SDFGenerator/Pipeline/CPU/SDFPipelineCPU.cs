@@ -45,15 +45,15 @@ public sealed class SDFPipelineCPU
 
         int length = (int)sdfParameters.ChunkSize * (int)sdfParameters.Lod;
         // TODO THIS SHOULD NOT BE MADE EVERY CALL
-        float[] temperatureValues = new float[length];
+        float[] temperatureValues = new float[length * length * length];
 
         foreach (ISDFPipelineStageCPU stage in Temperature.Sdfs)
         {
-            temperatureValues = Dispatch(stage, sdfParameters, temperatureValues);
+            Dispatch(stage, sdfParameters, temperatureValues, temperatureValues);
         }
 
         // TODO THIS SHOULD NOT BE MADE EVERY CALL
-        float[] output = new float[length];
+        float[] output = new float[length * length * length];
         foreach (BiomeDescriptorCPU biome in Biomes)
         {
             var biomeParameters = new BiomeParametersCPU(
@@ -64,27 +64,26 @@ public sealed class SDFPipelineCPU
                 biome.IgnoreBiome);
             foreach (ISDFPipelineStageCPU stage in biome.Sdfs)
             {
-                output = Dispatch(stage, sdfParameters, biomeParameters, temperatureValues);
+               Dispatch(stage, sdfParameters, biomeParameters, temperatureValues, output);
             }
         }
 
         return output;
     }
 
-    private float[] Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, float[] temperatureValues)
+    private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, float[] temperatureValues, float[] output)
     {
-        return Dispatch(stage, sdfParameters, default, temperatureValues);
+        Dispatch(stage, sdfParameters, default, temperatureValues);
     }
 
-    private float[] Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues)
+    private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
     {
         if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
         {
             throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
         }
 
-        sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, out float[] output);
-        return output ?? throw new InvalidOperationException($"CPU SDF '{stage.Function}' did not provide an output buffer.");
+        sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, output);
     }
 
     private static IReadOnlyDictionary<string, ISDFFunctionCPU> DiscoverSdfs()

@@ -67,7 +67,7 @@ public class ComputeBuffer : IDisposable
         Uniform.AddId(Buffer);
     }
 
-    public void SetData(uint offset, uint size, byte[] data)
+    public void SetData(uint offset, uint sizeBytes, byte[] data)
     {
         if (offset < 0)
         {
@@ -79,12 +79,12 @@ public class ComputeBuffer : IDisposable
             throw new ArgumentNullException("data");
         }
 
-        if (size <= 0)
+        if (sizeBytes <= 0)
         {
-            throw new ArgumentException($"{nameof(size)} must be positive.");
+            throw new ArgumentException($"{nameof(sizeBytes)} must be positive.");
         }
 
-        Rd.BufferUpdate(Buffer, offset, size, data);
+        Rd.BufferUpdate(Buffer, offset, sizeBytes, data);
     }
 
     public void ClearData(uint offset, uint size)

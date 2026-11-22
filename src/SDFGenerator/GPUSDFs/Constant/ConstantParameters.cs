@@ -10,15 +10,6 @@ using TerrainGeneration.Utilities.Math.Extensions;
 
 namespace TerrainGeneration.Application.SDFGenerator.GPU.Constant;
 
-public enum OperationType : uint
-{
-    Add = 0,
-    Subtract = 1,
-    Multiply = 2,
-    Divide = 3,
-    Set = 4,
-}
-
 [StructLayout(LayoutKind.Explicit)]
 public struct ConstantShaderParameters : ISDFShaderParameters
 {

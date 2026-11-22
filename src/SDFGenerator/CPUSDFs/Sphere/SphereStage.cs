@@ -5,7 +5,7 @@ using TerrainGeneration.Application.SDFGenerator.CPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.Sphere;
 
-public sealed class SphereStage : ISDFPipelineStageCPU
+public class SphereStage : ISDFPipelineStageCPU
 {
     public const string FunctionName = "Sphere";
 
