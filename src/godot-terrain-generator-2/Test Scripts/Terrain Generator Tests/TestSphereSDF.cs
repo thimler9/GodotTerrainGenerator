@@ -1,5 +1,8 @@
 using Godot;
 using TerrainGeneration.Application.SDFGenerator;
+using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.CPU;
 using TerrainGeneration.Application.SDFGenerator.CPU.Sphere;
 using TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
@@ -28,42 +31,34 @@ public partial class TestSphereSDF : Node
         // ======== CPU =========
 
         // Create a new instance of the SDF class
+		float[] output = new float[bufferSize];
         var sdf = new TerrainGeneration.Application.SDFGenerator.CPU.Sphere.SDF();
 		// Create parameters for the sphere
 		var sphereParameters = new SphereParameters(radius, center, operationTypeCPU);
 		var sdfParametersCPU = new SDFParametersCPU(chunkOffset, chunkSize, lod);
 		var biomeParametersCPU = new TerrainGeneration.Application.SDFGenerator.Pipeline.CPU.BiomeParametersCPU(0, 0, 0, 0, true);
-
-		float[] temperatureValues = new float[1];
-		float[] output = new float[bufferSize];
-		sdf.Dispatch(sphereParameters, sdfParametersCPU, biomeParametersCPU, temperatureValues, output);
+		ComputeCPUSDF(sdf, sdfParametersCPU, sphereParameters, biomeParametersCPU, output);
 
 		// ======== GPU =========
 
 		// Dispatch the SDF function on the GPU
 		RenderingDevice rd = RenderingServer.GetRenderingDevice();
-        var sdfGPU = new TerrainGeneration.Application.SDFGenerator.GPU.Sphere.SphereShader(rd, "res://Shaders/Compute/sphere.glsl");
+        var shader = new TerrainGeneration.Application.SDFGenerator.GPU.Sphere.SphereShader(rd, "res://Shaders/Compute/sphere.glsl");
+        ComputeBuffer outputBuffer = new ComputeBuffer(rd, sizeof(float) * bufferSize, RenderingDevice.UniformType.StorageBuffer, 0);
 
-		var parametersGPU = new SphereShaderParameters(new TerrainGeneration.Application.SDFGenerator.GPU.Sphere.SphereStage()
+        var parametersGPU = new SphereShaderParameters(new TerrainGeneration.Application.SDFGenerator.GPU.Sphere.SphereStage()
 		{
 			Center = center,
 			OperationType = operationTypeGPU,
 			Radius = radius
 		});
+		var sdfParametersGPU = new SDFParametersGPU(chunkOffset, chunkSize, lod);
+		var biomeParametersGPU = new BiomeParametersGPU(0, 0, 0, 0, true);
+		ComputeGPUSDF(rd, chunkSize, lod, shader, sdfParametersGPU, parametersGPU, biomeParametersGPU, outputBuffer);
 
-		var sdfParametersGPU = new SDFParameters(chunkOffset, chunkSize, lod);
-		byte[] sdfParametersGPUBytes = StructHelpers.ToByteArray(sdfParametersGPU);
 
-		var biomeParametersGPU = new BiomeParameters(0, 0, 0, 0, true);
-		byte[] biomeParamtersGPUBytes = StructHelpers.ToByteArray<BiomeParameters>(biomeParametersGPU);
 
-		ComputeBuffer sdfParametersBuffer = new ComputeBuffer(rd, sizeof(float) * 8, RenderingDevice.UniformType.UniformBuffer, 0, sdfParametersGPUBytes);
-        ComputeBuffer biomeParatersBuffer = new ComputeBuffer(rd, sizeof(float) * 8, RenderingDevice.UniformType.UniformBuffer, 0, biomeParamtersGPUBytes);
-        ComputeBuffer temperatureBuffer = new ComputeBuffer(rd, sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
-        ComputeBuffer outputBuffer = new ComputeBuffer(rd, sizeof(float) * bufferSize, RenderingDevice.UniformType.StorageBuffer, 0);
-
-        sdfGPU.Dispatch(chunkSize, lod, parametersGPU, sdfParametersBuffer, biomeParatersBuffer, temperatureBuffer, outputBuffer);
-
+		// Test
 
 		float[] outputGPU = outputBuffer.GetData<float>();
 
@@ -79,5 +74,38 @@ public partial class TestSphereSDF : Node
 				GD.PrintErr($"Mismatch at index {i}: CPU = {output[i]}, GPU = {outputGPU[i]}");
             }
         }
+    }
+
+
+	private void ComputeCPUSDF(ISDFFunctionCPU sdf, SDFParametersCPU sdfParametersCPU, SphereParameters sphereParameters, BiomeParametersCPU biomeParameters, float[] output)
+	{
+		// Create parameters for the sphere
+
+		uint adjustedSize = (sdfParametersCPU.ChunkSize / sdfParametersCPU.Lod) + 2;
+		uint bufferSize = adjustedSize * adjustedSize * adjustedSize;
+
+        float[] temperatureValues = new float[1];
+        sdf.Dispatch(sphereParameters, sdfParametersCPU, biomeParameters, temperatureValues, output);
+    }
+
+	private void ComputeGPUSDF(RenderingDevice rd, uint chunkSize, uint lod, ISDFShader shader, SDFParametersGPU sDFParameters, ISDFShaderParameters sphereShaderParameters, BiomeParametersGPU biomeParameters, ComputeBuffer outputBuffer)
+	{
+        uint adjustedSize = (chunkSize / lod) + 2;
+        uint bufferSize = adjustedSize * adjustedSize * adjustedSize;
+
+        byte[] sdfParametersGPUBytes = StructHelpers.ToByteArray(sDFParameters);
+
+        var biomeParametersGPU = new BiomeParametersGPU(0, 0, 0, 0, true);
+        byte[] biomeParamtersGPUBytes = StructHelpers.ToByteArray<BiomeParametersGPU>(biomeParametersGPU);
+
+        ComputeBuffer sdfParametersBuffer = new ComputeBuffer(rd, sizeof(float) * 8, RenderingDevice.UniformType.UniformBuffer, 0, sdfParametersGPUBytes);
+        ComputeBuffer biomeParametersBuffer = new ComputeBuffer(rd, sizeof(float) * 8, RenderingDevice.UniformType.UniformBuffer, 0, biomeParamtersGPUBytes);
+        ComputeBuffer temperatureBuffer = new ComputeBuffer(rd, sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
+
+        shader.Dispatch(sDFParameters.ChunkSize, sDFParameters.Lod, sphereShaderParameters, sdfParametersBuffer, biomeParametersBuffer, temperatureBuffer, outputBuffer);
+
+		sdfParametersBuffer.Dispose();
+		biomeParametersBuffer.Dispose();
+		temperatureBuffer.Dispose();
     }
 }

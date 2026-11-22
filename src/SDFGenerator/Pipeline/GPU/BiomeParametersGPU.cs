@@ -17,7 +17,7 @@ public enum IgnoreBiomeEnum
 }
 
 [StructLayout(LayoutKind.Explicit)]
-public struct BiomeParameters
+public struct BiomeParametersGPU
 {
     [FieldOffset(0)]
     public readonly float Temperature;
@@ -39,7 +39,7 @@ public struct BiomeParameters
     private readonly Vector3 Padding;
 
 
-    public BiomeParameters(float temperature, float temperatureSpread, float depth, float depthSpread, bool ignoreBiome)
+    public BiomeParametersGPU(float temperature, float temperatureSpread, float depth, float depthSpread, bool ignoreBiome)
     {
         //TODO: Add Validation
         Temperature = temperature;
@@ -51,12 +51,12 @@ public struct BiomeParameters
 
     public override bool Equals(object? obj)
     {
-        if (obj == null || !(obj is BiomeParameters))
+        if (obj == null || !(obj is BiomeParametersGPU))
         {
             return false;
         }
 
-        BiomeParameters other = (BiomeParameters)obj;
+        BiomeParametersGPU other = (BiomeParametersGPU)obj;
 
         return
             Temperature.FuzzyEquals(other.Temperature) &&
@@ -64,12 +64,12 @@ public struct BiomeParameters
             Depth.FuzzyEquals(other.TemperatureSpread) &&
             DepthSpread.FuzzyEquals(other.TemperatureSpread);
     }
-    public static bool operator ==(BiomeParameters left, BiomeParameters right)
+    public static bool operator ==(BiomeParametersGPU left, BiomeParametersGPU right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(BiomeParameters left, BiomeParameters right)
+    public static bool operator !=(BiomeParametersGPU left, BiomeParametersGPU right)
     {
         return !(left == right);
     }

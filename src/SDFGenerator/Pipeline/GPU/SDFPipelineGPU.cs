@@ -22,7 +22,7 @@ public sealed class SDFPipelineGPU
     private readonly Dictionary<string, ISDFShader> SDFShadersByFunction = new(StringComparer.OrdinalIgnoreCase);
 
     // Used in dispatching the shaders
-    SDFParameters SDFShaderParameters;
+    SDFParametersGPU SDFShaderParameters;
     private ComputeBuffer? SDFParametersBuffer;
     private ComputeBuffer? OutputBuffer;
     private ComputeBuffer? DummyBiomeParametersBuffer;
@@ -59,7 +59,7 @@ public sealed class SDFPipelineGPU
         }
     }
 
-    public ComputeBuffer GetSDF(SDFParameters sdfShaderParameters)
+    public ComputeBuffer GetSDF(SDFParametersGPU sdfShaderParameters)
     {
         SetSDFParameters(sdfShaderParameters);
         SetOutputBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
@@ -121,17 +121,17 @@ public sealed class SDFPipelineGPU
     /// Sets the parameters for the sdf shader params buffer
     /// </summary>
     /// <param name="parameters"></param>
-    private void SetSDFParameters(SDFParameters parameters)
+    private void SetSDFParameters(SDFParametersGPU parameters)
     {
         if (!SDFShaderParameters.Equals(parameters))
         {
             // If the buffer isn't valid, we need to create one
             if (SDFParametersBuffer == null)
             {
-                SDFParametersBuffer = new ComputeBuffer(Rd, (uint)Marshal.SizeOf<SDFParameters>(), RenderingDevice.UniformType.UniformBuffer, 0);
+                SDFParametersBuffer = new ComputeBuffer(Rd, (uint)Marshal.SizeOf<SDFParametersGPU>(), RenderingDevice.UniformType.UniformBuffer, 0);
             }
 
-            SDFParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SDFParameters>(), parameters.ToByteArray());
+            SDFParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SDFParametersGPU>(), parameters.ToByteArray());
             SDFShaderParameters = parameters;
         }
     }
@@ -161,18 +161,18 @@ public sealed class SDFPipelineGPU
         {
             if (biome.BiomeParametersBuffer == null)
             {
-                BiomeParameters biomeParams = new BiomeParameters(biome.Temperature, biome.TemperatureSpread, biome.Depth, biome.DepthSpread, biome.IgnoreBiome);
-                biome.BiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParameters>(), RenderingDevice.UniformType.UniformBuffer, 0, data: StructHelpers.ToByteArray(biomeParams));
+                BiomeParametersGPU biomeParams = new BiomeParametersGPU(biome.Temperature, biome.TemperatureSpread, biome.Depth, biome.DepthSpread, biome.IgnoreBiome);
+                biome.BiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParametersGPU>(), RenderingDevice.UniformType.UniformBuffer, 0, data: StructHelpers.ToByteArray(biomeParams));
             }
         }
     }
 
     private void SetupDummyUniforms(RenderingDevice rd)
     {
-        BiomeParameters biomeParameters = new BiomeParameters(0f, 0f, 0f, 0f, true);
+        BiomeParametersGPU biomeParameters = new BiomeParametersGPU(0f, 0f, 0f, 0f, true);
         DummyBiomeParametersBuffer = new ComputeBuffer(
             rd,
-            (uint)Marshal.SizeOf<BiomeParameters>(),
+            (uint)Marshal.SizeOf<BiomeParametersGPU>(),
             RenderingDevice.UniformType.UniformBuffer,
             0,
             StructHelpers.ToByteArray(biomeParameters));

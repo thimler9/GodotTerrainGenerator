@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace TerrainGeneration.Application.SDFGenerator;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct SDFParameters
+public struct SDFParametersGPU
 {
     [FieldOffset(0)]
     public readonly Vector4 ChunkOffset;
@@ -18,7 +18,7 @@ public struct SDFParameters
     [FieldOffset(24)]
     private readonly Vector2 Padding;
 
-    public SDFParameters(Vector3 chunkOffset, uint chunkSize, uint lod)
+    public SDFParametersGPU(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
         // TODO: Add validation
         this.ChunkOffset = new Vector4(chunkOffset.X, chunkOffset.Y, chunkOffset.Z, 1.0f);
@@ -28,7 +28,7 @@ public struct SDFParameters
 
     public byte[] ToByteArray()
     {
-        int size = Marshal.SizeOf<SDFParameters>();
+        int size = Marshal.SizeOf<SDFParametersGPU>();
         byte[] arr = new byte[size];
 
         IntPtr ptr = IntPtr.Zero;
@@ -48,21 +48,21 @@ public struct SDFParameters
 
     public override bool Equals(object? obj)
     {
-        if (obj == null || !(obj is SDFParameters))
+        if (obj == null || !(obj is SDFParametersGPU))
         {
             return false;
         }
 
-        SDFParameters other = (SDFParameters)obj;
+        SDFParametersGPU other = (SDFParametersGPU)obj;
 
         return ChunkSize == other.ChunkSize && Lod == other.Lod && ChunkOffset == other.ChunkOffset;
     }
-    public static bool operator ==(SDFParameters left, SDFParameters right)
+    public static bool operator ==(SDFParametersGPU left, SDFParametersGPU right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(SDFParameters left, SDFParameters right)
+    public static bool operator !=(SDFParametersGPU left, SDFParametersGPU right)
     {
         return !(left == right);
     }
