@@ -9,21 +9,17 @@ namespace TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
 public struct SphereShaderParameters : ISDFShaderParameters
 {
     [FieldOffset(0)]
-    private float Radius;
-
-    [FieldOffset(4)]
-    private Vector3 RadiusPadding;
-
-    [FieldOffset(16)]
     private Vector3 Center;
 
-    [FieldOffset(28)]
+    [FieldOffset(12)]
     private OperationType OperationType;
+    
+    [FieldOffset(16)]
+    private float Radius;
 
     public SphereShaderParameters()
     {
         Radius = 0;
-        RadiusPadding = Vector3.Zero;
         Center = Vector3.Zero;
         OperationType = OperationType.Set;
     }
@@ -31,7 +27,6 @@ public struct SphereShaderParameters : ISDFShaderParameters
     public SphereShaderParameters(SphereStage stage)
     {
         Radius = stage.Radius;
-        RadiusPadding = Vector3.Zero;
         Center = stage.Center;
         OperationType = stage.OperationType;
     }
