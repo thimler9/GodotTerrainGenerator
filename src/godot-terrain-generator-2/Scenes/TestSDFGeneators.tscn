@@ -4,3 +4,4 @@
 
 [node name="TestSdfGeneators" type="Node3D"]
 script = ExtResource("1_4n0om")
+Tolerance = 0.001
