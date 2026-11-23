@@ -10,7 +10,6 @@
   <ItemGroup>
 	  <Folder Include="Data\" />
 	  <Folder Include="Shaders\Graphic\Includes\" />
-	  <Folder Include="Test Scripts\Terrain Generator Tests\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CONTRIBUTING.md" />

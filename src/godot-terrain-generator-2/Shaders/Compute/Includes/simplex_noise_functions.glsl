@@ -23,9 +23,11 @@ float snoise(in vec3 v) {
     const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
     const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
 
-    // First corner
-    vec3 i  = floor(v + dot(v, C.yyy) );
-    vec3 x0 =   v - i + dot(i, C.xxx) ;
+    // First corner; skew and unskew are used to make the float precision good between CPU and GPU
+    precise float skew = (v.x * C.y + v.y * C.y) + v.z * C.y;
+    vec3 i = floor(v + skew);
+    precise float unskew = (i.x * C.x + i.y * C.x) + i.z * C.x;
+    precise vec3 x0 = v - i + vec3(unskew);
 
     // Other corners
     vec3 g = step(x0.yzx, x0.xyz);
@@ -121,8 +123,9 @@ float simplex_noise(SimplexNoiseParams params, uvec3 id, vec3 chunk_offset, uint
 
     for (uint i = 0; i < num_octaves; i++)
     {
-        float seed_value = float(mod(wang(seed), seed_modulo));
-        vec3 sample_point = (chunk_offset.xyz + seed_value * vec3(1.0) + vec3(id * lod)) / scale * frequency;
+        vec3 random_offset = vec3(0.317, 0.571, 0.829);
+        float seed_value = float(wang(seed) % seed_modulo);
+        vec3 sample_point = (chunk_offset.xyz + random_offset + seed_value * vec3(1.0) + vec3(id * lod)) / scale * frequency;
         float simplex_noise_value = snoise(sample_point);
 
         noise_height = noise_height + simplex_noise_value * amplitude;

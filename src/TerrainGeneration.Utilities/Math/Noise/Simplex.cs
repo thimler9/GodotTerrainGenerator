@@ -111,14 +111,16 @@ public static class Simplex
     // 3D Simplex noise
     // --------------------------------------------------
 
-    public static float Sno​​ise(Vector3 v)
+    public static float Snoise(Vector3 v)
     {
         Vector2 C = new(1.0f / 6.0f, 1.0f / 3.0f);
         Vector4 D = new(0.0f, 0.5f, 1.0f, 2.0f);
 
-        // First corner
-        Vector3 i = Floor(v + new Vector3(Vector3.Dot(v, new Vector3(C.Y))));
-        Vector3 x0 = v - i + new Vector3(Vector3.Dot(i, new Vector3(C.X)));
+        // First corner; skew and unskew are used to make the float precision good between CPU and GPU
+        float skew = (v.X * C.Y + v.Y * C.Y) + v.Z * C.Y;
+        Vector3 i = Floor(v + new Vector3(skew));
+        float unskew = (i.X * C.X + i.Y * C.X) + i.Z * C.X;
+        Vector3 x0 = v - i + new Vector3(unskew);
 
         // Other corners
         Vector3 g = Step(
@@ -276,10 +278,12 @@ public static class Simplex
 
         for (uint i = 0; i < numOctaves; i++)
         {
+            Vector3 randomOffset = new Vector3(0.317f, 0.571f, 0.829f);
             float seedValue = (float)(Wang(seed) % SeedModulo);
 
             Vector3 samplePoint = (
                 chunkOffset
+                + randomOffset
                 + new Vector3(seedValue)
                 + new Vector3(
                     (float)((ulong)id.X * lod),
@@ -288,7 +292,7 @@ public static class Simplex
                 )
             ) / scale * frequency;
 
-            float simplexNoiseValue = Sno​​ise(samplePoint);
+            float simplexNoiseValue = Snoise(samplePoint);
 
             noiseHeight += simplexNoiseValue * amplitude;
 

@@ -251,7 +251,6 @@ public partial class TestSphereSDF : Node
         }
 
         outputBuffer.Dispose();
-        shader.Dispose();
         return passed;
     }
 

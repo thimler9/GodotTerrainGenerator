@@ -37,9 +37,6 @@ public sealed class SDF : ISDFFunctionCPU
                 ? 1.0f 
                 : BiomeHelpers.CalculateProbability(depthValue, biomeParameters.Depth, biomeParameters.DepthSpread);
 
-            float currentValue = output[i];
-            float operatedValue = currentValue;
-
             SimplexNoiseParams simplexNoiseParams = new SimplexNoiseParams
             {
                 Seed = parameters.Seed,
@@ -55,7 +52,7 @@ public sealed class SDF : ISDFFunctionCPU
 
             float noiseValue = Simplex.SimplexNoise(simplexNoiseParams, new Simplex.UInt3 { X = x, Y = y, Z = z }, chunkOffset, sdfParameters.Lod);
 
-            output[i] = operatedValue;
+            output[i] += noiseValue * probability;
         }
     }
 }
