@@ -135,7 +135,7 @@ public partial class TestVoxelOctree : Node
 		compEffect.Camera = Camera;
 		compEffect.VoxelOctree = VoxelOctree;
 		compEffect.TerrainMeshConstantsBuffer = terrainMeshConstantsBuffer;
-       UpdateLighting(compEffect);
+        UpdateLighting(compEffect);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

@@ -1,22 +1,22 @@
 [gd_scene load_steps=8 format=3 uid="uid://bepinf15m7nmp"]
 
 [ext_resource type="PackedScene" uid="uid://caf06yovglm4k" path="res://Debug UI.tscn" id="1_820bx"]
-[ext_resource type="Script" uid="uid://bkirokmvgvtlk" path="res://Test Scripts/TestVoxelOctreeRenderer.cs" id="1_mxbe1"]
 [ext_resource type="Script" uid="uid://3rx3e6vwcmxk" path="res://Test Scripts/TestVoxelOctree.cs" id="1_won1t"]
+[ext_resource type="Script" uid="uid://dludnx4fowhl6" path="res://Test Scripts/Render Pipeline Tests/TestVoxelOctreeRenderer.cs" id="2_820bx"]
 [ext_resource type="Script" uid="uid://077514j7nocj" path="res://External Script/FreeLookCameraBase.cs" id="2_jae4j"]
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_jae4j"]
+[sub_resource type="CompositorEffect" id="CompositorEffect_3efc6"]
 resource_local_to_scene = false
 resource_name = ""
 enabled = true
 effect_callback_type = 4
 needs_motion_vectors = false
 needs_normal_roughness = false
-script = ExtResource("1_mxbe1")
-metadata/_custom_type_script = "uid://bkirokmvgvtlk"
+script = ExtResource("2_820bx")
+metadata/_custom_type_script = "uid://dludnx4fowhl6"
 
 [sub_resource type="Compositor" id="Compositor_820bx"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_jae4j")])
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_3efc6")])
 
 [sub_resource type="Environment" id="Environment_jae4j"]
 ambient_light_source = 2
