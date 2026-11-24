@@ -1,4 +1,5 @@
 ﻿using Godot;
+using System.Numerics;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.CPU;
 using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
@@ -61,6 +62,46 @@ public sealed class SDF : ISDFFunctionCPU
             }
 
             output[i] = Mathf.Lerp(currentValue, operatedValue, probability);
+        }
+    }
+
+    private void DispatchConstantSIMD(ConstantParameters parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
+    {
+        int width = Vector<float>.Count; // Get the width of the SIMD vector
+
+        for (int i = 0; i < output.Length - width; i += width)
+        {
+            Vector<float> v = new Vector<float>(output, i); // First clump of float values
+
+            // Calculate the probabilities of the current clump of values
+
+            // Do the operation based on the OperationType
+            if (parameters.OperationType == OperationType.Add)
+            {
+                v += new Vector<float>(parameters.Value);
+            }
+            else if (parameters.OperationType == OperationType.Subtract)
+            {
+                v -= new Vector<float>(parameters.Value);
+            }
+            else if (parameters.OperationType == OperationType.Multiply)
+            {
+                v *= new Vector<float>(parameters.Value);
+            }
+            else if (parameters.OperationType == OperationType.Divide)
+            {
+                v /= new Vector<float>(parameters.Value);
+            }
+            else if (parameters.OperationType == OperationType.Set)
+            {
+                v = new Vector<float>(parameters.Value);
+            }
+
+            // Write values back into the output array
+            for (int j = 0 ; j < width; j++)
+            {
+                output[i] = v[i];
+            }
         }
     }
 }

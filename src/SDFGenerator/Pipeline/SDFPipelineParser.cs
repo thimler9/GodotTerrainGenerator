@@ -191,6 +191,11 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("Biome must contain a numeric 'temperatureSpread' field.");
         }
 
+        if (temperatureElement.GetSingle() <= 0)
+        {
+            throw new SDFPipelineParseException("Biome 'temperature' field must be greater than zero.");
+        }
+
         if (!biomeElement.TryGetProperty("depth", out JsonElement depthElement)
             || depthElement.ValueKind != JsonValueKind.Number)
         {
@@ -201,6 +206,11 @@ public sealed class SDFPipelineParser
             || depthSpreadElement.ValueKind != JsonValueKind.Number)
         {
             throw new SDFPipelineParseException("Biome must contain a numeric 'depthSpread' field.");
+        }
+
+        if (depthSpreadElement.GetSingle() <= 0)
+        {
+            throw new SDFPipelineParseException("Biome 'depthSpread' field must be greater than zero.");
         }
 
         bool ignoreBiome = false;
