@@ -4,6 +4,7 @@ using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.CPU;
 using TerrainGeneration.Application.SDFGenerator.CPUSDFs;
 using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
+using TerrainGeneration.Utilities.Math.Extensions;
 
 namespace TerrainGeneration.Application.SDFGenerator.CPU.Constant;
 
@@ -18,7 +19,7 @@ public sealed class SDF : ISDFFunctionCPU
             throw new ArgumentException($"Expected parameters of type '{nameof(ConstantParameters)}'.", nameof(parameters));
         }
 
-        DispatchConstant((ConstantParameters)parameters, sdfParameters, biomeParameters, temperatureValues, output);
+        DispatchConstantSIMD((ConstantParameters)parameters, sdfParameters, biomeParameters, temperatureValues, output);
     }
 
 
@@ -67,41 +68,91 @@ public sealed class SDF : ISDFFunctionCPU
 
     private void DispatchConstantSIMD(ConstantParameters parameters, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
     {
-        int width = Vector<float>.Count; // Get the width of the SIMD vector
+        uint width = (uint)Vector<float>.Count; // Get the width of the SIMD vector
+        uint adjustedSize = sdfParameters.ChunkSize / sdfParameters.Lod + 2;
 
-        for (int i = 0; i < output.Length - width; i += width)
+        Vector<float> chunkOffsetY = new Vector<float>(sdfParameters.ChunkOffset.Y);
+        Vector<uint> lod = new Vector<uint>(sdfParameters.Lod);
+        Vector<float> parameterValue = new Vector<float>(parameters.Value);
+
+        uint i = 0;
+        for (; i + width < (uint)output.Length; i += width)
         {
-            Vector<float> v = new Vector<float>(output, i); // First clump of float values
+            Vector<float> currentValue = new Vector<float>(output, (int)i); // First clump of float values
+            Vector<float> operatedValue = currentValue;
 
-            // Calculate the probabilities of the current clump of values
+            Vector<uint> indices = Vector<uint>.Indices + new Vector<uint>(i); // Indices for the current clump of values
+            Vector<uint> xCoords = indices.Mod(new Vector<uint>(adjustedSize));
+            Vector<uint> yCoords = (indices / new Vector<uint>(adjustedSize)).Mod(new Vector<uint>(adjustedSize));
+            Vector<uint> zCoords = indices / (new Vector<uint>(adjustedSize) * new Vector<uint>(adjustedSize));
+
+            Vector<float> depthValues = Vector.ConvertToSingle(yCoords * lod) + chunkOffsetY;
+            Vector<float> probabilities = biomeParameters.IgnoreBiome 
+                ? new Vector<float>(1.0f) 
+                : BiomeHelpers.CalculateProbability(depthValues, biomeParameters.Depth, biomeParameters.DepthSpread);
 
             // Do the operation based on the OperationType
             if (parameters.OperationType == OperationType.Add)
             {
-                v += new Vector<float>(parameters.Value);
+                operatedValue += parameterValue;
             }
             else if (parameters.OperationType == OperationType.Subtract)
             {
-                v -= new Vector<float>(parameters.Value);
+                operatedValue -= parameterValue;
             }
             else if (parameters.OperationType == OperationType.Multiply)
             {
-                v *= new Vector<float>(parameters.Value);
+                operatedValue *= parameterValue;
             }
             else if (parameters.OperationType == OperationType.Divide)
             {
-                v /= new Vector<float>(parameters.Value);
+                operatedValue /= parameterValue;
             }
             else if (parameters.OperationType == OperationType.Set)
             {
-                v = new Vector<float>(parameters.Value);
+                operatedValue = parameterValue;
             }
 
-            // Write values back into the output array
-            for (int j = 0 ; j < width; j++)
+            Vector<float> finalValues = Vector.Lerp(currentValue, operatedValue, probabilities);
+            finalValues.CopyTo(output, (int)i);
+        }
+
+        // Handle any remaining elements that don't fit into a full SIMD vector
+        for (; i < output.Length; i++)
+        {
+            uint x = i % adjustedSize;
+            uint y = (i / adjustedSize) % adjustedSize;
+            uint z = i / (adjustedSize * adjustedSize);
+
+            float depthValue = (float)(y * sdfParameters.Lod) + sdfParameters.ChunkOffset.Y;
+            float probability = biomeParameters.IgnoreBiome 
+                ? 1.0f 
+                : BiomeHelpers.CalculateProbability(depthValue, biomeParameters.Depth, biomeParameters.DepthSpread);
+
+            float currentValue = output[i];
+            float operatedValue = currentValue;
+
+            if (parameters.OperationType == OperationType.Add)
             {
-                output[i] = v[i];
+                operatedValue += parameters.Value;
             }
+            else if (parameters.OperationType == OperationType.Subtract)
+            {
+                operatedValue -= parameters.Value;
+            }
+            else if (parameters.OperationType == OperationType.Multiply)
+            {
+                operatedValue *= parameters.Value;
+            }
+            else if (parameters.OperationType == OperationType.Divide)
+            {
+                operatedValue /= parameters.Value;
+            }
+            else if (parameters.OperationType == OperationType.Set)
+            {
+                operatedValue = parameters.Value;
+            }
+            output[i] = Mathf.Lerp(currentValue, operatedValue, probability);
         }
     }
 }

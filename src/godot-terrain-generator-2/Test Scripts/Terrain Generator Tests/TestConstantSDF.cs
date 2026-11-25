@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Diagnostics;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
@@ -51,14 +52,19 @@ public partial class TestConstantSDF : Node
         };
 
         int passed = 0;
+        var totalTimer = Stopwatch.StartNew();
         foreach (var (name, test) in tests)
         {
+            var timer = Stopwatch.StartNew();
             bool ok = test();
-            if (ok) passed++;
-            GD.Print($"[{(ok ? "PASS" : "FAIL")}] {name}");
-        }
+            timer.Stop();
 
-        GD.Print($"Constant SDF parity: {passed}/{tests.Length} tests passed.");
+            if (ok) passed++;
+            GD.Print($"[{(ok ? "PASS" : "FAIL")}] {name} ({timer.Elapsed.TotalMilliseconds:F2} ms)");
+        }
+        totalTimer.Stop();
+
+        GD.Print($"Constant SDF parity: {passed}/{tests.Length} tests passed in {totalTimer.Elapsed.TotalMilliseconds:F2} ms.");
     }
 
     // ---------------------------------------------------------------------
@@ -235,7 +241,11 @@ public partial class TestConstantSDF : Node
         var sdfParametersCPU = new SDFParametersCPU(offset, chunkSize, lod);
         var biomeParametersCPU = new BiomeParametersCPU(0, 0, biomeDepth, biomeDepthSpread, ignoreBiome);
         float[] outputCPU = (float[])initial.Clone();
+
+        var cpuTimer = Stopwatch.StartNew();
         ComputeCPUSDF(sdf, sdfParametersCPU, constantParameters, biomeParametersCPU, outputCPU);
+        cpuTimer.Stop();
+        GD.Print($"[{testName}] CPU only: {cpuTimer.Elapsed.TotalMilliseconds:F2} ms");
 
         // ======== GPU =========
         RenderingDevice rd = RenderingServer.GetRenderingDevice();

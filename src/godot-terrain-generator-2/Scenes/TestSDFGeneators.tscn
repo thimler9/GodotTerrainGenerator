@@ -11,8 +11,10 @@ script = ExtResource("1_4n0om")
 Tolerance = 0.001
 
 [node name="TestSphereSDF" type="Node" parent="."]
+process_mode = 4
 script = ExtResource("2_wqivn")
 Tolerance = 0.001
 
 [node name="TestSimplexSDF" type="Node" parent="."]
+process_mode = 4
 script = ExtResource("3_6o564")

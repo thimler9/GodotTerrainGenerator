@@ -23,4 +23,9 @@ public static class SIMDExtensions
         Vector<float> epsilonVector = new Vector<float>(epislon);
         return Vector.LessThanOrEqual(absDiff, epsilonVector);
     }
+
+    public static Vector<uint> Mod(this Vector<uint> a, Vector<uint> b)
+    {
+        return a - (a / b) * b;
+    }
 }
