@@ -50,6 +50,7 @@ void main() {
         ? 1.0
         : biome_depth_probability(depth_value, biome_params.params.depth, biome_params.params.depth_spread);
     float noise_value = simplex_noise(simplex_noise_params, id, sdf_params.chunk_offset.xyz, sdf_params.lod);
-
-    output_buffer.data[array_index] += noise_value * probability;
+    
+    float current_value = output_buffer.data[array_index];
+    output_buffer.data[array_index] = mix(current_value, noise_value, probability);
 }
