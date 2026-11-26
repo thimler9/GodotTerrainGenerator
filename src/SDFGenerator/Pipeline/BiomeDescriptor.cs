@@ -1,9 +1,11 @@
-using Godot;
-using TerrainGeneration.Utilities.EngineAbstractions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-
-public sealed class BiomeDescriptor
+namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
+public class BiomeDescriptor
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
@@ -12,7 +14,4 @@ public sealed class BiomeDescriptor
     public float Depth { get; init; }
     public float DepthSpread { get; init; }
     public bool IgnoreBiome { get; init; }
-    public ComputeBuffer? BiomeParametersBuffer { get; set; }
-
-    public IReadOnlyList<ISDFPipelineStage> Sdfs { get; init; } = Array.Empty<ISDFPipelineStage>();
 }

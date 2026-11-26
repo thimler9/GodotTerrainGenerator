@@ -3,6 +3,8 @@ using System.Text.Json;
 using System.Reflection;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using FileAccess = Godot.FileAccess;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
 
@@ -17,7 +19,8 @@ public sealed class SDFPipelineParser
 
     // Stage types are discovered from the assembly so adding a new stage does not
     // require another deserialization method or switch case in this parser.
-    private static readonly IReadOnlyDictionary<string, Type> StageTypes = DiscoverStageTypes();
+    private static readonly IReadOnlyDictionary<string, Type> GpuStageTypes = DiscoverGpuStageTypes();
+    private static readonly IReadOnlyDictionary<string, Type> CpuStageTypes = DiscoverCpuStageTypes();
 
     /// <summary>
     /// Parses pipeline JSON and creates the pipeline, including its configured stages and shaders.
@@ -34,11 +37,18 @@ public sealed class SDFPipelineParser
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
 
-            TemperatureDescriptor temperature = ParseTemperature(root);
-            IReadOnlyList<BiomeDescriptor> biomes = ParseBiomes(root);
-            IReadOnlyDictionary<string, string> shaderMap = ParseShaders(root);
+            (TemperatureDescriptorCPU, TemperatureDescriptorGPU) temperature = ParseTemperature(root);
+            (IReadOnlyList<BiomeDescriptorCPU>, IReadOnlyList<BiomeDescriptorGPU>) biomes = ParseBiomes(root);
+            IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap = ParseSDFFunctions(root);
 
-            return new SDFPipeline(temperature, biomes, shaderMap, rd);
+            SDFPipelineCPU sDFPipelineCPU = new SDFPipelineCPU(temperature.Item1, biomes.Item1, functionMap);
+            SDFPipelineGPU sDFPipelineGPU = new SDFPipelineGPU(temperature.Item2, biomes.Item2, functionMap, rd);
+
+            return new SDFPipeline()
+            {
+                gPUSDFPipeline = sDFPipelineGPU,
+                cPUSDFPipeline = sDFPipelineCPU
+            };
         }
         catch (JsonException ex)
         {
@@ -57,7 +67,7 @@ public sealed class SDFPipelineParser
         return Parse(json, rd);
     }
 
-    private static string ReadJsonFromPath(string filePath)
+    private string ReadJsonFromPath(string filePath)
     {
         if (filePath.StartsWith("res://", StringComparison.OrdinalIgnoreCase))
         {
@@ -68,11 +78,11 @@ public sealed class SDFPipelineParser
         return System.IO.File.ReadAllText(filePath);
     }
 
-    private static TemperatureDescriptor ParseTemperature(JsonElement root)
+    private (TemperatureDescriptorCPU, TemperatureDescriptorGPU) ParseTemperature(JsonElement root)
     {
         if (!root.TryGetProperty("temperature", out JsonElement temperatureElement))
         {
-            return new TemperatureDescriptor();
+            return (new TemperatureDescriptorCPU(), new TemperatureDescriptorGPU());
         }
 
         if (temperatureElement.ValueKind != JsonValueKind.Object)
@@ -85,17 +95,24 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("The 'temperature' section must contain an 'sdf' array.");
         }
 
-        return new TemperatureDescriptor
+        TemperatureDescriptorGPU tempGPU = new TemperatureDescriptorGPU
         {
-            Sdfs = ParseSdfStages(sdfElement)
+            Sdfs = ParseGpuSdfStages(sdfElement)
         };
+
+        TemperatureDescriptorCPU tempCPU = new TemperatureDescriptorCPU
+        {
+            Sdfs = ParseCpuSdfStages(sdfElement)
+        };
+
+        return (tempCPU, tempGPU);
     }
 
-    private static IReadOnlyList<BiomeDescriptor> ParseBiomes(JsonElement root)
+    private (IReadOnlyList<BiomeDescriptorCPU>, IReadOnlyList<BiomeDescriptorGPU>) ParseBiomes(JsonElement root)
     {
         if (!root.TryGetProperty("biomes", out JsonElement biomesElement))
         {
-            return Array.Empty<BiomeDescriptor>();
+            return (Array.Empty<BiomeDescriptorCPU>(), Array.Empty<BiomeDescriptorGPU>());
         }
 
         if (biomesElement.ValueKind != JsonValueKind.Array)
@@ -103,34 +120,59 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("The 'biomes' field must be an array.");
         }
 
-        var biomes = new List<BiomeDescriptor>();
+        var biomesGPU = new List<BiomeDescriptorGPU>();
+        var biomesCPU = new List<BiomeDescriptorCPU>();
         foreach (JsonElement biomeElement in biomesElement.EnumerateArray())
         {
-            biomes.Add(ParseBiome(biomeElement));
+            (BiomeDescriptorCPU, BiomeDescriptorGPU) biomes = ParseBiome(biomeElement);
+            biomesCPU.Add(biomes.Item1);
+            biomesGPU.Add(biomes.Item2);
         }
 
-        return biomes;
+        return (biomesCPU, biomesGPU);
     }
 
-    private static IReadOnlyDictionary<string, string> ParseShaders(JsonElement root)
+    private IReadOnlyDictionary<string, SDFFunctionConfiguration> ParseSDFFunctions(JsonElement root)
     {
-        var shaderMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (root.TryGetProperty("shaders", out JsonElement shadersElement) && shadersElement.ValueKind == JsonValueKind.Object)
+        if (!root.TryGetProperty("sDFFunction", out JsonElement functionsElement)
+            || functionsElement.ValueKind != JsonValueKind.Object)
         {
-            foreach (var prop in shadersElement.EnumerateObject())
-            {
-                string? path = prop.Value.GetString();
-                if (!string.IsNullOrWhiteSpace(path))
-                {
-                    shaderMap[prop.Name] = path!;
-                }
-            }
+            throw new SDFPipelineParseException("The 'sDFFunction' section must be an object.");
         }
 
-        return shaderMap;
+        var functionMap = new Dictionary<string, SDFFunctionConfiguration>(StringComparer.OrdinalIgnoreCase);
+        foreach (JsonProperty property in functionsElement.EnumerateObject())
+        {
+            if (property.Value.ValueKind != JsonValueKind.Object)
+            {
+                throw new SDFPipelineParseException($"SDF function '{property.Name}' configuration must be an object.");
+            }
+
+            string? gpuShader = null;
+            if (property.Value.TryGetProperty("gpuShader", out JsonElement gpuShaderElement)
+                && gpuShaderElement.ValueKind == JsonValueKind.String)
+            {
+                gpuShader = gpuShaderElement.GetString();
+            }
+
+            string? cpuFunction = null;
+            if (property.Value.TryGetProperty("cpuFunction", out JsonElement cpuFunctionElement)
+                && cpuFunctionElement.ValueKind == JsonValueKind.String)
+            {
+                cpuFunction = cpuFunctionElement.GetString();
+            }
+
+            functionMap.Add(property.Name, new SDFFunctionConfiguration
+            {
+                GPUShader = gpuShader,
+                CPUFunction = cpuFunction
+            });
+        }
+
+        return functionMap;
     }
 
-    private static BiomeDescriptor ParseBiome(JsonElement biomeElement)
+    private (BiomeDescriptorCPU, BiomeDescriptorGPU) ParseBiome(JsonElement biomeElement)
     {
         if (biomeElement.ValueKind != JsonValueKind.Object)
         {
@@ -177,29 +219,53 @@ public sealed class SDFPipelineParser
             throw new SDFPipelineParseException("Biome must contain an 'sdf' array with sdf function inputs.");
         }
 
-        return new BiomeDescriptor
+        var biomeGPU = new BiomeDescriptorGPU
         {
             Temperature = temperatureElement.GetSingle(),
             TemperatureSpread = temperatureSpreadElement.GetSingle(),
             Depth = depthElement.GetSingle(),
             DepthSpread = depthSpreadElement.GetSingle(),
             IgnoreBiome = ignoreBiome,
-            Sdfs = ParseSdfStages(sdfElement)
+            Sdfs = ParseGpuSdfStages(sdfElement),
         };
+
+        var biomeCPU = new BiomeDescriptorCPU
+        {
+            Temperature = temperatureElement.GetSingle(),
+            TemperatureSpread = temperatureSpreadElement.GetSingle(),
+            Depth = depthElement.GetSingle(),
+            DepthSpread = depthSpreadElement.GetSingle(),
+            IgnoreBiome = ignoreBiome,
+            Sdfs = ParseCpuSdfStages(sdfElement),
+        };
+
+        return (biomeCPU, biomeGPU);
     }
 
-    private static IReadOnlyList<ISDFPipelineStage> ParseSdfStages(JsonElement sdfElement)
+    private IReadOnlyList<ISDFPipelineStageGPU> ParseGpuSdfStages(JsonElement sdfElement)
     {
-        var stages = new List<ISDFPipelineStage>();
+        return ParseSdfStages<ISDFPipelineStageGPU>(sdfElement, GpuStageTypes);
+    }
+
+    private IReadOnlyList<ISDFPipelineStageCPU> ParseCpuSdfStages(JsonElement sdfElement)
+    {
+        return ParseSdfStages<ISDFPipelineStageCPU>(sdfElement, CpuStageTypes);
+    }
+
+    private IReadOnlyList<TStage> ParseSdfStages<TStage>(JsonElement sdfElement, IReadOnlyDictionary<string, Type> stageTypes)
+        where TStage : class
+    {
+        var stages = new List<TStage>();
         foreach (JsonElement stageElement in sdfElement.EnumerateArray())
         {
-            stages.Add(ParseStage(stageElement));
+            stages.Add(ParseStage<TStage>(stageElement, stageTypes));
         }
 
         return stages;
     }
 
-    private static ISDFPipelineStage ParseStage(JsonElement stageElement)
+    private TStage ParseStage<TStage>(JsonElement stageElement, IReadOnlyDictionary<string, Type> stageTypes)
+        where TStage : class
     {
         if (stageElement.ValueKind != JsonValueKind.Object)
         {
@@ -212,22 +278,26 @@ public sealed class SDFPipelineParser
         }
 
         string function = functionElement.GetString() ?? string.Empty;
-        if (function == string.Empty)
+        if (function.Length == 0)
         {
             throw new SDFPipelineParseException("Pipeline stage 'function' field cannot be empty.");
         }
 
-        if (!StageTypes.TryGetValue(function, out Type? stageType))
+        if (!stageTypes.TryGetValue(function, out Type? stageType))
         {
             throw new SDFPipelineParseException($"Unsupported pipeline function '{function}'.");
         }
 
-        // Deserialize using the discovered concrete type so each stage can define its own parameters.
-        return JsonSerializer.Deserialize(stageElement.GetRawText(), stageType, SerializerOptions) as ISDFPipelineStage
-            ?? throw new SDFPipelineParseException($"Unable to deserialize '{function}' stage.");
+        object? stage = JsonSerializer.Deserialize(stageElement.GetRawText(), stageType, SerializerOptions);
+        if (stage is TStage typedStage)
+        {
+            return typedStage;
+        }
+
+        throw new SDFPipelineParseException($"Failed to deserialize pipeline stage for function '{function}'.");
     }
 
-    private static IReadOnlyDictionary<string, Type> DiscoverStageTypes()
+    private static IReadOnlyDictionary<string, Type> DiscoverGpuStageTypes()
     {
         var stageTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
         Assembly assembly = typeof(SDFPipelineParser).Assembly;
@@ -235,7 +305,7 @@ public sealed class SDFPipelineParser
         // FunctionName is the registration contract shared by all pipeline stages.
         foreach (Type type in assembly.GetTypes())
         {
-            if (!typeof(ISDFPipelineStage).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
+            if (!typeof(ISDFPipelineStageGPU).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
             {
                 continue;
             }
@@ -250,6 +320,34 @@ public sealed class SDFPipelineParser
             if (!stageTypes.TryAdd(functionName, type))
             {
                 throw new InvalidOperationException($"Duplicate SDF pipeline function name '{functionName}'.");
+            }
+        }
+
+        return stageTypes;
+    }
+
+    private static IReadOnlyDictionary<string, Type> DiscoverCpuStageTypes()
+    {
+        var stageTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        Assembly assembly = typeof(SDFPipelineParser).Assembly;
+
+        foreach (Type type in assembly.GetTypes())
+        {
+            if (!typeof(ISDFPipelineStageCPU).IsAssignableFrom(type) || !type.IsClass || type.IsAbstract)
+            {
+                continue;
+            }
+
+            FieldInfo? functionNameField = type.GetField("FunctionName", BindingFlags.Public | BindingFlags.Static);
+            string? functionName = functionNameField?.GetValue(null) as string;
+            if (string.IsNullOrWhiteSpace(functionName))
+            {
+                continue;
+            }
+
+            if (!stageTypes.TryAdd(functionName, type))
+            {
+                throw new InvalidOperationException($"Duplicate CPU pipeline function name '{functionName}'.");
             }
         }
 

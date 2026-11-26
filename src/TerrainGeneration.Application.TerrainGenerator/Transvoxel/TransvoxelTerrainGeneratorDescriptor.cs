@@ -1,18 +1,11 @@
 ﻿using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 
 namespace TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 public class TransvoxelTerrainGeneratorDescriptor
 {
     // SDF Pipeline
-    public required SDFPipeline SDFPipeline;
+    public required SDFPipelineGPU SDFPipeline;
 
     // Normals Shader
     public required string? NormalsShaderPath;

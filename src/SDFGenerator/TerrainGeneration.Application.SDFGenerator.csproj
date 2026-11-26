@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -13,6 +13,11 @@
   <ItemGroup>
     <ProjectReference Include="..\TerrainGeneration.Utilities\TerrainGeneration.Utilities.csproj" />
     <ProjectReference Include="..\TerrainGenerator.Application.SDFGenerator.Abstractions\TerrainGeneration.Application.SDFGenerator.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CPUSDFs\Sphere\" />
+    <Folder Include="CPUSDFs\SimplexNoise\" />
   </ItemGroup>
 
 </Project>

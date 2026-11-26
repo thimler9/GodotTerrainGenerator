@@ -1,9 +1,7 @@
 using Godot;
 using GodotTerrainGenerator2.Test_Scripts;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
 using TerrainGeneration.Application.SDFGenerator.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree;
@@ -93,7 +91,7 @@ public partial class TestVoxelOctree : Node
 		};
 
 		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-		SDFPipeline pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd);
+		SDFPipelineGPU pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd).gPUSDFPipeline;
 
 		TransvoxelTerrainGeneratorDescriptor transvoxelTerrainGeneratorDescriptor = new TransvoxelTerrainGeneratorDescriptor()
 		{
@@ -137,7 +135,7 @@ public partial class TestVoxelOctree : Node
 		compEffect.Camera = Camera;
 		compEffect.VoxelOctree = VoxelOctree;
 		compEffect.TerrainMeshConstantsBuffer = terrainMeshConstantsBuffer;
-       UpdateLighting(compEffect);
+        UpdateLighting(compEffect);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

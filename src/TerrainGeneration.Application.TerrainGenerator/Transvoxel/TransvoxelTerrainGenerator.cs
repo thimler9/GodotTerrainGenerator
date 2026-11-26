@@ -1,13 +1,6 @@
 ﻿using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TerrainGeneration.Application.SDFGenerator;
-using TerrainGeneration.Application.SDFGenerator.Abstractions;
-using TerrainGeneration.Application.SDFGenerator.Pipeline;
-using TerrainGeneration.Application.SDFGenerator.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel.NormalsShader;
 using TerrainGeneration.Utilities.EngineAbstractions;
 
@@ -16,7 +9,7 @@ public class TransvoxelTerrainGenerator
 {
     RenderingDevice Rd;
 
-    SDFPipeline SdfPipeline;
+    SDFPipelineGPU SdfPipeline;
 
     NormalsShader.NormalsShader NormalsShader;
 
@@ -100,7 +93,7 @@ public class TransvoxelTerrainGenerator
     /// object with a different SDFShader.
     /// </summary>
     /// <returns></returns>
-    public TerrainMesh GetTerrainMesh(SDFShaderParameters sdfShaderParameters, NormalsShaderParameters normalsShaderParameters, TransvoxelShaderParameters transvoxelShaderParameters)
+    public TerrainMesh GetTerrainMesh(SDFParametersGPU sdfShaderParameters, NormalsShaderParameters normalsShaderParameters, TransvoxelShaderParameters transvoxelShaderParameters)
     {
         ComputeBuffer sdfBuffer = SdfPipeline.GetSDF(sdfShaderParameters);
 

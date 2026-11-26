@@ -1,0 +1,205 @@
+using Godot;
+using System.Runtime.InteropServices;
+using TerrainGeneration.Application.SDFGenerator.Abstractions;
+using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.GPU.Constant;
+using TerrainGeneration.Application.SDFGenerator.GPU.SimplexNoise;
+using TerrainGeneration.Application.SDFGenerator.GPU.Sphere;
+using TerrainGeneration.Utilities.EngineAbstractions;
+using TerrainGeneration.Utilities.Struct;
+
+namespace TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
+
+public sealed class SDFPipelineGPU
+{
+    private RenderingDevice Rd;
+    public IReadOnlyList<BiomeDescriptorGPU> Biomes { get; }
+    public TemperatureDescriptorGPU Temperature { get; }
+
+    /// <summary>
+    /// Maps pipeline function names to their configured GPU shaders.
+    /// </summary>
+    private readonly Dictionary<string, ISDFShader> SDFShadersByFunction = new(StringComparer.OrdinalIgnoreCase);
+
+    // Used in dispatching the shaders
+    SDFParametersGPU SDFShaderParameters;
+    private ComputeBuffer? SDFParametersBuffer;
+    private ComputeBuffer? OutputBuffer;
+    private ComputeBuffer? DummyBiomeParametersBuffer;
+    private ComputeBuffer? DummyTemperatureValuesBuffer;
+    private ComputeBuffer? TemperatureValueBuffer;
+
+    public SDFPipelineGPU(TemperatureDescriptorGPU temperature, IReadOnlyList<BiomeDescriptorGPU> biomes, IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap, RenderingDevice rd)
+    {
+        Rd = rd;
+        Biomes = biomes ?? throw new ArgumentNullException("Biomes cannot be null.");
+        Temperature = temperature ?? throw new ArgumentNullException("Temperature cannot be null");
+        SetupSDFShaders(functionMap, rd);
+        SetupBiomeUniforms(biomes, rd);
+        SetupDummyUniforms(rd);
+    }
+
+    private void SetupSDFShaders(IReadOnlyDictionary<string, SDFFunctionConfiguration> functionMap, RenderingDevice rd)
+    {
+        foreach (var kvp in functionMap)
+        {
+            string functionName = kvp.Key;
+            string shaderPath = kvp.Value.GPUShader
+                ?? throw new InvalidOperationException($"No GPU shader configured for function '{functionName}'.");
+
+            ISDFShader shader = functionName switch
+            {
+                SimplexNoiseStage.FunctionName => new SimplexNoiseShader(rd, shaderPath),
+                ConstantStage.FunctionName => new ConstantShader(rd, shaderPath),
+                SphereStage.FunctionName => new SphereShader(rd, shaderPath),
+                _ => throw new NotSupportedException($"Unsupported shader function '{functionName}'.")
+            };
+
+            SDFShadersByFunction[functionName] = shader;
+        }
+    }
+
+    public ComputeBuffer GetSDF(SDFParametersGPU sdfShaderParameters)
+    {
+        SetSDFParameters(sdfShaderParameters);
+        SetOutputBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
+        SetTemperatureValueBuffer(sdfShaderParameters.ChunkSize, sdfShaderParameters.Lod);
+
+        if (OutputBuffer == null || SDFParametersBuffer == null)
+        {
+            throw new InvalidOperationException("Output buffer or SDF parameters buffer is not set.");
+        }
+
+        if (Temperature == null)
+        {
+            throw new InvalidOperationException("Temperature descriptor is not set.");
+        }
+
+        foreach (ISDFPipelineStageGPU stage in Temperature.Sdfs)
+        {
+            if (!SDFShadersByFunction.TryGetValue(stage.Function, out ISDFShader sdfShader))
+            {
+                throw new InvalidOperationException($"No shader registered for pipeline function '{stage.Function}'.");
+            }
+
+            sdfShader.Dispatch(
+                sdfShaderParameters.ChunkSize,
+                sdfShaderParameters.Lod,
+                stage.CreateShaderParameters(),
+                SDFParametersBuffer,
+                DummyBiomeParametersBuffer,
+                DummyTemperatureValuesBuffer,
+                TemperatureValueBuffer);
+        }
+
+        foreach (BiomeDescriptorGPU biome in Biomes)
+        {
+            // Get the temperature buffer
+
+            foreach (ISDFPipelineStageGPU stage in biome.Sdfs)
+            {
+                if (!SDFShadersByFunction.TryGetValue(stage.Function, out ISDFShader sdfShader))
+                {
+                    throw new InvalidOperationException($"No shader registered for pipeline function '{stage.Function}'.");
+                }
+
+                sdfShader.Dispatch(
+                    sdfShaderParameters.ChunkSize,
+                    sdfShaderParameters.Lod,
+                    stage.CreateShaderParameters(),
+                    SDFParametersBuffer,
+                    biome.BiomeParametersBuffer,
+                    TemperatureValueBuffer,
+                    OutputBuffer);
+            }
+        }
+
+        return OutputBuffer;
+    }
+
+    /// <summary>
+    /// Sets the parameters for the sdf shader params buffer
+    /// </summary>
+    /// <param name="parameters"></param>
+    private void SetSDFParameters(SDFParametersGPU parameters)
+    {
+        if (!SDFShaderParameters.Equals(parameters))
+        {
+            // If the buffer isn't valid, we need to create one
+            if (SDFParametersBuffer == null)
+            {
+                SDFParametersBuffer = new ComputeBuffer(Rd, (uint)Marshal.SizeOf<SDFParametersGPU>(), RenderingDevice.UniformType.UniformBuffer, 0);
+            }
+
+            SDFParametersBuffer.SetData(0, (uint)Marshal.SizeOf<SDFParametersGPU>(), parameters.ToByteArray());
+            SDFShaderParameters = parameters;
+        }
+    }
+
+    private void SetOutputBuffer(uint chunkSize, uint lod)
+    {
+        if (OutputBuffer == null)
+        {
+            uint chunkSizeToLodRatio = chunkSize / lod;
+            OutputBuffer = new ComputeBuffer(Rd, (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
+        }
+    }
+
+    private void SetTemperatureValueBuffer(uint chunkSize, uint lod)
+    {
+        if (TemperatureValueBuffer == null)
+        {
+            uint chunkSizeToLodRatio = chunkSize / lod;
+            TemperatureValueBuffer = new ComputeBuffer(Rd, (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * (chunkSizeToLodRatio + 2) * sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
+        }
+    }
+
+    private void SetupBiomeUniforms(IReadOnlyList<BiomeDescriptorGPU> biomes, RenderingDevice rd)
+    {
+        // Biome parameters are set in the shader dispatch loop, so we don't need to do anything here for now.
+        foreach (BiomeDescriptorGPU biome in biomes)
+        {
+            if (biome.BiomeParametersBuffer == null)
+            {
+                BiomeParametersGPU biomeParams = new BiomeParametersGPU(biome.Temperature, biome.TemperatureSpread, biome.Depth, biome.DepthSpread, biome.IgnoreBiome);
+                biome.BiomeParametersBuffer = new ComputeBuffer(rd, (uint)Marshal.SizeOf<BiomeParametersGPU>(), RenderingDevice.UniformType.UniformBuffer, 0, data: StructHelpers.ToByteArray(biomeParams));
+            }
+        }
+    }
+
+    private void SetupDummyUniforms(RenderingDevice rd)
+    {
+        BiomeParametersGPU biomeParameters = new BiomeParametersGPU(0f, 0f, 0f, 0f, true);
+        DummyBiomeParametersBuffer = new ComputeBuffer(
+            rd,
+            (uint)Marshal.SizeOf<BiomeParametersGPU>(),
+            RenderingDevice.UniformType.UniformBuffer,
+            0,
+            StructHelpers.ToByteArray(biomeParameters));
+        DummyTemperatureValuesBuffer = new ComputeBuffer(rd, sizeof(float), RenderingDevice.UniformType.StorageBuffer, 0);
+    }
+
+    public void Dispose()
+    {
+        SDFParametersBuffer.Dispose();
+        TemperatureValueBuffer.Dispose();
+        OutputBuffer.Dispose();
+        DummyTemperatureValuesBuffer.Dispose();
+        DummyBiomeParametersBuffer.Dispose();
+        foreach (ISDFShader shader in SDFShadersByFunction.Values)
+        {
+            shader.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Prints out all of the normals in the normals buffer. Use for debugging only. VERY slow.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
+    public void PrintOutBuffer(uint chunkSize, uint lod)
+    {
+        var outputBytes = TemperatureValueBuffer.GetData<byte>();
+        float[] output = new float[(chunkSize / lod + 1) * (chunkSize / lod + 1) * (chunkSize / lod + 1)];
+        Buffer.BlockCopy(outputBytes, 0, output, 0, output.Length * sizeof(float));
+    }
+}

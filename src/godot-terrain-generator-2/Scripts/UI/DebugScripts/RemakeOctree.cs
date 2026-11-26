@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using TerrainGeneration.Application.SDFGenerator.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
 using TerrainGeneration.Application.VoxelOctree;
 using TerrainGeneration.Application.VoxelOctree.AbstractOctree;
@@ -52,7 +53,7 @@ public partial class RemakeOctree : Button
             };
 
             SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-            SDFPipeline pipeline = sdfPipelineParser.ParseFromFile(testVoxelOctreeNode.SDFPipelinePath, RenderingServer.GetRenderingDevice());
+            SDFPipelineGPU pipeline = sdfPipelineParser.ParseFromFile(testVoxelOctreeNode.SDFPipelinePath, RenderingServer.GetRenderingDevice()).gPUSDFPipeline;
 
             Vector3 newPlayerPosition = testVoxelOctreeNode.Camera.Position;
 

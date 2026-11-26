@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3 uid="uid://bsp2biogx83ug"]
+
+[ext_resource type="Script" uid="uid://dvyeh7ydtfbe1" path="res://Test Scripts/Terrain Generator Tests/TestConstantSDF.cs" id="1_4n0om"]
+[ext_resource type="Script" uid="uid://cgptmqx33wxq4" path="res://Test Scripts/Terrain Generator Tests/TestSphereSDF.cs" id="2_wqivn"]
+[ext_resource type="Script" uid="uid://d38cpilgjq2qx" path="res://Test Scripts/Terrain Generator Tests/TestSimplexNoiseSDF.cs" id="3_6o564"]
+[ext_resource type="Script" uid="uid://q1f351i4vw2s" path="res://Test Scripts/Terrain Generator Tests/TestSDFPipeline.cs" id="4_6o564"]
+
+[node name="TestSDFGeneators" type="Node3D"]
+
+[node name="TestConstantSDF" type="Node" parent="."]
+script = ExtResource("1_4n0om")
+Tolerance = 0.001
+
+[node name="TestSphereSDF" type="Node" parent="."]
+process_mode = 4
+script = ExtResource("2_wqivn")
+Tolerance = 0.001
+
+[node name="TestSimplexSDF" type="Node" parent="."]
+process_mode = 4
+script = ExtResource("3_6o564")
+
+[node name="TestSDFPipeline" type="Node" parent="."]
+script = ExtResource("4_6o564")
+Tolerance = 0.001
