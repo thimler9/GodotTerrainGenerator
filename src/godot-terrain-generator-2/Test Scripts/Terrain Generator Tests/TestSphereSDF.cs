@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Diagnostics;
 using TerrainGeneration.Application.SDFGenerator;
 using TerrainGeneration.Application.SDFGenerator.Abstractions;
 using TerrainGeneration.Application.SDFGenerator.Abstractions.Pipeline;
@@ -48,14 +49,19 @@ public partial class TestSphereSDF : Node
         };
 
         int passed = 0;
+        var totalTimer = Stopwatch.StartNew();
         foreach (var (name, test) in tests)
         {
+            var timer = Stopwatch.StartNew();
             bool ok = test();
-            if (ok) passed++;
-            GD.Print($"[{(ok ? "PASS" : "FAIL")}] {name}");
-        }
+            timer.Stop();
 
-        GD.Print($"Sphere SDF parity: {passed}/{tests.Length} tests passed.");
+            if (ok) passed++;
+            GD.Print($"[{(ok ? "PASS" : "FAIL")}] {name} ({timer.Elapsed.TotalMilliseconds:F2} ms)");
+        }
+        totalTimer.Stop();
+
+        GD.Print($"Constant SDF parity: {passed}/{tests.Length} tests passed in {totalTimer.Elapsed.TotalMilliseconds:F2} ms.");
     }
 
     // ---------------------------------------------------------------------

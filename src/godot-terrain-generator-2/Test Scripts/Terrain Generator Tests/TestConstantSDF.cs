@@ -242,10 +242,7 @@ public partial class TestConstantSDF : Node
         var biomeParametersCPU = new BiomeParametersCPU(0, 0, biomeDepth, biomeDepthSpread, ignoreBiome);
         float[] outputCPU = (float[])initial.Clone();
 
-        var cpuTimer = Stopwatch.StartNew();
         ComputeCPUSDF(sdf, sdfParametersCPU, constantParameters, biomeParametersCPU, outputCPU);
-        cpuTimer.Stop();
-        GD.Print($"[{testName}] CPU only: {cpuTimer.Elapsed.TotalMilliseconds:F2} ms");
 
         // ======== GPU =========
         RenderingDevice rd = RenderingServer.GetRenderingDevice();
