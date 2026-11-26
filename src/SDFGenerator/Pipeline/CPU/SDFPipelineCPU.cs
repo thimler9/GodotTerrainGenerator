@@ -15,6 +15,14 @@ public sealed class SDFPipelineCPU
     public IReadOnlyList<BiomeDescriptorCPU> Biomes { get; }
     public TemperatureDescriptorCPU Temperature { get; }
 
+
+    private float[] Output;
+    private float[] TemperatureValues;
+
+    // These are used to get the temperature values since they don't depend on biome and temperature values
+    private float[] DummyTemperatureValues = new float[1];
+    private BiomeParametersCPU DummyBiomeParameters = new BiomeParametersCPU(0f, 0f, 0f, 0f, true);
+
     public SDFPipelineCPU(
         TemperatureDescriptorCPU temperature,
         IReadOnlyList<BiomeDescriptorCPU> biomes,
@@ -41,14 +49,20 @@ public sealed class SDFPipelineCPU
 
     public float[] GetSDF(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
-        var sdfParameters = new SDFParametersCPU(chunkOffset, chunkSize, lod);
+        SDFParametersCPU sdfParameters = new SDFParametersCPU(chunkOffset, chunkSize, lod);
+        uint length = sdfParameters.ChunkSize / sdfParameters.Lod + 2;
+        
+        // Initialize output if it isn't already
+        if (Output == null)
+        {
+            Output = new float[length * length * length];
+        }
 
-        int length = (int)sdfParameters.ChunkSize / (int)sdfParameters.Lod + 2;
-        // TODO THIS SHOULD NOT BE MADE EVERY CALL
-        float[] temperatureValues = new float[length * length * length];
-
-        BiomeParametersCPU dummyBiomeParameters = new BiomeParametersCPU(0f, 0f, 0f, 0f, true);
-        float[] dummyTemperatureValues = new float[1];
+        // Initialize temperatureValues if it isn't already
+        if (TemperatureValues == null)
+        {
+            TemperatureValues = new float[length * length * length];
+        }
 
         foreach (ISDFPipelineStageCPU stage in Temperature.Sdfs)
         {
@@ -60,14 +74,12 @@ public sealed class SDFPipelineCPU
             sdfFunction.Dispatch(
                 stage.CreateParameters(),
                 sdfParameters,
-                dummyBiomeParameters,
-                dummyTemperatureValues,
-                temperatureValues
+                DummyBiomeParameters,
+                DummyTemperatureValues,
+                TemperatureValues
             );
         }
 
-        // TODO THIS SHOULD NOT BE MADE EVERY CALL
-        float[] output = new float[length * length * length];
         foreach (BiomeDescriptorCPU biome in Biomes)
         {
             var biomeParameters = new BiomeParametersCPU(
@@ -83,27 +95,12 @@ public sealed class SDFPipelineCPU
                     throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
                 }
 
-                sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, output);
+                sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, TemperatureValues, Output);
             }
         }
 
-        return output;
+        return Output;
     }
-
-    //private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, float[] temperatureValues, float[] output)
-    //{
-    //    Dispatch(stage, sdfParameters, temperatureValues, temperatureValues);
-    //}
-
-    //private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
-    //{
-    //    if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
-    //    {
-    //        throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
-    //    }
-
-    //    sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, output);
-    //}
 
     private static IReadOnlyDictionary<string, ISDFFunctionCPU> DiscoverSdfs()
     {

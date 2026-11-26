@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="data\TerrainPipeline.json" />
+    <Content Include="test scripts\terrain generator tests\TerrainPipelineTest.json" />
   </ItemGroup>
   <ItemGroup>
 	  <Folder Include="Data\" />
