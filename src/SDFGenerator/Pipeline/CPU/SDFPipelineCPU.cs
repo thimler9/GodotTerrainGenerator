@@ -47,6 +47,15 @@ public sealed class SDFPipelineCPU
         }
     }
 
+    /// <summary>
+    /// Gets the signed distance field (SDF) for the specified chunk offset, size, and level of detail (LOD).
+    /// This SDF is a reference, so modifying it will modify the internal state of the SDFPipelineCPU instance. If you need to modify the SDF, make a copy of the returned array.
+    /// </summary>
+    /// <param name="chunkOffset"></param>
+    /// <param name="chunkSize"></param>
+    /// <param name="lod"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public float[] GetSDF(Vector3 chunkOffset, uint chunkSize, uint lod)
     {
         SDFParametersCPU sdfParameters = new SDFParametersCPU(chunkOffset, chunkSize, lod);
