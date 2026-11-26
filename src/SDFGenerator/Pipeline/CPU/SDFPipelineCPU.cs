@@ -43,13 +43,27 @@ public sealed class SDFPipelineCPU
     {
         var sdfParameters = new SDFParametersCPU(chunkOffset, chunkSize, lod);
 
-        int length = (int)sdfParameters.ChunkSize * (int)sdfParameters.Lod;
+        int length = (int)sdfParameters.ChunkSize / (int)sdfParameters.Lod + 2;
         // TODO THIS SHOULD NOT BE MADE EVERY CALL
         float[] temperatureValues = new float[length * length * length];
 
+        BiomeParametersCPU dummyBiomeParameters = new BiomeParametersCPU(0f, 0f, 0f, 0f, true);
+        float[] dummyTemperatureValues = new float[1];
+
         foreach (ISDFPipelineStageCPU stage in Temperature.Sdfs)
         {
-            Dispatch(stage, sdfParameters, temperatureValues, temperatureValues);
+            if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
+            {
+                throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
+            }
+
+            sdfFunction.Dispatch(
+                stage.CreateParameters(),
+                sdfParameters,
+                dummyBiomeParameters,
+                dummyTemperatureValues,
+                temperatureValues
+            );
         }
 
         // TODO THIS SHOULD NOT BE MADE EVERY CALL
@@ -64,27 +78,32 @@ public sealed class SDFPipelineCPU
                 biome.IgnoreBiome);
             foreach (ISDFPipelineStageCPU stage in biome.Sdfs)
             {
-               Dispatch(stage, sdfParameters, biomeParameters, temperatureValues, output);
+                if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
+                {
+                    throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
+                }
+
+                sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, output);
             }
         }
 
         return output;
     }
 
-    private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, float[] temperatureValues, float[] output)
-    {
-        Dispatch(stage, sdfParameters, default, temperatureValues);
-    }
+    //private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, float[] temperatureValues, float[] output)
+    //{
+    //    Dispatch(stage, sdfParameters, temperatureValues, temperatureValues);
+    //}
 
-    private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
-    {
-        if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
-        {
-            throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
-        }
+    //private void Dispatch(ISDFPipelineStageCPU stage, SDFParametersCPU sdfParameters, BiomeParametersCPU biomeParameters, float[] temperatureValues, float[] output)
+    //{
+    //    if (!sdfsByFunction.TryGetValue(stage.Function, out ISDFFunctionCPU? sdfFunction))
+    //    {
+    //        throw new InvalidOperationException($"No CPU SDF registered for pipeline function '{stage.Function}'.");
+    //    }
 
-        sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, output);
-    }
+    //    sdfFunction.Dispatch(stage.CreateParameters(), sdfParameters, biomeParameters, temperatureValues, output);
+    //}
 
     private static IReadOnlyDictionary<string, ISDFFunctionCPU> DiscoverSdfs()
     {
