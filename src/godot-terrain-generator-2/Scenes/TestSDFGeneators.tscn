@@ -6,18 +6,18 @@
 [ext_resource type="Script" uid="uid://q1f351i4vw2s" path="res://Test Scripts/Terrain Generator Tests/TestSDFPipeline.cs" id="4_6o564"]
 
 [node name="TestSDFGeneators" type="Node3D"]
+process_mode = 4
+visible = false
 
 [node name="TestConstantSDF" type="Node" parent="."]
 script = ExtResource("1_4n0om")
 Tolerance = 0.001
 
 [node name="TestSphereSDF" type="Node" parent="."]
-process_mode = 4
 script = ExtResource("2_wqivn")
 Tolerance = 0.001
 
 [node name="TestSimplexSDF" type="Node" parent="."]
-process_mode = 4
 script = ExtResource("3_6o564")
 
 [node name="TestSDFPipeline" type="Node" parent="."]

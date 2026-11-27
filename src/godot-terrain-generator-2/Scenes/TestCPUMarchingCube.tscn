@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://btm6jfi47tohj"]
+
+[ext_resource type="Script" uid="uid://bw0is2jf54rg5" path="res://Test Scripts/Terrain Generator Tests/TestCPUMarchingCubes.cs" id="1_gadak"]
+
+[node name="TestCpuMarchingCube" type="Node3D"]
+script = ExtResource("1_gadak")
+ChunkSize = 128
+Lod = 2
+MaxTrianglesToPrint = 20
