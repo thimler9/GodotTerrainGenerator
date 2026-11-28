@@ -23,12 +23,12 @@ public partial class TestCPUMarchingCubes : Node
         SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
         SDFPipeline sdfPipeline = sdfPipelineParser.ParseFromFile("res://Test Scripts/Terrain Generator Tests/TerrainPipelineTest.json", rd);
 
-        if (sdfPipeline.cPUSDFPipeline == null)
+        if (sdfPipeline.CPUSDFPipeline == null)
         {
             throw new Exception("CPU SDF Pipeline is null");
         }
 
-        if (sdfPipeline.gPUSDFPipeline == null)
+        if (sdfPipeline.GPUSDFPipeline == null)
         {
             throw new Exception("GPU SDF Pipeline is null");
         }
@@ -36,14 +36,13 @@ public partial class TestCPUMarchingCubes : Node
         Vector3 chunkOffset = new Vector3(0, 0, 0);
 
         var totalTimer = Stopwatch.StartNew();
-        float[] outputCPU = sdfPipeline.cPUSDFPipeline.GetSDF(chunkOffset, ChunkSize, Lod);
-        float[] outputGPU = sdfPipeline.gPUSDFPipeline.GetSDF(new TerrainGeneration.Application.SDFGenerator.SDFParametersGPU(chunkOffset, ChunkSize, Lod)).GetData<float>();
+        float[] outputCPU = sdfPipeline.CPUSDFPipeline.GetSDF(chunkOffset, ChunkSize, Lod);
+        float[] outputGPU = sdfPipeline.GPUSDFPipeline.GetSDF(new TerrainGeneration.Application.SDFGenerator.SDFParametersGPU(chunkOffset, ChunkSize, Lod)).GetData<float>();
         totalTimer.Stop();
 
         Transvoxel cpuMarchingCubes = new Transvoxel();
         TransvoxelParameters parameters = new TransvoxelParameters()
         {
-            BorderWidth = 0,
             ChunkSize = ChunkSize,
             Lod = Lod,
         };
@@ -59,5 +58,19 @@ public partial class TestCPUMarchingCubes : Node
 
         GD.Print($"SDF Time: {totalTimer.Elapsed.TotalMilliseconds}");
         GD.Print($"Marching Cubes Time: {marchingCubesTimer.Elapsed.TotalMilliseconds}");
+
+        var colliderCreationTime = Stopwatch.StartNew();
+        ConcavePolygonShape3D terrainCollider = new ConcavePolygonShape3D();
+        terrainCollider.SetFaces(vertices);
+
+        CollisionShape3D collisionShape3D = new CollisionShape3D();
+        collisionShape3D.Shape = terrainCollider;
+
+        StaticBody3D body3D = new StaticBody3D();
+        body3D.AddChild(collisionShape3D);
+
+        AddChild(body3D);
+        colliderCreationTime.Stop();
+        GD.Print($"Collider Creation Time: {colliderCreationTime.Elapsed.TotalMilliseconds}");
     }
 }

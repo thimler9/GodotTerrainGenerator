@@ -53,9 +53,9 @@ public partial class RemakeOctree : Button
             };
 
             SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-            SDFPipelineGPU pipeline = sdfPipelineParser.ParseFromFile(testVoxelOctreeNode.SDFPipelinePath, RenderingServer.GetRenderingDevice()).gPUSDFPipeline;
+            SDFPipelineGPU pipeline = sdfPipelineParser.ParseFromFile(testVoxelOctreeNode.SDFPipelinePath, RenderingServer.GetRenderingDevice()).GPUSDFPipeline;
 
-            Vector3 newPlayerPosition = testVoxelOctreeNode.Camera.Position;
+            Vector3 newPlayerPosition = testVoxelOctreeNode.CameraRigidBody3D.Position;
 
             Vector3 worldCenter = new Vector3(MathF.Round(newPlayerPosition.X / (testVoxelOctreeNode.StartSize / 4), MidpointRounding.ToPositiveInfinity) * (testVoxelOctreeNode.StartSize / 4),
                 MathF.Round(newPlayerPosition.Y / (testVoxelOctreeNode.StartSize / 4), MidpointRounding.ToPositiveInfinity) * (testVoxelOctreeNode.StartSize / 4), MathF.Round(newPlayerPosition.Z / (testVoxelOctreeNode.StartSize / 4), MidpointRounding.ToPositiveInfinity) * (testVoxelOctreeNode.StartSize / 4));
@@ -83,7 +83,7 @@ public partial class RemakeOctree : Button
                 EventQueueWorkBudget = testVoxelOctreeNode.EventQueueWorkBudget,
                 TransvoxelTerrainGeneratorDescriptor = transvoxelTerrainGeneratorDescriptor,
                 MinChunkSize = testVoxelOctreeNode.MinChunkSize,
-                PlayerPosition = testVoxelOctreeNode.Camera.Position,
+                PlayerPosition = testVoxelOctreeNode.CameraRigidBody3D.Position,
                 PlayerPositionChangeThreshold = testVoxelOctreeNode.PlayerPositionChangeThreshold,
                 Size = testVoxelOctreeNode.StartSize,
                 TerrainLods = testVoxelOctreeNode.TerrainLods,

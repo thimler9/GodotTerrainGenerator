@@ -10,5 +10,4 @@ public class TransvoxelParameters
 
     public uint ChunkSize { get; set; }
     public uint Lod { get; set; }
-    public float BorderWidth { get; set; }
 }

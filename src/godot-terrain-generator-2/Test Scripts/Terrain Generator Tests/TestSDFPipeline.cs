@@ -27,12 +27,12 @@ public partial class TestSDFPipeline : Node
 		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
 		SDFPipeline sdfPipeline = sdfPipelineParser.ParseFromFile("res://Test Scripts/Terrain Generator Tests/TerrainPipelineTest.json", rd);
 
-		if (sdfPipeline.cPUSDFPipeline == null)
+		if (sdfPipeline.CPUSDFPipeline == null)
 		{
 			throw new Exception("CPU SDF Pipeline is null");
         }
 
-		if (sdfPipeline.gPUSDFPipeline == null)
+		if (sdfPipeline.GPUSDFPipeline == null)
 		{
 			throw new Exception("GPU SDF Pipeline is null");
         }
@@ -42,8 +42,8 @@ public partial class TestSDFPipeline : Node
 		uint lod = 2;
 		
         var totalTimer = Stopwatch.StartNew();
-        float[] outputCPU = sdfPipeline.cPUSDFPipeline.GetSDF(chunkOffset, chunkSize, lod);
-		float[] outputGPU = sdfPipeline.gPUSDFPipeline.GetSDF(new TerrainGeneration.Application.SDFGenerator.SDFParametersGPU(chunkOffset, chunkSize, lod)).GetData<float>();
+        float[] outputCPU = sdfPipeline.CPUSDFPipeline.GetSDF(chunkOffset, chunkSize, lod);
+		float[] outputGPU = sdfPipeline.GPUSDFPipeline.GetSDF(new TerrainGeneration.Application.SDFGenerator.SDFParametersGPU(chunkOffset, chunkSize, lod)).GetData<float>();
         totalTimer.Stop();
 
         // ======== COMPARE =========

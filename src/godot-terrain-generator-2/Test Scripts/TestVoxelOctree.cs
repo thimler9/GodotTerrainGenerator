@@ -1,6 +1,9 @@
 using Godot;
 using GodotTerrainGenerator2.Test_Scripts;
+using System;
+using System.Linq;
 using TerrainGeneration.Application.SDFGenerator.Pipeline;
+using TerrainGeneration.Application.SDFGenerator.Pipeline.CPU;
 using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 using TerrainGeneration.Application.TerrainGenerator;
 using TerrainGeneration.Application.TerrainGenerator.Transvoxel;
@@ -11,7 +14,8 @@ using TerrainGeneration.Utilities.Struct;
 public partial class TestVoxelOctree : Node
 {
 	[Export]
-	public Camera3D Camera;
+	public RigidBody3D CameraRigidBody3D;
+	private Camera3D Camera3D;
 
 	// Tree params
 	[Export]
@@ -48,6 +52,7 @@ public partial class TestVoxelOctree : Node
 	// Simplex Noise Params
 	public string SimplexNoiseShaderPath = "res://Shaders/Compute/map_generator.glsl";
 	public string SDFPipelinePath = "res://Data/TerrainPipeline.json";
+	public SDFPipeline SDFPipeline;
 
 	public VoxelOctree VoxelOctree;
 
@@ -91,11 +96,16 @@ public partial class TestVoxelOctree : Node
 		};
 
 		SDFPipelineParser sdfPipelineParser = new SDFPipelineParser();
-		SDFPipelineGPU pipeline =  sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd).gPUSDFPipeline;
+		SDFPipeline = sdfPipelineParser.ParseFromFile(SDFPipelinePath, rd);
+
+		if (SDFPipeline == null)
+		{
+			throw new ArgumentNullException($"{nameof(SDFPipeline)} cannot be null.");
+		}
 
 		TransvoxelTerrainGeneratorDescriptor transvoxelTerrainGeneratorDescriptor = new TransvoxelTerrainGeneratorDescriptor()
 		{
-			SDFPipeline = pipeline,
+			SDFPipeline = SDFPipeline.GPUSDFPipeline,
             ChunkOffset = Center,
 			Lod = TerrainLods[0].LodDivider,
 			ChunkSize = StartSize,
@@ -115,7 +125,7 @@ public partial class TestVoxelOctree : Node
 			EventQueueWorkBudget = EventQueueWorkBudget,
 			TransvoxelTerrainGeneratorDescriptor = transvoxelTerrainGeneratorDescriptor,
 			MinChunkSize = MinChunkSize,
-			PlayerPosition = Camera.Position,
+			PlayerPosition = CameraRigidBody3D.Position,
 			PlayerPositionChangeThreshold = PlayerPositionChangeThreshold,
 			Size = StartSize,
 			TerrainLods = TerrainLods,
@@ -131,8 +141,15 @@ public partial class TestVoxelOctree : Node
 		byte[] terrainMeshConstantsBytes = StructHelpers.ToByteArray(terrainMeshConstants);
 		Rid terrainMeshConstantsBuffer = rd.UniformBufferCreate((uint)terrainMeshConstantsBytes.Length, terrainMeshConstantsBytes);
 
-		TestVoxelOctreeRenderer compEffect = Camera.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
-		compEffect.Camera = Camera;
+		Camera3D = CameraRigidBody3D.GetChildren().OfType<Camera3D>().FirstOrDefault();
+
+		if (Camera3D == null)
+		{
+			throw new ArgumentNullException($"{Camera3D} cannot be null");
+		}
+
+		TestVoxelOctreeRenderer compEffect = Camera3D.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
+		compEffect.Camera = Camera3D;
 		compEffect.VoxelOctree = VoxelOctree;
 		compEffect.TerrainMeshConstantsBuffer = terrainMeshConstantsBuffer;
         UpdateLighting(compEffect);
@@ -141,10 +158,10 @@ public partial class TestVoxelOctree : Node
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		VoxelOctree.UpdateAbstractTree(Camera.Position);
+		VoxelOctree.UpdateAbstractTree(CameraRigidBody3D.Position);
 		VoxelOctree.ProcessEventQueue();
 
-       TestVoxelOctreeRenderer compEffect = Camera.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
+       TestVoxelOctreeRenderer compEffect = Camera3D.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
 		if (compEffect != null)
 		{
 			UpdateLighting(compEffect);

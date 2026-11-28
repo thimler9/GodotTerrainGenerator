@@ -4,6 +4,5 @@
 
 [node name="TestCpuMarchingCube" type="Node3D"]
 script = ExtResource("1_gadak")
-ChunkSize = 128
-Lod = 2
+ChunkSize = 64
 MaxTrianglesToPrint = 20

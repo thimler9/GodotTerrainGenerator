@@ -46,8 +46,8 @@ public sealed class SDFPipelineParser
 
             return new SDFPipeline()
             {
-                gPUSDFPipeline = sDFPipelineGPU,
-                cPUSDFPipeline = sDFPipelineCPU
+                GPUSDFPipeline = sDFPipelineGPU,
+                CPUSDFPipeline = sDFPipelineCPU
             };
         }
         catch (JsonException ex)

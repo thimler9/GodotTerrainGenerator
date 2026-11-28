@@ -9,6 +9,6 @@ using TerrainGeneration.Application.SDFGenerator.Pipeline.GPU;
 namespace TerrainGeneration.Application.SDFGenerator.Pipeline;
 public class SDFPipeline
 {
-    public SDFPipelineCPU? cPUSDFPipeline;
-    public SDFPipelineGPU? gPUSDFPipeline;
+    public SDFPipelineCPU? CPUSDFPipeline;
+    public SDFPipelineGPU? GPUSDFPipeline;
 }
