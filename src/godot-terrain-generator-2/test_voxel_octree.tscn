@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://bepinf15m7nmp"]
+[gd_scene load_steps=10 format=3 uid="uid://bepinf15m7nmp"]
 
 [ext_resource type="PackedScene" uid="uid://caf06yovglm4k" path="res://Debug UI.tscn" id="1_820bx"]
 [ext_resource type="Script" uid="uid://3rx3e6vwcmxk" path="res://Test Scripts/TestVoxelOctree.cs" id="1_won1t"]
 [ext_resource type="Script" uid="uid://dludnx4fowhl6" path="res://Test Scripts/Render Pipeline Tests/TestVoxelOctreeRenderer.cs" id="2_820bx"]
+[ext_resource type="Script" uid="uid://ct0oyuex471c" path="res://External Script/RigidBodyController.cs" id="3_3efc6"]
 [ext_resource type="Script" uid="uid://biymvnyx4vfvq" path="res://Scripts/Player/TerrainCollider.cs" id="5_3efc6"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3efc6"]
@@ -32,7 +33,7 @@ fog_depth_end = 648.4
 
 [node name="TestVoxelOctree" type="Node3D"]
 
-[node name="Control" parent="." instance=ExtResource("1_820bx")]
+[node name="Debug Info" parent="." instance=ExtResource("1_820bx")]
 
 [node name="VoxelOctree" type="Node" parent="." node_paths=PackedStringArray("CameraRigidBody3D")]
 script = ExtResource("1_won1t")
@@ -51,8 +52,13 @@ MaxNumTerrainMeshesInQueue = 10
 
 [node name="Player" type="Node3D" parent="."]
 
-[node name="RigidBody3D" type="RigidBody3D" parent="Player"]
+[node name="RigidBody3D" type="RigidBody3D" parent="Player" node_paths=PackedStringArray("Camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -640, 0)
 lock_rotation = true
+script = ExtResource("3_3efc6")
+Camera = NodePath("Camera3D")
+MoveSpeed = 10.0
+MouseSensitivity = 0.001
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player/RigidBody3D"]
 shape = SubResource("CapsuleShape3D_3efc6")
@@ -66,7 +72,7 @@ compositor = SubResource("Compositor_820bx")
 script = ExtResource("5_3efc6")
 VoxelOctree = NodePath("../../../VoxelOctree")
 PlayerPosition = NodePath("..")
-ColliderSize = 32
+ColliderSize = 64
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_jae4j")

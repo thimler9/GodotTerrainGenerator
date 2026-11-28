@@ -37,7 +37,7 @@ public class Transvoxel
     /// <param name="transvoxelParameters"></param>
     /// <param name="sdf"></param>
     /// <returns></returns>
-    public Godot.Vector3[] GenerateMarchingCubes(TransvoxelParameters transvoxelParameters, float[] sdf)
+    public Godot.Vector3[] GenerateMarchingCubes(TransvoxelParameters transvoxelParameters, float[] sdf, Godot.Vector3? chunkOffset)
     {
         List<MarchingCubesTriangle> triangles = new List<MarchingCubesTriangle>();
         uint lod = transvoxelParameters.Lod;
@@ -71,7 +71,7 @@ public class Transvoxel
                     uint edgeCut = 0;
                     Godot.Vector3[] triangleVertices = new Godot.Vector3[12];
 
-                    for (uint i = 7; i > 0; i--)
+                    for (int i = 7; i >= 0; i--)
                     {
                         uint vertexValue = currentVertices[i].W >= 0.0f ? 1u : 0u;
                         edgeIndex |= vertexValue;
@@ -79,6 +79,11 @@ public class Transvoxel
                     }
                     edgeIndex >>= 1;
                     edgeCut = (uint)LookupTables.LookupTablesData[EDGE_TABLE_INDEX + edgeIndex];
+
+                    if (edgeCut == 0)
+                    {
+                        continue;
+                    }
 
                     for (int j = 0; j < 12; j++)
                     {
@@ -92,13 +97,17 @@ public class Transvoxel
                         triangleVertices[j] = new Godot.Vector3(interpolatedVertex.X, interpolatedVertex.Y, interpolatedVertex.Z);
                     }
 
-                    for (int i = 0; i < LookupTables.LookupTablesData[NUM_TRI_INDEX + edgeIndex]; i += 3)
+                    for (int i = 0; i < LookupTables.LookupTablesData[NUM_TRI_INDEX + edgeIndex]; i++)
                     {
-                        int index0 = LookupTables.LookupTablesData[TRIANGLE_LOOKUP_INDEX + edgeIndex * 16 + i];
-                        int index1 = LookupTables.LookupTablesData[TRIANGLE_LOOKUP_INDEX + edgeIndex * 16 + i + 1];
-                        int index2 = LookupTables.LookupTablesData[TRIANGLE_LOOKUP_INDEX + edgeIndex * 16 + i + 2];
+                        int index0 = LookupTables.LookupTablesData[TRIANGLE_LOOKUP_INDEX + edgeIndex * 16 + i * 3 + 2];
+                        int index1 = LookupTables.LookupTablesData[TRIANGLE_LOOKUP_INDEX + edgeIndex * 16 + i * 3 + 1];
+                        int index2 = LookupTables.LookupTablesData[TRIANGLE_LOOKUP_INDEX + edgeIndex * 16 + i * 3 ];
 
-                        triangles.Add(new MarchingCubesTriangle(triangleVertices[index0], triangleVertices[index1], triangleVertices[index2]));
+                        Godot.Vector3 vertex0 = triangleVertices[index0] + (chunkOffset == null ? Godot.Vector3.Zero : chunkOffset.Value);
+                        Godot.Vector3 vertex1 = triangleVertices[index1] + (chunkOffset == null ? Godot.Vector3.Zero : chunkOffset.Value);
+                        Godot.Vector3 vertex2 = triangleVertices[index2] + (chunkOffset == null ? Godot.Vector3.Zero : chunkOffset.Value);
+
+                        triangles.Add(new MarchingCubesTriangle(vertex0, vertex1, vertex2));
                     }
 
                 }

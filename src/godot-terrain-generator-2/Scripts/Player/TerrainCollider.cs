@@ -55,7 +55,7 @@ public partial class TerrainCollider : Node
 		}
 
 		TerrainLodAtPlayer = VoxelOctree.TerrainLods.Last();
-		DistanceForRecalculation = ColliderSize / 2.0f;
+		DistanceForRecalculation = ColliderSize / 4.0f;
 		OldPlayerPosition = PlayerPosition.Position;
 
 		// We make a new pipeline because the chunkSize / Lod ratio is prob different than the voxel octree
@@ -98,7 +98,7 @@ public partial class TerrainCollider : Node
         colliderOffset = (colliderOffset / TerrainLodAtPlayer.LodDivider).Floor() * TerrainLodAtPlayer.LodDivider; // Snaps the collider to the terrain gridfloat[] 
 
         float[] sdf = SDFPipelineCPU.GetSDF(colliderOffset, ColliderSize, TerrainLodAtPlayer.LodDivider);
-        Vector3[] vertices = CPUMarchingCubes.GenerateMarchingCubes(TransvoxelParameters, sdf);
+        Vector3[] vertices = CPUMarchingCubes.GenerateMarchingCubes(TransvoxelParameters, sdf, colliderOffset);
 
 		if (CollisionShapeGeometry == null)
 		{

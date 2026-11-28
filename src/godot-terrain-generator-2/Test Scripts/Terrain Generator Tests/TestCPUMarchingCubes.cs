@@ -48,7 +48,7 @@ public partial class TestCPUMarchingCubes : Node
         };
 
         var marchingCubesTimer = Stopwatch.StartNew();
-        Vector3[] vertices = cpuMarchingCubes.GenerateMarchingCubes(parameters, outputCPU);
+        Vector3[] vertices = cpuMarchingCubes.GenerateMarchingCubes(parameters, outputCPU, chunkOffset);
         marchingCubesTimer.Stop();
         for (int i = 0; i < Math.Min(vertices.Length, MaxTrianglesToPrint); i++)
         {

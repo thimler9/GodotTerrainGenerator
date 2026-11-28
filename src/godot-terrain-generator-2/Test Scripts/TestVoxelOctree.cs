@@ -161,7 +161,7 @@ public partial class TestVoxelOctree : Node
 		VoxelOctree.UpdateAbstractTree(CameraRigidBody3D.Position);
 		VoxelOctree.ProcessEventQueue();
 
-       TestVoxelOctreeRenderer compEffect = Camera3D.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
+		TestVoxelOctreeRenderer compEffect = Camera3D.Compositor.CompositorEffects[0] as TestVoxelOctreeRenderer;
 		if (compEffect != null)
 		{
 			UpdateLighting(compEffect);
